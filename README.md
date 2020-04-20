@@ -27,7 +27,9 @@ We'll want to authenticate users and maintain some kind of identity to help orga
 We should hook into Facebook & Google APIs for easy auth/identity.  Similarly, these accounts we have should be able to store Chess Server backend (FICS) login credentials if applicable.  The means some simple RDBS backend.  (See "Additional Notes" below)
 
 ### Presence service
-After authenticating, we should open a websocket.  This one, open websocket should keep track of anyone online.  We can use socket.io namespaces to keep connection count low and simple
+After authenticating, we should open the **WebSocket** descrbied above.  This single open websocket should keep track of anyone online.  We can use socket.io namespaces to keep connection count low and simple, and piggyback on this to deduce presence.
+
+FICS will also have its own notion of presence, that you can get by issuing telnet comands (AKA polling).
 
 ## Additional Notes
 
@@ -36,4 +38,4 @@ There's 2 different forms of identity on these backends.
 1. FICS login
 2. bughouse.app user login
 
-We should enable bughouse.app user's to login to FICS as guests and still have "rated" games when playing games all populated with *either* rated identiies on FICS (they're logged in) *or* all bughouse.app-backed FICS players.  That means keeping track of our currently logged in user's guest handles if they'r eusing one. If so, we can deduce our own Glicko updates after the game is finished.
+We should enable bughouse.app user's to login to FICS as guests and still have "rated" games when playing games all populated with *either* rated identiies on FICS (they're logged in) *or* all bughouse.app-backed FICS players.  That means keeping track of our currently logged in user's guest handles if they're using one. If so, we can deduce our own Glicko updates after the game is finished.
