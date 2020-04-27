@@ -7,14 +7,11 @@ const RequireAuth = ({ children }) => {
   if (user == null) {
     return <Redirect to='/' />;
   }
-  user.getIdToken(true).then(token => { console.log(token); });
-  console.log(user);
   return (
     <React.Fragment>
       {children}
     </React.Fragment>
   );
-
 };
 
 const SecureRoute = ( {component, ...props} ) => {

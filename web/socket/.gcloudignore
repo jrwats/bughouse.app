@@ -7,3 +7,4 @@ bughouse-secrets/
 **/.travis.yml
 **/LICENSE
 **/test
+*.md

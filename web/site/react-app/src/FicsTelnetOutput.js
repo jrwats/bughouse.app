@@ -23,7 +23,7 @@ const FicsTelnetOutput = (props) => {
       log.current = CONNECTED;
       setOutput(log.current);
     }
-    console.warn(`FicsTelnetOutput subscribing to ${telnet}`);
+    console.log(`FicsTelnetOutput subscribing to ${telnet}`);
     telnet.on('data', msg => {
       // console.log(`FicsTelnetOutput.on('data')`);
       log.current += normalize(msg);
