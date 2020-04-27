@@ -1,0 +1,11 @@
+# [START appengine_websockets_yaml]
+service: websocket
+runtime: nodejs
+env: flex
+
+automatic_scaling:
+  min_num_instances: 1
+
+network:
+  session_affinity: true
+# [END appengine_websockets_yaml]

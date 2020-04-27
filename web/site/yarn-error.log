@@ -1,0 +1,41 @@
+Arguments: 
+  /Users/jwatson/.nvm/versions/node/v12.12.0/bin/node /Users/jwatson/.yarn/bin/yarn.js add serve
+
+PATH: 
+  /Users/jwatson/Downloads/google-cloud-sdk/bin:/Users/jwatson/.nvm/versions/node/v12.12.0/bin:~/bin:/usr/local/opt/python3/Frameworks/Python.framework/Versions/3.7/share/doc/python3.7/examples/Tools/i18n:/usr/local/opt/gettext/bin:/Users/jwatson/.yarn/bin:/Users/jwatson/.config/yarn/global/node_modules/.bin:/usr/local/sbin:/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/bin:/opt/facebook/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/facebook/bin/biggrep:/opt/facebook/ops/scripts/chef:/opt/homebrew/bin:/usr/local/munki:/opt/facebook/hg/bin::/opt/android_sdk/tools:/opt/android_sdk/tools/bin:/opt/android_sdk/platform-tools
+
+Yarn version: 
+  1.22.4
+
+Node version: 
+  12.12.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/jwatson/workspace/bughouse/web/site/package.json: Unexpected token } in JSON at position 205
+      at JSON.parse (<anonymous>)
+      at /Users/jwatson/.yarn/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/Users/jwatson/.yarn/lib/cli.js:310:30)
+      at /Users/jwatson/.yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "bughouse.app (production)",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+    },
+    "scripts": {
+      "deploy": "gcloud app deploy websocket.yaml",
+      "start": "serve -s build",
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

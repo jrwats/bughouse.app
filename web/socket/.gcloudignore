@@ -1,0 +1,9 @@
+**/node_modules/
+.localhost-ssl/
+bughouse-secrets/
+
+**/.git
+**/.github
+**/.travis.yml
+**/LICENSE
+**/test

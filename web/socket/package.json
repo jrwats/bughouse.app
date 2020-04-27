@@ -1,0 +1,30 @@
+{
+  "name": "bughouse-websocket",
+  "description": "Node.js websocket service for bughouse",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": "12.x.x"
+  },
+  "scripts": {
+    "deploy": "gcloud app deploy websocket.yaml",
+    "start": "DEBUG=1 node app.js",
+    "lint": "eslint .",
+    "fix": "eslint --fix .",
+    "test": "mocha --exit test/*.test.js",
+    "e2e-test": "samples test deploy"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.1.3"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "firebase-admin": "^8.11.0",
+    "invariant": "^2.2.4",
+    "socket.io": "^2.3.0"
+  }
+}
