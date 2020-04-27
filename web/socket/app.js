@@ -60,8 +60,8 @@ const io = require('socket.io')(server);
 
 info('initializing admin');
 const adminSdkJson = process.env.NODE_ENV === 'production'
-  ? './.firebase-adminsdk.json'
-  : './.dev-firebase-adminsdk.json';
+  ? './bughouse-secrets/.firebase-adminsdk.json'
+  : './bughouse-secrets/.dev-firebase-adminsdk.json';
 const dbURL = process.env.NODE_ENV === 'production'
   ? 'https://bughouse-274816.firebaseio.com'
   : 'https://bughouse-dev.firebaseio.com';
@@ -86,12 +86,13 @@ io.on('connection', (socket) => {
     return socket.disconnect(true);
   }
 
-  info(`token=${token}`);
+  info(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
     .then(decodedToken => {
       uid = decodedToken.uid;
-      info(`uid=${uid}`);
+      info(`Authenticated '${uid}'`);
       socket.emit('authenticated', true);
+
       let fics = uid2fics[uid];
       if (fics != null) {
         if (uid2destroy[uid] != null) {
@@ -108,7 +109,7 @@ io.on('connection', (socket) => {
         fics = uid2fics[uid] = new FicsClient();
       }
       const dataListener = data => {
-        info(`${Date.now()}: socket.emit('data')`);
+        info(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
         socket.emit('data', data);
       };
       fics.on('data', dataListener);
@@ -120,21 +121,22 @@ io.on('connection', (socket) => {
           return;
         }
         info(`login(${creds.username})`);
-        fics.login(creds).then(() => {
-          socket.emit('login', fics.getUsername());
-          info(`Successfully logged in ${fics.getUsername()}`);
-        }).catch(err => {
-          console.log(err);
-          socket.emit('login_failed', err.message);
-          socket.emit('err', {
-            type: 'login',
-            message: err.message,
+        fics.login(creds)
+          .then(() => {
+            socket.emit('login', fics.getUsername());
+            info(`Successfully logged in ${fics.getUsername()}`);
+          }).catch(err => {
+            console.log(err);
+            socket.emit('failedlogin', err.message);
+            socket.emit('err', {
+              type: 'login',
+              message: err.message,
+            });
           });
-        });
       });
 
       socket.on('logout', () => {
-        info(`logout`);
+        info(`logout ${fics.getUsername()}`);
         fics.destroy();
         // fics.off('data', dataListener);
         // socket.removeAllListeners();

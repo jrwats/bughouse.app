@@ -23,6 +23,9 @@ const TelnetProvider = (props) => {
     console.log(`TelnetProvider.setTelnet`);
     setTelnet(proxy);
     window.__telnet = proxy;
+    proxy.on('logging_in', () => {
+      setLoggedOut(false);
+    });
     proxy.on('login', username => {
       console.log(`TelnetProvider.login(${username})`);
       setUsername(username);

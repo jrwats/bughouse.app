@@ -37,12 +37,21 @@ class TelnetProxy extends events.EventEmitter {
         this.emit('login', username);
       });
 
-      this._socket.on('data', (msg) => {
+      this._socket.on('data', msg => {
         console.log(`TelnetProxy.emit('data')`);
         this.emit('data', msg);
       });
-      this._socket.on('err', (msg) => {
-        console.error(msg);
+      this._socket.on('err', err => {
+        console.error(err);
+        this.emit('err', err);
+      });
+      this._socket.on('pong', latency => {
+        this.emit('latency', latency);
+        console.log(`bughouse.app latency: ${latency}ms`);
+      });
+      this._socket.on('err', err => {
+        console.error(err);
+        this.emit('err', err);
       });
     });
   }
@@ -52,11 +61,13 @@ class TelnetProxy extends events.EventEmitter {
   }
 
   login(creds) {
+    console.log('TelnetProxy.login()');
+    this.emit('logging_in');
     this._loggedOut = false;
     this._socket.emit('login', creds);
     return new Promise((resolve, reject) => {
       this._socket.once('login', resolve);
-      this._socket.once('login_failed', msg => {
+      this._socket.once('failedlogin', msg => {
         this._loggedOut = true;
         reject(msg);
       });

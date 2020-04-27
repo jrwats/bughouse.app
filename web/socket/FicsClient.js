@@ -37,14 +37,13 @@ class FicsClient extends events.EventEmitter {
           let match = /Logging you in as "(\w+)";/.exec(result);
           if (match != null) {
             this._username = match[1];
-            console.log(`!!!!!!!!\nusername: ${this._username}\n!!!!!!!!`);
           }
         }
         if (this._username != null) {
           this.emit('login', this._username);
         }
       }
-      console.log('FicsClient.data ...');
+      console.log(`FicsClient.data '${result.substr(0,20)}...'`);
       this.emit('data', result);
     });
     this._conn.on('ready', _ => {
@@ -57,22 +56,32 @@ class FicsClient extends events.EventEmitter {
           this._conn.exec('set bugopen 1'),
           this._conn.exec('+channel 24'),
         ]);
+        console.log('called set...');
       });
     });
-    await this._conn.connect({
-      port: 5000,
-      host: 'freechess.org',
-      shellPrompt: /^fics% $/m,
-      timeout: 4000,
-      echoLines: 0,
-      passwordPrompt,
-      username,
-      password: creds.password || '',
-    });
-    this._connected = true;
-    this._conn.on('failedlogin', data => console.log('FicsClient.failedlogin'));
-    console.log('FicsClient connected');
-    console.log('called set...');
+    try {
+      this._conn.on(
+        'failedlogin',
+        err => {
+          console.error('FicsClient.failedlogin');
+          this.emit('failedlogin', err);
+        }
+      );
+      await this._conn.connect({
+        port: 5000,
+        host: 'freechess.org',
+        shellPrompt: /^fics% $/m,
+        timeout: 5000,
+        echoLines: 0,
+        passwordPrompt,
+        username,
+        password: creds.password || '',
+      });
+      this._connected = true;
+      console.log('FicsClient connected');
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async send(cmd) {
@@ -100,9 +109,6 @@ class FicsClient extends events.EventEmitter {
     this._conn.removeAllListeners();
   }
 
-  send(data) {
-    return this._conn.send(data);
-  }
 }
 
 module.exports = FicsClient;
