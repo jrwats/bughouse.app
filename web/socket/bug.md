@@ -1,7 +1,45 @@
+
 Below is example output of style12 bughosue match
 https://www.freechess.org/Help/HelpFiles/style12.html
 
+
+```
+Creating: GuestVGPY (++++) GuestTJTD (++++) unrated bughouse 20 0
+{Game 54 (GuestTJTD vs. GuestVGPY) Creating unrated bughouse match.}
+Your partner is playing game 51 (GuestFXLX vs. GuestRZLG).
+```
+
+```
+{Game 54 (GuestTJTD vs. GuestVGPY) GuestVGPY forfeits by disconnection} 1-0
+
+{Game 51 (GuestFXLX vs. GuestRZLG) GuestRZLG's partner won} 0-1
+
+No ratings adjustment done.
+```
+
 **bugwho**
+```
+Bughouse games in progress
+
+ 0 games displayed.
+
+Partnerships not playing bughouse
+
+ 0 partnerships displayed.
+
+Unpartnered players with bugopen on
+
+1138.Ishtaire        ----.fixerator       ----^Revival
+1097.lderas          ----^fluters         ---- simonv
+1036#BlindPumaGM(B)  ---- gatorjoe        ---- tennischess
+ 983.mjb             ----^hllyrck         ---- theragingbull
+ 928^LordFou         ----.Honoray         ----.VegasBob
+----.adenin          ---- manoah          ++++ GuestTNWT(U)
+----.BOTCHvinik      ----:NoHaRa
+----^BuenTipo        ----.olebob
+
+ 22 players displayed (of 381). (*) indicates system administrator.
+```
 ```
 fics% bugwho g
 Bughouse games in progress

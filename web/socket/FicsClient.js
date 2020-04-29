@@ -25,8 +25,9 @@ class FicsClient extends events.EventEmitter {
       'must provide password'
     );
     const passwordPrompt = username === 'guest'
-          ? /Press return to enter the server as "\w+":/
-          : /password:/i;
+      ? /Press return to enter the server as "\w+":/
+      : /password:/i;
+    this._conn.removeAllListeners();
     console.log('FicsClient connecting...');
     this._conn.on('data', chunks => {
       const result = chunks.toString();
@@ -50,13 +51,20 @@ class FicsClient extends events.EventEmitter {
       this._ready = true;
       console.log('FicsClient.ready');
       sleep(500).then(() => {
-        Promise.all([
-          this._conn.exec('set ctell 0'),
-          this._conn.exec('set formula bughouse'),
-          this._conn.exec('set bugopen 1'),
-          this._conn.exec('+channel 24'),
-        ]);
-        console.log('called set...');
+        const initCommands = ['set style 12'];
+        if (username === 'guest') {
+          [].push.apply(initCommands, [
+            'set ctell 0',
+            'set formula bughouse',
+            'set bugopen 1',
+            '+channel 24',
+            '+channel 93',
+            '-channel 4',
+            '-channel 53',
+          ]);;
+        }
+        Promise.all(initCommands.map(cmd => this.send(cmd)));
+        console.log('initialized FICS variables');
       });
     });
     try {
@@ -80,6 +88,7 @@ class FicsClient extends events.EventEmitter {
       this._connected = true;
       console.log('FicsClient connected');
     } catch (err) {
+      this.emit('failedlogin', err.message);
       console.log(err);
     }
   }

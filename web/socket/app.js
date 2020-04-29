@@ -94,6 +94,13 @@ io.on('connection', (socket) => {
       socket.emit('authenticated', true);
 
       let fics = uid2fics[uid];
+      const logout = () => {
+        info(`Deleting FICS telnet connection for ${uid}`);
+        delete uid2fics[uid];
+        fics.destroy();
+        fics.removeAllListeners();
+        fics = null;
+      };
       if (fics != null) {
         if (uid2destroy[uid] != null) {
           clearTimeout(uid2destroy[uid]);
@@ -101,13 +108,16 @@ io.on('connection', (socket) => {
         }
         info(`Reusing FICS telnet connection for ${uid}`);
         info(`Usernamme: ${fics.getUsername()}`);
-        if (fics.getUsername() != null) {
-          socket.emit('login', fics.getUsername());
-        }
       } else {
         info(`Establishing new FICS telnet connection for ${uid}`);
         fics = uid2fics[uid] = new FicsClient();
       }
+      if (fics.getUsername() != null) {
+        socket.emit('login', fics.getUsername());
+      } else {
+        socket.emit('logged_out');
+      }
+
       const dataListener = data => {
         info(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
         socket.emit('data', data);
@@ -124,7 +134,7 @@ io.on('connection', (socket) => {
         fics.login(creds)
           .then(() => {
             socket.emit('login', fics.getUsername());
-            info(`Successfully logged in ${fics.getUsername()}`);
+            info(`${uid} logged in ${fics.getUsername()}`);
           }).catch(err => {
             console.log(err);
             socket.emit('failedlogin', err.message);
@@ -136,24 +146,18 @@ io.on('connection', (socket) => {
       });
 
       socket.on('logout', () => {
-        info(`logout ${fics.getUsername()}`);
-        fics.destroy();
-        // fics.off('data', dataListener);
-        // socket.removeAllListeners();
+        info(`${uid} logout ${fics.getUsername()}`);
+        socket.emit('logged_out');
+        logout();
       });
 
       socket.on('disconnect', (reason) => {
-        info(`disconnected: ${JSON.stringify(reason)}`);
+        info(`${uid} disconnected: ${fics.getUsername()} ${JSON.stringify(reason)}`);
         fics.off('data', dataListener);
         socket.removeAllListeners();
         // In 30s delete our telnet connection
-        uid2destroy[uid] = setTimeout(() => {
-          info(`Deleting FICS telnet connection for ${uid}`);
-          delete uid2fics[uid];
-          fics.destroy();
-          fics = null;
-        }, 1000 * 30);
-        info(`Waiting 30s to delete FICS telnet connection`);
+        uid2destroy[uid] = setTimeout(logout, 1000 * 30);
+        info(`${uid} Waiting 30s to destroy ${fics.getUsername()}'s FICS telnet`);
       });
 
       socket.on('cmd', async cmd => {

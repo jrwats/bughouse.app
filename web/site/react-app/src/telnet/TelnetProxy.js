@@ -34,7 +34,16 @@ class TelnetProxy extends events.EventEmitter {
       this._socket.on('login', (username) => {
         console.log(`TelnetProxy.login`);
         this._username = username;
+        if (username == null) {
+          this._loggedOut = true;
+          return this.emit('logout');
+        }
         this.emit('login', username);
+      });
+      this._socket.on('logged_out', () => {
+        this._loggedOut = true;
+        this._username = null;
+        this.emit('logout');
       });
 
       this._socket.on('data', msg => {
