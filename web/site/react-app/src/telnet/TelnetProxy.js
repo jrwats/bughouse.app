@@ -5,6 +5,8 @@ const URL = process.env.NODE_ENV === 'production'
   ? 'https://websocket-dot-bughouse-274816.nn.r.appspot.com'
   : 'https://localhost:7777';
 
+const _singleton = new events.EventEmitter();
+
 /**
  * Proxy to our telnet connection that emits raw console output as well as
  * parsed game and environment data.
@@ -21,6 +23,7 @@ class TelnetProxy extends events.EventEmitter {
       this._socket = io(URL, {
         secure: true,
         reconnect: true,
+        // ca:
         rejectUnauthorized: process.env.NODE_ENV !== 'production',
         query: {token: idToken},
       });
@@ -36,14 +39,14 @@ class TelnetProxy extends events.EventEmitter {
         this._username = username;
         if (username == null) {
           this._loggedOut = true;
-          return this.emit('logout');
+          return this._emit('logout');
         }
-        this.emit('login', username);
+        this._emit('login', {ficsUsername: username});
       });
       this._socket.on('logged_out', () => {
         this._loggedOut = true;
         this._username = null;
-        this.emit('logout');
+        this._emit('logout');
       });
 
       this._socket.on('data', msg => {
@@ -51,16 +54,13 @@ class TelnetProxy extends events.EventEmitter {
         this.emit('data', msg);
       });
       this._socket.on('err', err => {
+        console.error('TelnetProxy socket error');
         console.error(err);
         this.emit('err', err);
       });
       this._socket.on('pong', latency => {
         this.emit('latency', latency);
         console.log(`bughouse.app latency: ${latency}ms`);
-      });
-      this._socket.on('err', err => {
-        console.error(err);
-        this.emit('err', err);
       });
     });
   }
@@ -71,12 +71,13 @@ class TelnetProxy extends events.EventEmitter {
 
   login(creds) {
     console.log('TelnetProxy.login()');
-    this.emit('logging_in');
+    this._emit('logging_in');
     this._loggedOut = false;
     this._socket.emit('login', creds);
     return new Promise((resolve, reject) => {
       this._socket.once('login', resolve);
       this._socket.once('failedlogin', msg => {
+        console.error('failedlogin', msg);
         this._loggedOut = true;
         reject(msg);
       });
@@ -88,7 +89,7 @@ class TelnetProxy extends events.EventEmitter {
     this._socket.emit('logout');
     this._loggedOut = true;
     this._username = null;
-    this.emit('logout');
+    this._emit('logout');
   }
 
   isLoggedIn() {
@@ -106,6 +107,19 @@ class TelnetProxy extends events.EventEmitter {
   getSocket() {
     return this._socket;
   }
+
+  _emit(event, data) {
+    this.emit(event, data);
+    _singleton.emit(event, {
+      uid: this._user.uid,
+      ...data,
+    });
+  }
+
+  static singleton() {
+    return _singleton;
+  }
+
 }
 
 export default TelnetProxy;

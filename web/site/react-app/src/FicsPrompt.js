@@ -112,12 +112,14 @@ const FicsLogin = () => {
 
 const FicsPrompt = () => {
   const {telnet, loggedOut} = useContext(TelnetContext);
-  console.log(`FicsLogin loggedOut: ${loggedOut}`);
+  console.log(`FicsPrompt loggedOut: ${loggedOut}`);
   if (telnet == null) {
+    console.log(`FicsPromp telnet == null`);
     return <div />;
   } else if (telnet.isLoggedIn()) {
     return <FicsLoggedIn />
   }
+  console.log(`telnet.isLoggedIn(): ${telnet.isLoggedIn()}`);
   return <FicsLogin />
 }
 

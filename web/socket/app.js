@@ -44,8 +44,9 @@ const getServer = () => {
   // To install certs on MacOS:
   //
   // mkdir -p .localhost-ssl
+  // sudo openssl genrsa -out localhost.key 2048
   // sudo openssl req -new -x509 -key .localhost-ssl/localhost.key \
-  //   -out .localhost-ssl/localhost.crt -days 3650 -subj /CN=localhost
+  //   -out .localhost-ssl/localhost.crt -days 1024 -subj /CN=localhost
   //
   // sudo security add-trusted-cert -d -r trustRoot -k \
   //   /Library/Keychains/System.keychain .localhost-ssl/localhost.crt
@@ -101,6 +102,17 @@ io.on('connection', (socket) => {
         fics.removeAllListeners();
         fics = null;
       };
+
+      const getFicsConn = () => {
+        if (fics != null) {
+          return fics;
+        }
+        if (uid2fics[uid] != null) {
+          return uid2fics[uid];
+        }
+        return uid2fics[uid] = new FicsClient();
+      }
+
       if (fics != null) {
         if (uid2destroy[uid] != null) {
           clearTimeout(uid2destroy[uid]);
@@ -108,10 +120,12 @@ io.on('connection', (socket) => {
         }
         info(`Reusing FICS telnet connection for ${uid}`);
         info(`Usernamme: ${fics.getUsername()}`);
+        return fics;
       } else {
         info(`Establishing new FICS telnet connection for ${uid}`);
-        fics = uid2fics[uid] = new FicsClient();
+        fics = getFicsConn();
       }
+
       if (fics.getUsername() != null) {
         socket.emit('login', fics.getUsername());
       } else {
@@ -125,16 +139,17 @@ io.on('connection', (socket) => {
       fics.on('data', dataListener);
 
       socket.on('login', creds => {
-        if (fics.isConnected()) {
-          socket.emit('login', fics.getUsername());
-          info(`Already connected as ${fics.getUsername()}`);
+        let ficsConn = getFicsConn();
+        if (ficsConn.isConnected()) {
+          socket.emit('login', ficsConn.getUsername());
+          info(`Already connected as ${ficsConn.getUsername()}`);
           return;
         }
         info(`login(${creds.username})`);
-        fics.login(creds)
+        ficsConn.login(creds)
           .then(() => {
-            socket.emit('login', fics.getUsername());
-            info(`${uid} logged in ${fics.getUsername()}`);
+            socket.emit('login', ficsConn.getUsername());
+            info(`${uid} logged in ${ficsConn.getUsername()}`);
           }).catch(err => {
             console.log(err);
             socket.emit('failedlogin', err.message);
@@ -146,18 +161,22 @@ io.on('connection', (socket) => {
       });
 
       socket.on('logout', () => {
-        info(`${uid} logout ${fics.getUsername()}`);
+        info(`${uid} logout ${fics && fics.getUsername()}`);
         socket.emit('logged_out');
         logout();
       });
 
       socket.on('disconnect', (reason) => {
-        info(`${uid} disconnected: ${fics.getUsername()} ${JSON.stringify(reason)}`);
-        fics.off('data', dataListener);
+        let username = 'NULL (not logged in)'
+        if (fics != null) {
+          fics.off('data', dataListener);
+          username = fics.getUsername();
+        }
+        info(`${uid} disconnected: ${username} ${JSON.stringify(reason)}`);
         socket.removeAllListeners();
         // In 30s delete our telnet connection
         uid2destroy[uid] = setTimeout(logout, 1000 * 30);
-        info(`${uid} Waiting 30s to destroy ${fics.getUsername()}'s FICS telnet`);
+        info(`${uid} Waiting 30s to destroy FICS telnet cnonection of ${username}`);
       });
 
       socket.on('cmd', async cmd => {

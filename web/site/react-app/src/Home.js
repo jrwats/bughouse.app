@@ -6,6 +6,7 @@ import FicsTelnetOutput from './FicsTelnetOutput';
 import FicsPrompt from './FicsPrompt';
 import TelnetProvider from './telnet/TelnetProvider';
 import AppBar from './AppBar';
+import MenuIcon from '@material-ui/icons/Menu';
 
 const Home = (props) => {
   const {user} = useContext(AuthContext);

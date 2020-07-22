@@ -26,9 +26,10 @@ const TelnetProvider = (props) => {
     proxy.on('logging_in', () => {
       setLoggedOut(false);
     });
-    proxy.on('login', username => {
-      console.log(`TelnetProvider.login(${username})`);
-      setUsername(username);
+    proxy.on('login', ({ficsUsername}) => {
+      console.log(`TelnetProvider.login(${ficsUsername})`);
+      // firebase.database().ref(`users/${uid}/ficsUsername`).set(username);
+      setUsername(ficsUsername);
       setLoggedOut(false);
     });
     proxy.on('logout', () => {
