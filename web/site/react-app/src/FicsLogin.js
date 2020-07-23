@@ -6,6 +6,7 @@ import React, {useContext, useRef} from 'react'
 import {TelnetContext} from './telnet/TelnetProvider'
 import Typography from '@material-ui/core/Typography';
 import AppSignOut from './AppSignOut';
+import Profile from './user/Profile';
 
 const FicsLogin = () => {
   const {telnet, loggedOut} = useContext(TelnetContext);
@@ -67,7 +68,8 @@ const FicsLogin = () => {
             </Grid>
            </form>
         </Box>
-        <div>
+        <div style={{marginTop: '80px'}} >
+          <Profile style={{position: 'relative', top: '4px', paddingRight: '40px'}} />
           <AppSignOut />
         </div>
       </div>
