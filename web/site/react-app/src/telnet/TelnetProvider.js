@@ -19,26 +19,32 @@ const TelnetProvider = (props) => {
 
   useEffect(() => {
     console.log(`${Date.now()}: TelnetProvider creating TelnetProxy. ${user.uid}`);
-    const proxy = new TelnetProxy(user);
+    const proxy = TelnetProxy.get(user);
     console.log(`TelnetProvider.setTelnet`);
     setTelnet(proxy);
     window.__telnet = proxy;
-    proxy.on('logging_in', () => {
-      setLoggedOut(false);
-    });
-    proxy.on('login', ({ficsUsername}) => {
+    const onLoggingIn = () => { setLoggedOut(false); };
+    const onLogin = ({ficsUsername}) => {
       console.log(`TelnetProvider.login(${ficsUsername})`);
       // firebase.database().ref(`users/${uid}/ficsUsername`).set(username);
       setUsername(ficsUsername);
       setLoggedOut(false);
-    });
-    proxy.on('logout', () => {
+    };
+    const onLogout = () => {
       console.log(`TelnetProvider.logout`);
       setUsername(null);
       setLoggedOut(true);
-    });
+    };
+    proxy.on('logging_in', onLoggingIn);
+    proxy.on('login', onLogin);
+    proxy.on('logout', onLogout);
+    return function() {
+      proxy.off('logging_in', onLoggingIn);
+      proxy.off('login', onLogin);
+      proxy.off('logout', onLogout);
+    };
   }, [user]);
-  console.log(`TelnetProvider telnet = ${telnet}`);
+
   return (
     <TelnetContext.Provider value={{telnet, loggedOut, ficsUsername}}>
       {props.children}

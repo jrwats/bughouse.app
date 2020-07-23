@@ -6,6 +6,7 @@ import auth from "./firebase-init";
  */
 export const AuthContext = createContext({user: auth.currentUser});
 const AuthProvider = (props) => {
+  console.log('AuthProvider');
   const [pendingAuth, setPending] = useState(true);
   const [user, setUser] = useState(auth.currentUser);
   auth.onAuthStateChanged(userAuth => {

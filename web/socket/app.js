@@ -97,10 +97,12 @@ io.on('connection', (socket) => {
       let fics = uid2fics[uid];
       const logout = () => {
         info(`Deleting FICS telnet connection for ${uid}`);
-        delete uid2fics[uid];
-        fics.destroy();
-        fics.removeAllListeners();
-        fics = null;
+        if (fics != null) {
+          delete uid2fics[uid];
+          fics.destroy();
+          fics.removeAllListeners();
+          fics = null;
+        }
       };
 
       const getFicsConn = () => {
@@ -110,8 +112,9 @@ io.on('connection', (socket) => {
         if (uid2fics[uid] != null) {
           return uid2fics[uid];
         }
+        info(`Establishing new FICS telnet connection for ${uid}`);
         return uid2fics[uid] = new FicsClient();
-      }
+      };
 
       if (fics != null) {
         if (uid2destroy[uid] != null) {
@@ -120,9 +123,7 @@ io.on('connection', (socket) => {
         }
         info(`Reusing FICS telnet connection for ${uid}`);
         info(`Usernamme: ${fics.getUsername()}`);
-        return fics;
       } else {
-        info(`Establishing new FICS telnet connection for ${uid}`);
         fics = getFicsConn();
       }
 
@@ -138,7 +139,7 @@ io.on('connection', (socket) => {
       };
       fics.on('data', dataListener);
 
-      socket.on('login', creds => {
+      socket.on('fics_login', creds => {
         let ficsConn = getFicsConn();
         if (ficsConn.isConnected()) {
           socket.emit('login', ficsConn.getUsername());
@@ -160,7 +161,7 @@ io.on('connection', (socket) => {
           });
       });
 
-      socket.on('logout', () => {
+      socket.on('fics_logout', () => {
         info(`${uid} logout ${fics && fics.getUsername()}`);
         socket.emit('logged_out');
         logout();

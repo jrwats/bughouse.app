@@ -17,6 +17,9 @@ class Presence {
 
     auth.onAuthStateChanged(userAuth => {
       console.log('registering presence');
+      if (userAuth == null) {
+        return;
+      }
       const uid = userAuth.uid;
 
       // A user can connect from multiple devices/browser tabs. So store each

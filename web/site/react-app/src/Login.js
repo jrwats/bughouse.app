@@ -1,5 +1,5 @@
 import React, {useContext} from 'react'
-import { Redirect } from 'react-router-dom'
+// import { useNavigate } from "@reach/router";
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 import firebase from "firebase/app";
 import {AuthContext} from './auth/AuthProvider';
@@ -7,7 +7,16 @@ import {AuthContext} from './auth/AuthProvider';
 // import Button from '@material-ui/core/Button';
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const Login = () => {
+const Login = ({ navigate }) => {
+  const {pendingAuth, user} = useContext(AuthContext);
+  if (user != null) {
+    navigate('/home', {replace: true});
+  }
+  if (pendingAuth || user != null) {
+    return null;
+  }
+  console.log(`Login displaying login`);
+
   // https://github.com/firebase/firebaseui-web
   const uiConfig = {
     // Popup on web, redirect on mobile
@@ -55,13 +64,6 @@ const Login = () => {
     tosUrl: 'https://bughouse.app/static/TOS.pdf',
     privacyPolicyUrl: 'https://bughouse.app/privacy'
   };
-
-  const {pendingAuth, user} = useContext(AuthContext);
-  if (pendingAuth) {
-    return null;
-  } else if (user) {
-    return <Redirect to='/home' />
-  }
   return (
     <div id="login" className="row">
       <div className="column">

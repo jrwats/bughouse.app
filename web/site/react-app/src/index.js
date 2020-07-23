@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import { createBrowserHistory } from 'history'
+import AuthProvider from './auth/AuthProvider';
 
 import './index.css';
 import * as serviceWorker from './serviceWorker';
@@ -11,9 +11,9 @@ const history = createBrowserHistory();
 
 ReactDOM.render((
   <React.StrictMode>
-    <Router history={history}>
+    <AuthProvider>
       <App history={history} />
-    </Router>
+    </AuthProvider>
   </React.StrictMode>
 ), document.getElementById('root'));
 

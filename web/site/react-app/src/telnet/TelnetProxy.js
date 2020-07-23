@@ -6,6 +6,7 @@ const URL = process.env.NODE_ENV === 'production'
   : 'https://localhost:7777';
 
 const _singleton = new events.EventEmitter();
+const _cache = {};
 
 /**
  * Proxy to our telnet connection that emits raw console output as well as
@@ -35,7 +36,6 @@ class TelnetProxy extends events.EventEmitter {
       });
 
       this._socket.on('login', (username) => {
-        console.log(`TelnetProxy.login`);
         this._username = username;
         if (username == null) {
           this._loggedOut = true;
@@ -44,9 +44,7 @@ class TelnetProxy extends events.EventEmitter {
         this._emit('login', {ficsUsername: username});
       });
       this._socket.on('logged_out', () => {
-        this._loggedOut = true;
-        this._username = null;
-        this._emit('logout');
+        this._logout();
       });
 
       this._socket.on('data', msg => {
@@ -73,7 +71,9 @@ class TelnetProxy extends events.EventEmitter {
     console.log('TelnetProxy.login()');
     this._emit('logging_in');
     this._loggedOut = false;
-    this._socket.emit('login', creds);
+    console.log(`TelnetProxy creds: ${JSON.stringify(creds)}`);
+    this._socket.emit('fics_login', creds);
+    console.log(`Sent 'login' to socket`);
     return new Promise((resolve, reject) => {
       this._socket.once('login', resolve);
       this._socket.once('failedlogin', msg => {
@@ -84,12 +84,16 @@ class TelnetProxy extends events.EventEmitter {
     });
   }
 
-  logout() {
-    console.log(`TelnetProxy.logout`);
-    this._socket.emit('logout');
+  _logout() {
     this._loggedOut = true;
     this._username = null;
     this._emit('logout');
+  }
+
+  logout() {
+    console.log(`TelnetProxy.logout`);
+    this._socket.emit('fics_logout');
+    this._logout();
   }
 
   isLoggedIn() {
@@ -114,6 +118,10 @@ class TelnetProxy extends events.EventEmitter {
       uid: this._user.uid,
       ...data,
     });
+  }
+
+  static get(user) {
+    return _cache[user.uid] || (_cache[user.uid] = new TelnetProxy(user));
   }
 
   static singleton() {
