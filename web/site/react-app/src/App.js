@@ -11,7 +11,7 @@ const App = () => {
   return(
     <Router>
       <Login path="/" />
-      <Home path="home" />
+      <Home path="home/*" />
     </Router>
   );
 }

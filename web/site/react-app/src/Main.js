@@ -1,43 +1,25 @@
-import Box from '@material-ui/core/Box';
-import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
-import Grid from '@material-ui/core/Grid';
-import React, {useContext} from 'react'
-import {TelnetContext} from './telnet/TelnetProvider'
+import React from 'react';
+import SideMenu from './SideMenu';
+import Users from './Users';
+import { Router } from "@reach/router";
+import FicsTelnetOutput from './FicsTelnetOutput';
 
-const Main = () => {
-  const {telnet, ficsUsername} = useContext(TelnetContext);
-  const [cmd, setCmd] = React.useState('');
-  console.log(`main component! ${ficsUsername}`);
-
+const Main = (props) => {
   return (
-    <Box style={{paddingLeft: '10px'}}>
-      <Grid spacing={1} container>
-        <Grid container item>
-          <form
-            autoComplete="off"
-            onSubmit={(event) => {
-              console.log('onsubmit');
-              telnet.send(cmd);
-              setCmd('');
-              event.preventDefault();
-            }} >
-          </form>
-        </Grid>
-        <Divider orientation="horizontal" flexItem />
-        <Grid item>
-          <div>{`Logged in as ${ficsUsername}`}</div>
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {telnet.logout()}}>
-            Logout
-         </Button>
-        </Grid>
-      </Grid>
-    </Box>
+    <div style={{width: '100%', height: '100%'}}>
+      <SideMenu style={{position: 'absolute'}} />
+      <div style={{
+        top: '0px',
+        position: 'absolute',
+        height: '100%',
+        width: '100%',
+      }} >
+      <Router>
+        <Users path="/"/>
+        <FicsTelnetOutput path="fics_console"/>
+      </Router>
+      </div>
+    </div>
   );
 }
 

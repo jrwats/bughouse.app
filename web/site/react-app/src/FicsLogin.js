@@ -7,9 +7,11 @@ import {TelnetContext} from './telnet/TelnetProvider'
 import Typography from '@material-ui/core/Typography';
 import AppSignOut from './AppSignOut';
 import Profile from './user/Profile';
+import {AuthContext} from './auth/AuthProvider';
 
 const FicsLogin = () => {
   const {telnet, loggedOut} = useContext(TelnetContext);
+  const {user} = useContext(AuthContext);
   const usernameRef = useRef();
   const passwordRef = useRef();
   return (
@@ -69,7 +71,9 @@ const FicsLogin = () => {
            </form>
         </Box>
         <div style={{marginTop: '80px'}} >
-          <Profile style={{position: 'relative', top: '4px', paddingRight: '40px'}} />
+          <Profile user={user} style={{
+            position: 'relative', top: '4px', paddingRight: '40px'
+          }} />
           <AppSignOut />
         </div>
       </div>

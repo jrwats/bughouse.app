@@ -18,20 +18,15 @@
 const app = require('express')();
 const fs = require('fs');
 const admin = require('firebase-admin');
-const FicsClient = require('./FicsClient');
+const log = require('./log');
+const FicsManager = require('./FicsManager');
+const FicsParser = require('./FicsParser');
+const BughouseState = require('./BughouseState');
 
 app.enable('trust proxy');
 app.get('/', (req, res) => {
   res.send('websocket server here, at your service');
 });
-
-function info(msg) {
-  if (process.env.NODE_ENV === 'production' &&
-      process.env.DEBUG == null) {
-    return;
-  }
-  console.log(`Server: ` + msg);
-}
 
 const getServer = () => {
   // Run local https server directly.  Otherwise rely on Google App
@@ -59,7 +54,7 @@ const getServer = () => {
 const server = getServer();
 const io = require('socket.io')(server);
 
-info('initializing admin');
+log('initializing admin');
 const adminSdkJson = process.env.NODE_ENV === 'production'
   ? './bughouse-secrets/.firebase-adminsdk.json'
   : './bughouse-secrets/.dev-firebase-adminsdk.json';
@@ -70,14 +65,16 @@ admin.initializeApp({
   credential: admin.credential.cert(require(adminSdkJson)),
   databaseURL: dbURL,
 });
-info('initialized admin');
+log('initialized admin');
 
-let uid2fics = {};
-let uid2destroy = {};
+const ficsMgr = FicsManager.get();
+const bughouseState = BughouseState.get();
+const parser = new FicsParser(ficsMgr);
+const db = admin.database();
 
 io.on('connection', (socket) => {
   let uid = null;
-  info('connection');
+  log('connection');
   const token = socket.handshake.query.token;
   if (token == null) {
     socket.emit('err', {
@@ -86,73 +83,45 @@ io.on('connection', (socket) => {
     });
     return socket.disconnect(true);
   }
+  console.log('Got socket connection');
+  console.log(token);
 
-  info(`token='${token.substr(0,20)}...'`);
+  log(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
     .then(decodedToken => {
       uid = decodedToken.uid;
-      info(`Authenticated '${uid}'`);
+      log(`Authenticated '${uid}'`);
       socket.emit('authenticated', true);
+      log(decodedToken);
+      const onlineTimestamp = db.ref(`online/${uid}/connections`).push();
+      onlineTimestamp.onDisconnect().remove();
 
-      let fics = uid2fics[uid];
-      const logout = () => {
-        info(`Deleting FICS telnet connection for ${uid}`);
-        if (fics != null) {
-          delete uid2fics[uid];
-          fics.destroy();
-          fics.removeAllListeners();
-          fics = null;
-        }
-      };
-
-      const getFicsConn = () => {
-        if (fics != null) {
-          return fics;
-        }
-        if (uid2fics[uid] != null) {
-          return uid2fics[uid];
-        }
-        info(`Establishing new FICS telnet connection for ${uid}`);
-        return uid2fics[uid] = new FicsClient();
-      };
-
-      if (fics != null) {
-        if (uid2destroy[uid] != null) {
-          clearTimeout(uid2destroy[uid]);
-          delete uid2destroy[uid];
-        }
-        info(`Reusing FICS telnet connection for ${uid}`);
-        info(`Usernamme: ${fics.getUsername()}`);
-      } else {
-        fics = getFicsConn();
-      }
-
+      const fics = ficsMgr.get(uid);
       if (fics.getUsername() != null) {
         socket.emit('login', fics.getUsername());
       } else {
         socket.emit('logged_out');
       }
-
       const dataListener = data => {
-        info(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
+        log(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
         socket.emit('data', data);
       };
       fics.on('data', dataListener);
 
       socket.on('fics_login', creds => {
-        let ficsConn = getFicsConn();
-        if (ficsConn.isConnected()) {
+        let ficsConn = ficsMgr.get(uid);
+        if (ficsConn.isLoggedIn()) {
           socket.emit('login', ficsConn.getUsername());
-          info(`Already connected as ${ficsConn.getUsername()}`);
+          log(`Already connected as ${ficsConn.getUsername()}`);
           return;
         }
-        info(`login(${creds.username})`);
+        log(`login(${creds.username})`);
         ficsConn.login(creds)
           .then(() => {
             socket.emit('login', ficsConn.getUsername());
-            info(`${uid} logged in ${ficsConn.getUsername()}`);
+            log(`${uid} logged in ${ficsConn.getUsername()}`);
           }).catch(err => {
-            console.log(err);
+            console.error(err);
             socket.emit('failedlogin', err.message);
             socket.emit('err', {
               type: 'login',
@@ -162,27 +131,39 @@ io.on('connection', (socket) => {
       });
 
       socket.on('fics_logout', () => {
-        info(`${uid} logout ${fics && fics.getUsername()}`);
+        log(`${uid} logout ${fics && fics.getUsername()}`);
         socket.emit('logged_out');
-        logout();
+        fics.off('data', dataListener);
+        ficsMgr.get(uid).destroy();
       });
+      const playersListener = players => {
+        socket.emit('players', players);
+      }
+      bughouseState.on('players', playersListener);
 
       socket.on('disconnect', (reason) => {
-        let username = 'NULL (not logged in)'
-        if (fics != null) {
-          fics.off('data', dataListener);
-          username = fics.getUsername();
-        }
-        info(`${uid} disconnected: ${username} ${JSON.stringify(reason)}`);
+        let username = ficsMgr.getUsername(uid) || 'NULL (not logged in)';
+        log(`${uid} disconnected: ${username} ${JSON.stringify(reason)}`);
+        bughouseState.off('players', playersListener);
         socket.removeAllListeners();
-        // In 30s delete our telnet connection
-        uid2destroy[uid] = setTimeout(logout, 1000 * 30);
-        info(`${uid} Waiting 30s to destroy FICS telnet cnonection of ${username}`);
+        ficsMgr.onClientDisconnect(uid);
+        if (fics) {
+          fics.off('data', dataListener);
+        }
+        onlineTimestamp.remove();
       });
 
       socket.on('cmd', async cmd => {
-        const result = await fics.send(cmd);
-        info(`cmd '${cmd}': '${result}'`);
+        const result = await ficsMgr.get(uid).send(cmd);
+        log(`cmd '${cmd}': ${result.substr(30)}...`);
+      });
+
+      socket.on('move', (msg) => {
+      });
+
+      socket.on('players', () => {
+        console.log(`app 'players' sending ${bughouseState.getPlayers().length}`);
+        socket.emit('players', bughouseState.getPlayers());
       });
 
     }).catch(err => {
@@ -194,20 +175,13 @@ io.on('connection', (socket) => {
       socket.disconnect(true);
     });
 
-  socket.on('move', (msg) => {
-  });
-
-  socket.on('chat message', (msg) => {
-    info(`chat message: '${msg}'`);
-    socket.emit('chat message', msg);
-  });
 });
 
 if (module === require.main) {
   const PORT = process.env.PORT || 7777;
   server.listen(PORT, () => {
-    info(`App listening on port ${PORT}`);
-    info('Press Ctrl+C to quit.');
+    log(`App listening on port ${PORT}`);
+    log('Press Ctrl+C to quit.');
   });
 }
 // [END appengine_websockets_app]

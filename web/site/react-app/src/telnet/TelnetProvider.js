@@ -1,4 +1,4 @@
-import React, {useEffect, createContext, useState} from 'react';
+import React, {useEffect, createContext, useRef, useState} from 'react';
 import TelnetProxy from './TelnetProxy';
 
 /**
@@ -8,7 +8,10 @@ export const TelnetContext = createContext({
   telnet: null,
   loggedOut: true,
   ficsUsername: null,
+  outputLog: '',
 });
+
+const normalize = msg => msg.split('\n\r').join('\n')
 
 const TelnetProvider = (props) => {
   const {user} = props;
@@ -16,6 +19,8 @@ const TelnetProvider = (props) => {
   const [telnet, setTelnet] = useState(null);
   const [ficsUsername, setUsername] = useState(null);
   const [loggedOut, setLoggedOut] = useState(null);
+  const [outputLog, setOutputLog] = useState('');
+  const log = useRef('');
 
   useEffect(() => {
     console.log(`${Date.now()}: TelnetProvider creating TelnetProxy. ${user.uid}`);
@@ -35,6 +40,12 @@ const TelnetProvider = (props) => {
       setUsername(null);
       setLoggedOut(true);
     };
+    const onData = (output) => {
+      log.current += normalize(output);
+      setOutputLog(log.current);
+      console.log(`log length: ${log.current.length}`);
+    }
+    proxy.on('data', onData);
     proxy.on('logging_in', onLoggingIn);
     proxy.on('login', onLogin);
     proxy.on('logout', onLogout);
@@ -42,11 +53,12 @@ const TelnetProvider = (props) => {
       proxy.off('logging_in', onLoggingIn);
       proxy.off('login', onLogin);
       proxy.off('logout', onLogout);
+      proxy.off('data', onData);
     };
   }, [user]);
 
   return (
-    <TelnetContext.Provider value={{telnet, loggedOut, ficsUsername}}>
+    <TelnetContext.Provider value={{telnet, loggedOut, ficsUsername, outputLog}}>
       {props.children}
     </TelnetContext.Provider>
   );

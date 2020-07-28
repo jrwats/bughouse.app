@@ -1,21 +1,26 @@
 const Telnet = require('./node-telnet-client');
 
 const invariant = require('invariant');
-const events = require('events');
+const {EventEmitter} = require('events');
+const BughouseState = require('./BughouseState');
+const log = require('./log');
+
+const _bughouseState = BughouseState.get();
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-class FicsClient extends events.EventEmitter {
+class FicsClient extends EventEmitter {
   constructor() {
     super();
     this._username = null;
     this._ready = false;
-    this._connected = false;
+    this._isLoggedIn = false;
     this._conn = new Telnet();
+    this._bughousePoll = false;
   }
 
-  async login(creds) {
-    if (this._connected) {
+  login(creds) {
+    if (this._isLoggedIn) {
       console.error(`already connected for ${this._username}`);
       return;
     }
@@ -44,8 +49,11 @@ class FicsClient extends events.EventEmitter {
           this.emit('login', this._username);
         }
       }
-      console.log(`FicsClient.data '${result.substr(0,20)}...'`);
-      this.emit('data', result);
+      if (!this._bughousePoll) {
+        this.emit('data', result);
+      } else if (!result.match(BughouseState.regexp())) {
+        log(`FicsClient suppressed (bugPoll): ${result.substr(0, 12)}...`);
+      }
     });
     this._conn.on('ready', _ => {
       this._ready = true;
@@ -67,34 +75,59 @@ class FicsClient extends events.EventEmitter {
         console.log('initialized FICS variables');
       });
     });
-    try {
-      this._conn.on(
-        'failedlogin',
-        err => {
-          console.error('FicsClient.failedlogin');
-          this.emit('failedlogin', err);
-        }
-      );
-      await this._conn.connect({
-        port: 5000,
-        host: 'freechess.org',
-        shellPrompt: /^fics% $/m,
-        timeout: 5000,
-        echoLines: 0,
-        passwordPrompt,
-        username,
-        password: creds.password || '',
-      });
-      this._connected = true;
-      console.log('FicsClient connected');
-    } catch (err) {
+    this._conn.on('failedlogin', err => {
+      console.error('FicsClient.failedlogin');
+      this.emit('failedlogin', err);
+    });
+    return this._conn.connect({
+      port: 5000,
+      host: 'freechess.org',
+      shellPrompt: /^fics% $/m,
+      timeout: 5000,
+      echoLines: 0,
+      passwordPrompt,
+      username,
+      password: creds.password || '',
+    }).then(result => {
+      this._isLoggedIn = true;
+    }).catch(err => {
       this.emit('failedlogin', err.message);
       console.log(err);
-    }
+    });
+  }
+
+  // send `bughouse` command for global bughouse state
+  bugPoll() {
+    this._bughousePoll = true;
+    this.send(
+      'bugwho',
+      {waitfor: /\s*\d+ players? displayed\./m}
+    ).then(result => {
+      this._bughousePoll = false;
+      const [prefix, suffix] = _bughouseState.parseBughouseCmd(result);
+
+      // In the rare case that our telnet data came back with auxiliary data
+      // (like game information, etc.) fire the standard 'data' event with it
+      if (prefix != null) {
+        console.log(`FicsClient bugPoll prefix: ${prefix.substr(30)}...`);
+        this.emit('data', prefix);
+      }
+      if (suffix != null) {
+        console.log(`FicsClient bugPoll suffix: ${suffix.substr(30)}...`);
+        this.emit('data', suffix);
+      }
+    }).catch(err => {
+      console.error(err);
+    });
   }
 
   async send(cmd) {
-    const result = await this._conn.send(cmd);
+    let result = null;
+    try {
+      result = await this._conn.send(cmd);
+    } catch(err) {
+      console.error(err);
+    }
     return result;
   }
 
@@ -102,8 +135,8 @@ class FicsClient extends events.EventEmitter {
     return this._username;
   }
 
-  isConnected() {
-    return this._connected;
+  isLoggedIn() {
+    return this._isLoggedIn;
   }
 
   isReady() {
@@ -112,7 +145,7 @@ class FicsClient extends events.EventEmitter {
 
   destroy() {
     this._ready = false;
-    this._connected = false;
+    this._isLoggedIn = false;
     this._username = null;
     this._conn.destroy();
     this._conn.removeAllListeners();

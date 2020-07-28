@@ -8,11 +8,12 @@ import {AuthContext} from './auth/AuthProvider';
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const Login = ({ navigate }) => {
-  const {pendingAuth, user} = useContext(AuthContext);
+  const {pendingInit, user} = useContext(AuthContext);
   if (user != null) {
     navigate('/home', {replace: true});
   }
-  if (pendingAuth || user != null) {
+  if (pendingInit || user != null) {
+    console.log(`Login: pendingInit: ${pendingInit}`);
     return null;
   }
   console.log(`Login displaying login`);
@@ -61,8 +62,8 @@ const Login = ({ navigate }) => {
       firebase.auth.GithubAuthProvider.PROVIDER_ID,
     ],
     // Privacy policy url.
-    tosUrl: 'https://bughouse.app/static/TOS.pdf',
-    privacyPolicyUrl: 'https://bughouse.app/privacy'
+    tosUrl: 'https://bughouse.app/TOS.pdf',
+    privacyPolicyUrl: 'https://bughouse.app/privacy.htm'
   };
   return (
     <div id="login" className="row">

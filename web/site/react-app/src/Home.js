@@ -3,18 +3,21 @@ import Loading from './Loading';
 import Main from './Main';
 import React, {useContext} from 'react'
 import TelnetProvider, {TelnetContext} from './telnet/TelnetProvider';
+import UsersProvider from './user/UsersProvider';
 import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';
 
 const HomeRouter = (props) => {
-  const {telnet, loggedOut} = useContext(TelnetContext);
-  if (telnet == null || loggedOut == null) {
-    console.log(`Initializing telnet conn...`);
-    return <Loading />;
+  const {telnet} = useContext(TelnetContext);
+  if (telnet == null || !telnet.isInitialized()) {
+    console.log(`HomeRouter initializing telnet ${telnet}`);
+    return <Loading path="loading" />;
   } else if (telnet.isLoggedIn()) {
-    return <Main />;
+    console.log('HomeRouter isLogged in rendering main...');
+    return <Main path="/" />;
   }
-  return <FicsLogin />;
+  console.log('rendering FICS login...');
+  return <FicsLogin path="fics_login" />;
 }
 
 const Home = (props) => {
@@ -28,7 +31,9 @@ const Home = (props) => {
 
   return (
     <TelnetProvider user={user}>
-      <HomeRouter />
+      <UsersProvider>
+        <HomeRouter />
+      </UsersProvider>
     </TelnetProvider>
   );
 };

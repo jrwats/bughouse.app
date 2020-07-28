@@ -28,22 +28,22 @@ class TelnetProxy extends events.EventEmitter {
         rejectUnauthorized: process.env.NODE_ENV !== 'production',
         query: {token: idToken},
       });
-      this._socket.emit('chat message', 'TelnetProxy-client test');
 
       this._socket.on('authenticated', (msg) => {
-        console.log('ZOMG authenticated!');
+        console.log('TelnetProxy authenticated!');
         this._initialized = true;
       });
 
       this._socket.on('login', (username) => {
         this._username = username;
         if (username == null) {
-          this._loggedOut = true;
-          return this._emit('logout');
+          return this._logout();
         }
-        this._emit('login', {ficsUsername: username});
+        this._emit('login', {uid: user.uid, ficsUsername: username});
+        this._socket.emit('players'); // request bughouse state from server
       });
       this._socket.on('logged_out', () => {
+        console.log('TelnetProxy received logged_out');
         this._logout();
       });
 
@@ -51,6 +51,10 @@ class TelnetProxy extends events.EventEmitter {
         console.log(`TelnetProxy.emit('data')`);
         this.emit('data', msg);
       });
+      this._socket.on('players', (ficsHandles) => {
+        this._emit('players', ficsHandles);
+      });
+
       this._socket.on('err', err => {
         console.error('TelnetProxy socket error');
         console.error(err);
@@ -60,6 +64,8 @@ class TelnetProxy extends events.EventEmitter {
         this.emit('latency', latency);
         console.log(`bughouse.app latency: ${latency}ms`);
       });
+    }).catch(err => {
+      console.error(err);
     });
   }
 
@@ -69,7 +75,7 @@ class TelnetProxy extends events.EventEmitter {
 
   login(creds) {
     console.log('TelnetProxy.login()');
-    this._emit('logging_in');
+    this.emit('logging_in', {uid: this._user.uid});
     this._loggedOut = false;
     console.log(`TelnetProxy creds: ${JSON.stringify(creds)}`);
     this._socket.emit('fics_login', creds);
@@ -87,7 +93,7 @@ class TelnetProxy extends events.EventEmitter {
   _logout() {
     this._loggedOut = true;
     this._username = null;
-    this._emit('logout');
+    this._emit('logout', {uid: this._user.uid});
   }
 
   logout() {
@@ -114,10 +120,7 @@ class TelnetProxy extends events.EventEmitter {
 
   _emit(event, data) {
     this.emit(event, data);
-    _singleton.emit(event, {
-      uid: this._user.uid,
-      ...data,
-    });
+    _singleton.emit(event, data);
   }
 
   static get(user) {

@@ -1,13 +1,11 @@
-import React, {useContext} from 'react'
-import {AuthContext} from '../auth/AuthProvider';
+import React from 'react'
 import Typography from '@material-ui/core/Typography';
 
-const Profile = (props) => {
-  const {user} = useContext(AuthContext);
+const Profile = ({user, ...rest}) => {
   const name = user.displayName || user.email;
   let picture = null;
   if (user.photoURL) {
-    picture = <img style={{
+    picture = <img alt="profile" style={{
       top: '10px',
       position: 'relative',
       paddingRight: '10px',
@@ -18,7 +16,7 @@ const Profile = (props) => {
   }
   return (
     <React.Fragment>
-      <span {...props}>
+      <span style={{...rest.style}}>
         {picture}
         <span>
           <Typography style={{display: "inline"}} variant="h6" noWrap>
