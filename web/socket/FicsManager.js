@@ -4,6 +4,7 @@
  */
 const FicsClient = require('./FicsClient');
 const log = require('./log');
+const {EventEmitter} = require('events');
 
 // Global bughouse data data that should be poll'd on behalf of everyone
 const bugwho = () => {
@@ -15,9 +16,11 @@ const bugwho = () => {
 }
 let _bugwhoPoller;
 
-class FicsManager {
+class FicsManager extends EventEmitter {
 
-  constructor() {
+  constructor(db) {
+    super();
+    this._db = db;
     this._idx = 0;
     this._uids = [];
     this._uid2fics = {};
@@ -30,8 +33,8 @@ class FicsManager {
       delete this._uid2destroy[uid];
     }
     if (!(uid in this._uid2fics)) {
-      this._uid2fics[uid] = new FicsClient();
-      if (this._uids.length === 0) {
+      this._uid2fics[uid] = new FicsClient(uid, this._db);
+      if (_bugwhoPoller == null) {
         _bugwhoPoller = setInterval(bugwho, 5000);
       }
       this._uids = Object.keys(this._uid2fics);
@@ -50,23 +53,23 @@ class FicsManager {
   }
 
   logout(uid) {
+    this.emit('logout', uid);
     let fics = this._uid2fics[uid];
-    delete this._uid2destroy[uid];
-
     log(`Deleting FICS telnet connection for ${uid}`);
-    if (fics != null) {
-      delete this._uid2fics[uid];
-      // TODO: computer scientists will tell you this should be a
-      // doubly-linked list, instead of an array...
-      // fancyRoundRobinListThing.remove(uid)
-      this._uids = Object.keys(this._uid2fics);
-      console.log(`this._uids.length: ${this._uids.length}`);
-      if (this._uids.length === 0) {
-        clearInterval(_bugwhoPoller);
-      }
-      fics.removeAllListeners();
-      fics.destroy();
+    delete this._uid2destroy[uid];
+    delete this._uid2fics[uid];
+    // TODO: computer scientists will tell you this should be a hash =>
+    // doubly-linked list data structure, instead of an array... (for O(1)
+    // removal) fancyRoundRobinListThing.remove(uid)
+    // When we're on the order of 1k concurrent users, this hardly matters
+    this._uids = Object.keys(this._uid2fics);
+    console.log(`this._uids.length: ${this._uids.length}`);
+    if (this._uids.length === 0) {
+      clearInterval(_bugwhoPoller);
+      _bugwhoPoller = null;
     }
+    fics.removeAllListeners();
+    fics.destroy();
   }
 
   onClientDisconnect(uid) {
@@ -84,24 +87,28 @@ class FicsManager {
     const max = this._uids.length;
     if (max === 0) {
       console.warn(`${Date.now()} No connections to use`);
-      return;
+      return null;
     }
-    for (let idx = this._idx, count = 0; count++ < max; idx = (idx + 1) % max) {
+    for (let idx = this._idx, count = 0; count < max; ++count) {
+      idx = (idx + 1) % max;
       const conn = this._uid2fics[this._uids[idx]];
-      if (conn.isLoggedIn()) {
+      if (conn && conn.isLoggedIn()) {
+        log(`BughouseState polling with ${idx}, ${this._uids[idx]} ${Object.keys(this._uid2fics)}`);
         this._idx = idx;
         return conn;
       }
     }
     console.warn(`${Date.now()} No telnet connections (of ${this._uids.length}) are logged in`);
     console.warn(`${Object.keys(this._uid2fics)}`);
+    return null;
   }
 
-  static get() {
-    return _instance;
-  }
 }
 
-const _instance = new FicsManager();
+let _instance;
 
-module.exports = FicsManager;
+module.exports = {
+  get(db) {
+    return _instance || (_instance = new FicsManager(db));
+  }
+};

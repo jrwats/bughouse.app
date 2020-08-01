@@ -1,17 +1,3 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 'use strict';
 
 // [START appengine_websockets_app]
@@ -20,8 +6,12 @@ const fs = require('fs');
 const admin = require('firebase-admin');
 const log = require('./log');
 const FicsManager = require('./FicsManager');
-const FicsParser = require('./FicsParser');
+const CmdDelegate = require('./CmdDelegate');
 const BughouseState = require('./BughouseState');
+const Pending = require('./Pending');
+const GameObserver = require('./GameObserver');
+const SocketManager = require('./SocketManager');
+const GameStartParser = require('./GameStartParser');
 
 app.enable('trust proxy');
 app.get('/', (req, res) => {
@@ -67,10 +57,11 @@ admin.initializeApp({
 });
 log('initialized admin');
 
-const ficsMgr = FicsManager.get();
-const bughouseState = BughouseState.get();
-const parser = new FicsParser(ficsMgr);
 const db = admin.database();
+const ficsMgr = FicsManager.get(db);
+const socketMgr = SocketManager.get();
+const bughouseState = BughouseState.get();
+const gameObserver = GameObserver.get(socketMgr, ficsMgr);
 
 io.on('connection', (socket) => {
   let uid = null;
@@ -85,18 +76,27 @@ io.on('connection', (socket) => {
   }
   console.log('Got socket connection');
   console.log(token);
+  const pendingOffers = Pending.get(uid);
 
   log(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
     .then(decodedToken => {
       uid = decodedToken.uid;
+      socketMgr.add(uid, socket);
       log(`Authenticated '${uid}'`);
       socket.emit('authenticated', true);
-      log(decodedToken);
+      // log(decodedToken);
       const onlineTimestamp = db.ref(`online/${uid}/connections`).push();
+      onlineTimestamp.set(Date.now());
+      log(`app db pushed ${onlineTimestamp}`);
       onlineTimestamp.onDisconnect().remove();
 
       const fics = ficsMgr.get(uid);
+      const cmdDelegate = new CmdDelegate(socket, uid);
+      const gameStartParser = new GameStartParser(uid, gameObserver);
+      cmdDelegate.addHandler(pendingOffers);
+      cmdDelegate.addHandler(gameObserver);
+      cmdDelegate.addHandler(gameStartParser);
       if (fics.getUsername() != null) {
         socket.emit('login', fics.getUsername());
       } else {
@@ -104,12 +104,20 @@ io.on('connection', (socket) => {
       }
       const dataListener = data => {
         log(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
+        if (cmdDelegate.handle(data)) {
+          return;
+        }
         socket.emit('data', data);
       };
       fics.on('data', dataListener);
-
       socket.on('fics_login', creds => {
         let ficsConn = ficsMgr.get(uid);
+        if (ficsConn != fics) {
+          log(`app relistening to 'data'`);
+          ficsConn.on('data', dataListener);
+        } else {
+          log(`app NOT relistening to 'data'`);
+        }
         if (ficsConn.isLoggedIn()) {
           socket.emit('login', ficsConn.getUsername());
           log(`Already connected as ${ficsConn.getUsername()}`);
@@ -133,37 +141,72 @@ io.on('connection', (socket) => {
       socket.on('fics_logout', () => {
         log(`${uid} logout ${fics && fics.getUsername()}`);
         socket.emit('logged_out');
-        fics.off('data', dataListener);
-        ficsMgr.get(uid).destroy();
+        ficsMgr.logout(uid);
       });
-      const playersListener = players => {
-        socket.emit('players', players);
-      }
-      bughouseState.on('players', playersListener);
+      const unpartneredListener = unpartnered => {
+        socket.emit('unpartneredHandles', unpartnered);
+      };
+      const partnerListener = partners => {
+        socket.emit('partners', partners);
+      };
+      const gamesListener = games => {
+        socket.emit('games', games);
+      };
+      bughouseState.on('unpartnered', unpartneredListener);
+      bughouseState.on('partners', partnerListener);
+      bughouseState.on('games', gamesListener);
 
       socket.on('disconnect', (reason) => {
         let username = ficsMgr.getUsername(uid) || 'NULL (not logged in)';
         log(`${uid} disconnected: ${username} ${JSON.stringify(reason)}`);
-        bughouseState.off('players', playersListener);
+        bughouseState.off('unpartnered', unpartneredListener);
+        bughouseState.off('partners', partnerListener);
+        bughouseState.off('games', gamesListener);
         socket.removeAllListeners();
         ficsMgr.onClientDisconnect(uid);
+        pendingOffers.destroy();
         if (fics) {
           fics.off('data', dataListener);
         }
         onlineTimestamp.remove();
+        socketMgr.destroy(uid);
       });
 
       socket.on('cmd', async cmd => {
         const result = await ficsMgr.get(uid).send(cmd);
-        log(`cmd '${cmd}': ${result.substr(30)}...`);
+        log(`app 'cmd' '${cmd}': '${result.substr(0,30)}...'`);
       });
 
       socket.on('move', (msg) => {
       });
 
-      socket.on('players', () => {
-        console.log(`app 'players' sending ${bughouseState.getPlayers().length}`);
-        socket.emit('players', bughouseState.getPlayers());
+      socket.on('pending', async () => {
+        const pendingText = await ficsMgr.get(uid).send('pending');
+        const pending = pendingOffers.parse(pendingText);
+        // log(`!!! app pending '${pendingText}' ${JSON.stringify(pending)}`);
+        socket.emit('pending', pending);
+      });
+
+      socket.on('bugwho', () => {
+        const gamesLen = bughouseState.getGames().length;
+        const partnerLen = bughouseState.getPartners().length;
+        const unpartnerLen = bughouseState.getUnpartnered().length;
+        console.log(`app 'bugwho' sending [${gamesLen}, ${partnerLen}, ${unpartnerLen}]...`);
+        socket.emit('bugwho', {
+          games: bughouseState.getGames(),
+          partners: bughouseState.getPartners(),
+          unpartnered: bughouseState.getUnpartnered(),
+        });
+      });
+
+      socket.on('unobserve', ({id}) => {
+        log(`app 'unobserve' ${id}`);
+        gameObserver.unsubscribe(uid, id);
+      });
+
+      socket.on('observe', ({id}) => {
+        log(`app 'observe' ${id}`);
+        gameObserver.subscribe(uid, id);
       });
 
     }).catch(err => {
@@ -174,7 +217,6 @@ io.on('connection', (socket) => {
       });
       socket.disconnect(true);
     });
-
 });
 
 if (module === require.main) {

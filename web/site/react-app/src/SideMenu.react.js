@@ -6,12 +6,13 @@ import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuOpenIcon from '@material-ui/icons/MenuOpen';
+import MenuIcon from '@material-ui/icons/Menu';
 import PeopleIcon from '@material-ui/icons/People';
 import { Link } from "@reach/router";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import firebase from "firebase/app";
 import {TelnetContext} from './telnet/TelnetProvider';
-
+import logout from './logout';
 
 const StyledMenu = withStyles({
   paper: {
@@ -46,7 +47,7 @@ const StyledMenuItem = withStyles((theme) => ({
 
 const SideMenu = ({style}) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const {telnet, ficsUsername} = useContext(TelnetContext);
+  const {telnet, ficsHandle} = useContext(TelnetContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -65,7 +66,7 @@ const SideMenu = ({style}) => {
         color="primary"
         onClick={handleClick}
       >
-        <MenuOpenIcon />
+        <MenuIcon />
       </Button>
       <StyledMenu
         id="customized-menu"
@@ -85,14 +86,14 @@ const SideMenu = ({style}) => {
         <Link to="/home/fics_console">
           <StyledMenuItem>
               <ListItemIcon>
-                <img alt="console" src="Octicons-terminal.svg" width="18px" />
+                <img alt="console" src="/Octicons-terminal.svg" width="18px" />
               </ListItemIcon>
               <ListItemText primary="Console" />
           </StyledMenuItem>
         </Link>
         <StyledMenuItem>
           <ListItemIcon>
-            <img alt="console" style={{backgroundColor: "black"}} src="favicon.ico" width="18px" />
+            <img alt="console" style={{backgroundColor: "black"}} src="/favicon.ico" width="18px" />
           </ListItemIcon>
           <ListItemText primary="Game" />
         </StyledMenuItem>
@@ -100,9 +101,9 @@ const SideMenu = ({style}) => {
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={`Logout as ${ficsUsername}`} />
+          <ListItemText primary={`Logout as ${ficsHandle}`} />
         </StyledMenuItem>
-        <StyledMenuItem onClick={(e) => {firebase.auth().signOut(); }} >
+        <StyledMenuItem onClick={(e) => { logout(telnet); }}>
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>

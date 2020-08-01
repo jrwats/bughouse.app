@@ -1,8 +1,8 @@
 import React from 'react';
 import './App.css';
 import Presence from './user/Presence';
-import Login from './Login';
-import Home from './Home';
+import Login from './Login.react';
+import Home from './Home.react';
 import { Router } from "@reach/router";
 
 Presence.init();

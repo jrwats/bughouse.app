@@ -1,6 +1,7 @@
 import React from 'react';
-import SideMenu from './SideMenu';
-import Users from './Users';
+import SideMenu from './SideMenu.react';
+import Bugwho from './Bugwho.react';
+import Arena from './Arena.react';
 import { Router } from "@reach/router";
 import FicsTelnetOutput from './FicsTelnetOutput';
 
@@ -15,7 +16,8 @@ const Main = (props) => {
         width: '100%',
       }} >
       <Router>
-        <Users path="/"/>
+        <Arena path="/arena/:gamePair" />
+        <Bugwho path="/" />
         <FicsTelnetOutput path="fics_console"/>
       </Router>
       </div>

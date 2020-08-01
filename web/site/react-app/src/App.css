@@ -54,3 +54,11 @@
   display: table;
   clear: both;
 }
+
+.hoverExpose {
+  opacity: 50%;
+}
+
+.hoverExpose:hover {
+  opacity: 100%;
+}

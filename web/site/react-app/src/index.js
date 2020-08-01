@@ -5,7 +5,7 @@ import AuthProvider from './auth/AuthProvider';
 
 import './index.css';
 import * as serviceWorker from './serviceWorker';
-import App from './App';
+import App from './App.react';
 
 const history = createBrowserHistory();
 

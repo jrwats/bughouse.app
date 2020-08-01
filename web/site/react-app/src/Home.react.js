@@ -1,9 +1,11 @@
-import FicsLogin from './FicsLogin';
-import Loading from './Loading';
-import Main from './Main';
+import FicsLogin from './FicsLogin.react';
+import Loading from './Loading.react';
+import Main from './Main.react';
 import React, {useContext} from 'react'
 import TelnetProvider, {TelnetContext} from './telnet/TelnetProvider';
 import UsersProvider from './user/UsersProvider';
+import ChallengesProvider from './game/ChallengesProvider';
+import GamesListProvider from './game/GamesListProvider';
 import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';
 
@@ -32,7 +34,11 @@ const Home = (props) => {
   return (
     <TelnetProvider user={user}>
       <UsersProvider>
-        <HomeRouter />
+        <GamesListProvider>
+          <ChallengesProvider>
+            <HomeRouter />
+          </ChallengesProvider>
+        </GamesListProvider>
       </UsersProvider>
     </TelnetProvider>
   );

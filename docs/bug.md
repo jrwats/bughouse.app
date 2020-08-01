@@ -23,9 +23,11 @@ Bughouse games in progress
 
  0 games displayed.
 
-Partnerships not playing bughouse
 
- 0 partnerships displayed.
+Partnerships not playing bughouse
+----  fixerator / ++++  GuestFGRB(U)
+
+ 1 partnership displayed.
 
 Unpartnered players with bugopen on
 
@@ -300,7 +302,7 @@ Partnerships not playing bughouse
 
 
 
-#Bughwo
+# Bughwo
 ```
 fics% bugwho p
 fics% Partnerships not playing bughouse
@@ -310,7 +312,7 @@ fics% Partnerships not playing bughouse
 ```
 
 
-
+# partner
 ```
 "partner"
 fics% You do not have a bughouse partner.
@@ -322,6 +324,10 @@ fics% 
 GuestSCFS agrees to be your partner.
 fics%
 Partnership offer to GuestLKCP withdrawn.
+
+
+fics% Making a partnership offer to fixerator.
+fics% You are already offering to be bughouse partners.
 
 (as seen from GuestLKCP)
 GuestZMHJ, who was offering a partnership with you, has accepted a partnership with GuestSCFS.
@@ -356,13 +362,31 @@ Game 41: GuestZMHJ (++++) GuestTZFW (++++) unrated bughouse 10 0
 fics%
 ```
 
-# End of Game
+# Partnership offer
 ```
-fics%
-{Game 36 (GuestLKCP vs. GuestSCFS) GuestSCFS forfeits on time} 1-0
+GuestFGRB offers to be your bughouse partner; type "partner GuestFGRB" to accept.
+```
 
-{Game 41 (GuestZMHJ vs. GuestTZFW) GuestTZFW's partner won} 0-1
+# Partnership accept
+**cmd:** `partner {handle}`
+**acceptor**
+```
+You agree to be GuestFGRB's partner.
+```
+**oferror/seaker**
+```
+fixerator agrees to be your partner.
+```
 
-No ratings adjustment done.
+# Unpartnering
+**cmd:** `partner`
+```
+You no longer have a bughouse partner.
+```
+
+## Partner leaves
+```
+Your partner has departed.
 fics%
+You no longer have a bughouse partner.
 ```

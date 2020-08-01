@@ -1,0 +1,96 @@
+import React, {useContext} from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
+import User from './User.react';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import { TelnetContext } from './telnet/TelnetProvider';
+import { UsersContext } from './user/UsersProvider';
+import { AuthContext } from './auth/AuthProvider';
+import { Link } from "@reach/router";
+import CancelIcon from '@material-ui/icons/Cancel';
+
+const useStyles = makeStyles((theme) => {
+  return {
+    disabled: {
+      opacity: '50%',
+      cursor: 'default',
+    },
+
+    paper: {
+      paddingBottom: theme.spacing(1),
+      paddingTop: '0px',
+      textAlign: 'center',
+      color: theme.palette.text.primary,
+      backgroundColor: theme.palette.background.default,
+      width: 'auto',
+    },
+  };
+});
+
+const ChallengeUser = ({disabled, user, ...rest}) => {
+  const {telnet} = useContext(TelnetContext);
+  const classes = useStyles();
+  if (disabled) {
+    return <User className={classes.disabled} user={user} {...rest} />
+  }
+  const onClick = (e) => {
+    // TODO: Popup modal dialog to set these parameters and THEN send this
+    // command
+    telnet.send(`match ${user.handle} 5 0 bughouse`);
+    e.preventDefault();
+  };
+
+  return (
+    <Link to="#challenge" onClick={onClick} style={{
+      cursor: 'cell',
+      textDecoration: 'none'
+    }}>
+      <User user={user} {...rest} />
+    </Link>
+  );
+}
+
+const Team = ({team}) => {
+  const {telnet} = useContext(TelnetContext);
+  const {onlineUsers, partnerMap} = useContext(UsersContext);
+  const {user: viewer} = useContext(AuthContext);
+  const classes = useStyles();
+  const viewingFicsHandle = onlineUsers[viewer.uid]?.ficsHandle;
+
+  const [player1, player2] = team;
+
+  const cancellable =
+    player1.handle === viewingFicsHandle ||
+    player2.handle === viewingFicsHandle;
+  const disabled = cancellable || !(viewingFicsHandle in partnerMap);
+
+
+  let cancel = null;
+  if (cancellable) {
+    const disband = (e) => {
+      telnet.send(`partner`);
+      e.preventDefault();
+    }
+    cancel = (
+      <div style={{position: 'absolute', zIndex: 99}}>
+        <Link to="#disband"
+          className='hoverExpose'
+          onClick={disband}
+          style={{position: 'relative', top: '4px', left: '260px'}} >
+          <CancelIcon style={{color: "red"}} />
+      </Link>
+    </div>
+    );
+  }
+  const style = {display: 'block'};
+  return (
+    <Paper className={classes.paper}>
+      {cancel}
+      <ChallengeUser disabled={disabled} user={player1} style={style}/>
+      <ChallengeUser disabled={disabled} user={player2} style={style}/>
+    </Paper>
+  );
+};
+
+export default Team;

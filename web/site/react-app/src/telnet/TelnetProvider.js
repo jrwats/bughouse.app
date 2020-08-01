@@ -7,7 +7,7 @@ import TelnetProxy from './TelnetProxy';
 export const TelnetContext = createContext({
   telnet: null,
   loggedOut: true,
-  ficsUsername: null,
+  ficsHandle: null,
   outputLog: '',
 });
 
@@ -17,7 +17,7 @@ const TelnetProvider = (props) => {
   const {user} = props;
   console.log(`TelnetProvider.user ${user.uid}`);
   const [telnet, setTelnet] = useState(null);
-  const [ficsUsername, setUsername] = useState(null);
+  const [ficsHandle, setHandle] = useState(null);
   const [loggedOut, setLoggedOut] = useState(null);
   const [outputLog, setOutputLog] = useState('');
   const log = useRef('');
@@ -29,15 +29,14 @@ const TelnetProvider = (props) => {
     setTelnet(proxy);
     window.__telnet = proxy;
     const onLoggingIn = () => { setLoggedOut(false); };
-    const onLogin = ({ficsUsername}) => {
-      console.log(`TelnetProvider.login(${ficsUsername})`);
-      // firebase.database().ref(`users/${uid}/ficsUsername`).set(username);
-      setUsername(ficsUsername);
+    const onLogin = ({ficsHandle}) => {
+      console.log(`TelnetProvider.login(${ficsHandle})`);
+      setHandle(ficsHandle);
       setLoggedOut(false);
     };
     const onLogout = () => {
       console.log(`TelnetProvider.logout`);
-      setUsername(null);
+      setHandle(null);
       setLoggedOut(true);
     };
     const onData = (output) => {
@@ -58,7 +57,7 @@ const TelnetProvider = (props) => {
   }, [user]);
 
   return (
-    <TelnetContext.Provider value={{telnet, loggedOut, ficsUsername, outputLog}}>
+    <TelnetContext.Provider value={{telnet, loggedOut, ficsHandle, outputLog}}>
       {props.children}
     </TelnetContext.Provider>
   );

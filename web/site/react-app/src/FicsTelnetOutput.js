@@ -1,4 +1,4 @@
-import React, {useRef, useContext} from 'react';
+import React, {useEffect, useRef, useContext} from 'react';
 import {TelnetContext} from './telnet/TelnetProvider';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
@@ -11,9 +11,14 @@ const FicsTelnetOutput = (props) => {
   const {outputLog, telnet} = useContext(TelnetContext);
   const ref = useRef(null);
 
-  if (ref.current != null) {
-    ref.current.scrollTop = Number.MAX_SAFE_INTEGER;
-  }
+  useEffect(() => {
+    if (ref.current != null) {
+      console.log('FicsTelnetOutput setting scrollTop')
+      ref.current.scrollTop = Number.MAX_SAFE_INTEGER;
+    } else {
+      console.log('FicsTelnetOutput ref.current is null');
+    }
+  });
 
   const {style} = props;
   return (
