@@ -32,13 +32,28 @@ class GameObserver extends EventEmitter {
     if (!(gameID in this._gameid2observer)) {
       this._observe(gameID);
     }
+    if (gameID in this._boards) {
+      this._socketMgr.emit(uid, 'boardUpdate', {
+        id: gameID,
+        board: this._boards[gameID],
+        holdings: this._holdings[gameID],
+      });
+    }
+  }
+
+  dump() {
+    log(`
+observer2game: ${JSON.stringify(this._observer2gameIDs)}
+gameid2observer: ${JSON.stringify(this._gameid2observer)}
+subscriber2game: ${JSON.stringify(this._subscriber2gameIDs)}
+gameid2subscribers: ${JSON.stringify(this._gameid2subscribers)}
+boards: ${JSON.stringify(this._boards)}
+holdings: ${JSON.stringify(this._holdings)}
+`);
   }
 
   unsubscribeAll(uid) {
-    if (!(uid in this._subscriber2gameIDs)) {
-      return;
-    }
-    for (const gameID in this._subscriber2gameIDs[uid]) {
+    for (const gameID in (this._subscriber2gameIDs[uid] || {})) {
       this.unsubscribe(uid, gameID);
     }
   }
@@ -51,6 +66,17 @@ class GameObserver extends EventEmitter {
       delete this._gameid2subscribers[gameID][uid];
     }
     this._unobserve(uid, gameID);
+    this._clearCache(gameID);
+  }
+
+  _clearCache(gameID) {
+    // If there are no subscribers remaining delete stored boards/holdings
+    for (const uid in this._gameid2subscribers[gameID]) {
+      return;
+    }
+    log(`GameObserver clearing ${id}`);
+    delete this._boards[gameID];
+    delete this._holdings[gameID];
   }
 
   parse(text) {
@@ -62,6 +88,7 @@ class GameObserver extends EventEmitter {
     if (holdings != null) {
       this._holdings[holdings.id] = holdings;
     }
+    log(`GameObserver parsed ${board} ${holdings}`);
     return board == null && holdings == null
       ? null
       : {board, holdings, boardMatch, holdingsMatch};
@@ -69,6 +96,23 @@ class GameObserver extends EventEmitter {
 
   getMatch(text) {
     return this.parse(text);
+  }
+
+  getBoard(id) {
+    return {
+      id,
+      board: this._boards[id],
+      holdings: this._holdings[id],
+    };
+  }
+
+  refresh(id, socket) {
+    if (!(id in this._boards)) {
+      console.error(`GameObserver ${id} not yet cached`);
+      return;
+    }
+    log(`GameObserver 'refresh' of ${id} to ${socket.id}`);
+    socket.emit('boardUpdate', this.getBoard(id));
   }
 
   onMatch({board, holdings}) {
@@ -90,11 +134,7 @@ class GameObserver extends EventEmitter {
       }
     }
     const id = board == null ? holdings.id : board.id;
-    this._notifySubscribers(id, {
-      id,
-      board: board,
-      holdings: holdings,
-    });
+    this._notifySubscribers(id, {id, board, holdings});
   }
 
   stripMatch({boardMatch, holdingsMatch}, text) {
@@ -110,9 +150,9 @@ class GameObserver extends EventEmitter {
   }
 
   _notifySubscribers(gameID, board) {
-    log(`GameObserver notify ${JSON.stringify(board)}`);
+    log(`!!! GameObserver notifying ${JSON.stringify(this._gameid2subscribers[gameID])} ${JSON.stringify(board)}`);
     for (const uid in this._gameid2subscribers[gameID]) {
-      this._socketMgr.safeGet(uid).emit('boardUpdate', board);
+      this._socketMgr.emit(uid, 'boardUpdate', board);
     }
   }
 
@@ -142,10 +182,9 @@ class GameObserver extends EventEmitter {
     if (gameID in this._gameid2observer) {
       console.error(`GameObserver ${gameID} already observed?`);
     }
-
     // pick first associated subscriber, issue an 'observe' command, and stash
     // this uid away as our 'observer'
-    for (const uid in this._gameid2subscribers[gameID]) {
+    for (const uid in (this._gameid2subscribers[gameID] || {})) {
       this._ficsMgr.get(uid).send(`observe ${gameID}`);
       this._gameid2observer[gameID] = uid;
       const gameIDs = this._observer2gameIDs[uid] ||

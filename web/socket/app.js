@@ -59,7 +59,7 @@ log('initialized admin');
 
 const db = admin.database();
 const ficsMgr = FicsManager.get(db);
-const socketMgr = SocketManager.get();
+const socketMgr = SocketManager.get(ficsMgr);
 const bughouseState = BughouseState.get();
 const gameObserver = GameObserver.get(socketMgr, ficsMgr);
 
@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
   }
   console.log('Got socket connection');
   console.log(token);
-  const pendingOffers = Pending.get(uid);
+  const pending = Pending.get(uid);
 
   log(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
@@ -94,7 +94,7 @@ io.on('connection', (socket) => {
       const fics = ficsMgr.get(uid);
       const cmdDelegate = new CmdDelegate(socket, uid);
       const gameStartParser = new GameStartParser(uid, gameObserver);
-      cmdDelegate.addHandler(pendingOffers);
+      cmdDelegate.addHandler(pending);
       cmdDelegate.addHandler(gameObserver);
       cmdDelegate.addHandler(gameStartParser);
       if (fics.getUsername() != null) {
@@ -164,12 +164,12 @@ io.on('connection', (socket) => {
         bughouseState.off('games', gamesListener);
         socket.removeAllListeners();
         ficsMgr.onClientDisconnect(uid);
-        pendingOffers.destroy();
+        pending.destroy();
         if (fics) {
           fics.off('data', dataListener);
         }
         onlineTimestamp.remove();
-        socketMgr.destroy(uid);
+        socketMgr.remove(uid, socket);
       });
 
       socket.on('cmd', async cmd => {
@@ -177,14 +177,18 @@ io.on('connection', (socket) => {
         log(`app 'cmd' '${cmd}': '${result.substr(0,30)}...'`);
       });
 
+      socket.on('refresh', ({id}) => {
+        log(`app 'refresh' ${id}`);
+        gameObserver.refresh(id, socket);
+      });
+
       socket.on('move', (msg) => {
+        ficsMgr.get(uid).hipriSend(msg);
       });
 
       socket.on('pending', async () => {
         const pendingText = await ficsMgr.get(uid).send('pending');
-        const pending = pendingOffers.parse(pendingText);
-        // log(`!!! app pending '${pendingText}' ${JSON.stringify(pending)}`);
-        socket.emit('pending', pending);
+        socket.emit('pending', pending.parse(pendingText));
       });
 
       socket.on('bugwho', () => {
@@ -205,7 +209,7 @@ io.on('connection', (socket) => {
       });
 
       socket.on('observe', ({id}) => {
-        log(`app 'observe' ${id}`);
+        log(`app 'observe' ${id} ${uid}`);
         gameObserver.subscribe(uid, id);
       });
 

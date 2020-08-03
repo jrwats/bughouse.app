@@ -174,6 +174,12 @@ class FicsClient extends EventEmitter {
     return result;
   }
 
+  // Disregard all _inflight - get command out ASAp
+  async hipriSend(cmd, opts) {
+    const result = await this._conn.send(cmd, opts);
+    return result;
+  }
+
   _dedupe(cmd) {
     return false; // let all commands thru (no deduping)
   }
@@ -233,7 +239,7 @@ class FicsClient extends EventEmitter {
   destroy() {
     const ref = this._db.ref(`users/${this._uid}/ficsHandle`);
     ref.set(null);
-    log(`setting ${this._username} to null`);
+    log(`FicsClient 'destroy' setting ${this._username} to null`);
     // ref.remove();
     this._ready = false;
     this._isLoggedIn = false;

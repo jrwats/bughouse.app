@@ -9,14 +9,14 @@ const pendingRE = new RegExp(
   'm'
 );
 
-const incomingOffersRE = /\s*(\d+): \w+ is offering to be bughouse partners\./;
-const outgoingOffersRE = /\s*(\d+): \w+ is offering to be bughouse partners\./;
+const incomingOffersRE = /\s*(\d+): (\w+) is offering to be bughouse partners\./;
+const outgoingOffersRE = /\s*(\d+): You are offering (\w+) be bughouse partners\./;
 
 const _ratingRE = /[\d ]{1,4}|[+-]{4}/;
 
 const _challengeRE = new RegExp(
-  '(?<whiteHandle>\\w+) \\((?<whiteRating>' + ratingRE.source + ')\\) ' +
-  '(?<blackHandle>\\w+) \\((?<blackRating>' + ratingRE.source + ')\\) ' +
+  '(?<challenger>\\w+) \\((?<challengerRating>' + ratingRE.source + ')\\) ' +
+  '(?<challengee>\\w+) \\((?<challengeeRating>' + ratingRE.source + ')\\) ' +
   '(?<rated>(?:un)?rated) bughouse (?<mins>\\d+) (?<incr>\\d+).*$'
 );
 
@@ -44,17 +44,17 @@ function matchToGame(match) {
     return null;
   }
   const {
-    whiteHandle,
-    whiteRating,
-    blackHandle,
-    blackRating,
+    challenger,
+    challengerRating,
+    challengee,
+    challengeeRating,
     rated,
     mins,
     incr
   } = match.groups;
   return {
-    white: {handle: whiteHandle, rating: whiteRating},
-    black: {handle: blackHandle, rating: blackRating},
+    challenger: {handle: challenger, rating: challengerRating},
+    challengee: {handle: challengee, rating: challengeeRating},
     rated: rated === 'rated',
     mins,
     incr,
@@ -95,8 +95,9 @@ class Pending {
   _parseMatch(match) {
     const outgoingLines = match[1] != null ? match[1].split('\n\r') : [];
     const outgoingOffers = outgoingLines
-      .filter(line => outgoingOffersRE.exec(line))
-      .map(match => ({id: match[0], handle: match[1]}));
+      .map(line => outgoingOffersRE.exec(line))
+      .filter(result => result != null)
+      .map(match => ({id: match[1], handle: match[2]}));
     const outgoingChallenges = outgoingLines
       .map(line => outgoingChallengesRE.exec(line))
       .filter(result => result != null)
@@ -106,9 +107,9 @@ class Pending {
 
     const incomingLines = match[2] != null ? match[2].split('\n\r') : [];
     const incomingOffers = incomingLines
-      .filter(line => incomingOffersRE.exec(line))
+      .map(line => incomingOffersRE.exec(line))
       .filter(result => result != null)
-      .map(match =>  ({...matchToGame(match), id: match.groups.id}));
+      .map(match => ({id: match[1], handle: match[2]}));
     const incomingChallenges = incomingLines
       .map(line => incomingChallengesRE.exec(line))
       .filter(result => result != null)

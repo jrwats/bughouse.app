@@ -1,12 +1,10 @@
 import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {ChallengesContext} from './game/ChallengesProvider';
 import ChallengeSummary from './ChallengeSummary.react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import { TelnetContext } from './telnet/TelnetProvider';
-import { UsersContext } from './user/UsersProvider';
 import { Link } from "@reach/router";
 
 const useStyles = makeStyles((theme) => {
@@ -28,10 +26,8 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const Challenges = ({props}) => {
+const Challenges = ({challenges, ...rest}) => {
   const {telnet} = useContext(TelnetContext);
-  const {challenges} = useContext(ChallengesContext)
-  console.log(`Challenges.react ${JSON.stringify(challenges)}`);
   const classes = useStyles();
 
   const onClick = (e, id) => {

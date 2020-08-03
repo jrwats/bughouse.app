@@ -1,0 +1,22 @@
+Google
+  client id: 757856014866-p36rcpcuo3dop9t7lbf5c1plqssdo396.apps.googleusercontent.com
+  secret: _5uWNIZ2oCZL8T3pI_ATY2op
+
+Facebook
+  appid: 648355305945051
+  secret: c71edfb00ae595a0cf40add1a55e0b77
+
+  test_bughouse.app
+  appid: 283569052639197
+  secret: 7bbaa1b380e4584d6e9b4d8184e22085
+
+GitHub
+  client_id: 5ebf5bb639f202a567c0
+  secret: 506f445c1210a22ea7aa364c32af10711952e6e3
+
+Twitter
+
+
+
+    # fb_appid=283569052639197 if app.debug else 648355305945051
+    # react_file= "react.development.js" if app.debug else "react.production.min.js"

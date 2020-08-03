@@ -16,13 +16,17 @@ class GameStatusSource extends EventEmitter {
     this._telnet.on('gameStart', data => this._onGameStart(data));
   }
 
-  _onBoardUpdate(data) {
-    if (!(data.id in this._boards)) {
-      this._boards[data.id] = new ChessBoard(data);
-    } else {
-      this._boards[data.id].update(data);
+  _onBoardUpdate({board}) {
+    console.log(`GameStatusSource boardUpdate ${JSON.stringify(board)}`);
+    if (board.board == null) {
+      console.error(`NULL board?`);
     }
-    this.emit('boardUpdate', this._boards[data.id]);
+    if (!(board.id in this._boards)) {
+      this._boards[board.id] = new ChessBoard(board);
+    } else {
+      this._boards[board.id].update(board);
+    }
+    this.emit('boardUpdate', this._boards[board.id]);
   }
 
   _onGameOver({boards}) {
@@ -37,7 +41,6 @@ class GameStatusSource extends EventEmitter {
   }
 
   _onGameStart({game}) {
-    debugger;
     const gamePair = `${game.viewer.id}~${game.partner.id}`;
     navigate(`/home/arena/${gamePair}`);
   }
@@ -47,6 +50,9 @@ class GameStatusSource extends EventEmitter {
   }
 
   getBoard(id) {
+    if (id == null) {
+      return null;
+    }
     if (id in this._boards) {
       return this._boards[id];
     }
@@ -62,6 +68,8 @@ class GameStatusSource extends EventEmitter {
     if (!(id in this._observing)) {
       this._telnet.sendEvent('observe', {id});
       this._observing[id] = 1;
+    } else {
+      this._telnet.sendEvent('refresh', {id});
     }
   }
 }

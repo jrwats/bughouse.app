@@ -8,12 +8,12 @@ const User = ({user, style, ...rest}) => {
     OnlineUsers.get().getUserFromHandle(user.handle) ? 'bold' : 'auto';
   return (
     <span style={{borderRadius: 4, padding: '4px', ...style}} {...rest}>
-      <Typography variant="h7" noWrap
+      <Typography variant="h6" noWrap
         style={{fontFamily: 'courier', display: "inline"}} >
         {user.rating}
       </Typography>
       <Status status={user.status}/ >
-      <Typography style={{display: "inline", fontWeight}} variant="h7" noWrap>
+      <Typography style={{display: "inline", fontWeight}} variant="h6" noWrap>
         {user.handle}
       </Typography>
     </span>

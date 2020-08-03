@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import {UsersContext} from './user/UsersProvider';
 import Profile from './user/Profile';
 import User from './User.react';
 import Team from './Team.react';
@@ -19,8 +18,7 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const Teams = (props) => {
-  const {partners} = useContext(UsersContext);
+const Teams = ({onlineUsers, partnerMap, partners, ...rest}) => {
   const classes = useStyles();
 
   return (
@@ -35,7 +33,7 @@ const Teams = (props) => {
           {partners.map(pair => {
             return (
               <Grid item key={pair[0].handle} xs={3}>
-                <Team team={pair} />
+                <Team team={pair} {...{onlineUsers, partnerMap, partners}}/>
               </Grid>
             );
           })}

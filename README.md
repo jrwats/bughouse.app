@@ -3,7 +3,7 @@
 ## Architecture
 
 ### Chess Server Backend
-Since I'd like to both be able to rely on an existing service, and play people that aren't necessarily "us" with some mild network effect, we'll build on top of freechess.org (FICS) to start.  We'll open a telnet connection on the backend to start with.  If you want to use an "MVC" model to think about this, here, conceptually, the FICS telnet server is the model.
+Since I'd like to both be able to rely on an existing service, and play people that aren't necessarily "us" with some mild network effect, we'll build on top of freechess.org (FICS) to start.  We'll open a telnet connection on the backend.  If you want to use an "MVC" model to think about this, conceptually, the FICS telnet server is our "model".
 
 We'll have to do some significant telnet parsing to parse & deduce board game state, but that's the nature of the legacy Internet Chess Server beast.  It shouldn't be too difficult though.  There's a number of GUI apps built on-top of it, doing the same thing, so no big deal.
 
@@ -19,6 +19,7 @@ WebRTC Peer-2-Peer audio streams 🤯.  This will be our icing on the cake. Clic
 
 ### WebApp layer
 On the WebApp, we'll listen to messages received from the **WebSocket** layer.  There will be a view largely built in React to display pieces, messages, etc.
+UPDATE: we'll use [chessground](https://github.com/ornicar/chessground), and [react-chessground](https://github.com/ruilisi/react-chessground) for the board UI
 
 ### Authentication backend
 We'll want to authenticate users and maintain some kind of identity to help organize games and deduce whether, when playing, someone has bughouse.app functionality or just basic FICS functionality.  We'll also want to  keep track of "rated" games for Glicko rankings.

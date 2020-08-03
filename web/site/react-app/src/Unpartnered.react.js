@@ -2,13 +2,10 @@ import React, {useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Profile from './user/Profile';
 import Typography from '@material-ui/core/Typography';
-import UnpartneredUser from './UnpartneredUser.react';
+import UnpartneredPlayer from './UnpartneredPlayer.react';
 import { makeStyles } from '@material-ui/core/styles';
-import {UsersContext} from './user/UsersProvider';
 
-const Unpartnered = (props) => {
-  const {unpartnered, onlineUsers} = useContext(UsersContext);
-
+const Unpartnered = ({unpartnered}) => {
   const players = [];
   for (const handle in unpartnered) {
     const {rating, status} = unpartnered[handle];
@@ -30,7 +27,7 @@ const Unpartnered = (props) => {
           {players.map(player => {
             return (
               <Grid key={player.handle} item xs={3}>
-                <UnpartneredUser user={player} />
+                <UnpartneredPlayer player={player} />
               </Grid>
             );
           })}

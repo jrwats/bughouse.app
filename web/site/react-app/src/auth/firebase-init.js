@@ -23,8 +23,14 @@ const devConfig = {
   appId: "1:49685448221:web:52bab4a65a9aea225a28f4"
 };
 
+// console.log(`FIREBASE: ${FIREBASE}`);
+console.log(`FIREBASE: ${process.env.REACT_APP_FIREBASE}`);
+
 firebase.initializeApp(
-  process.env.NODE_ENV === 'production' ? prodConfig : devConfig
+  (process.env.REACT_APP_FIREBASE !== 'DEV' &&
+   process.env.NODE_ENV === 'production')
+    ? prodConfig
+    : devConfig
 );
 
 const auth = firebase.auth();

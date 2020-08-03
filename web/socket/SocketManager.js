@@ -4,30 +4,46 @@ const _nullSocket = {
 };
 
 class SocketManager {
-  constructor() {
-    this._uid2sock = {};
+  constructor(ficsMgr) {
+    this._ficsMgr = ficsMgr;
+    this._ficsMgr.on('logout', (uid) => { this.destroyAll(uid); });
+    this._uid2socks = {};
   }
 
-  safeGet(uid) {
-    return this.get(uid) || _nullSocket;
+  emit(uid, ...rest) {
+    if (!(uid in this._uid2socks)) {
+      return;
+    }
+    for (const socketId in this._uid2socks[uid]) {
+      const socket = this._uid2socks[uid][socketId];
+      socket.emit.apply(socket, rest);
+    }
   }
 
-  get(uid) {
-    return this._uid2sock[uid];
+  getSocks(uid) {
+    return this._uid2socks[uid];
   }
 
   add(uid, clientSocket) {
-    this._uid2sock[uid] = clientSocket;
+    const socks = this._uid2socks[uid] || (this._uid2socks[uid] = {});
+    socks[clientSocket.id] = clientSocket;
   }
 
-  destroy(uid) {
-    delete this._uid2sock[uid];
+  remove(uid, clientSocket) {
+    if (uid in this._uid2socks) {
+      delete this._uid2socks[uid][clientSocket.id];
+    }
   }
+
+  destroyAll(uid) {
+    delete this._uid2socks[uid];
+  }
+
 }
 
 let _instance = null;
 module.exports = {
-  get() {
-    return _instance || (_instance = new SocketManager());
+  get(ficsMgr) {
+    return _instance || (_instance = new SocketManager(ficsMgr));
   }
 };

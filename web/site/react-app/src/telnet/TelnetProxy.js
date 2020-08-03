@@ -3,9 +3,13 @@ import { EventEmitter } from 'events';
 import invariant from 'invariant';
 import GamesStatusSource from '../game/GameStatusSource';
 
-const URL = process.env.NODE_ENV === 'production'
-  ? 'https://websocket-dot-bughouse-274816.nn.r.appspot.com'
-  : 'https://localhost:7777';
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
+
+const URL = process.env.REACT_APP_SOCKET_URL ||
+  (process.env.NODE_ENV === 'production'
+   ? 'https://websocket-dot-bughouse-274816.nn.r.appspot.com'
+   : 'https://localhost:7777');
 
 const _singleton = new EventEmitter();
 const _cache = {};
@@ -104,7 +108,11 @@ class TelnetProxy extends EventEmitter {
       });
 
       this._socket.on('gameStart', (game) => {
-        this._emit('gameStart', {user: this._user, game: game});
+        this._emit('gameStart', {user: this._user, game});
+      });
+
+      this._socket.on('boardUpdate', (board) => {
+        this._emit('boardUpdate', {user: this._user, board});
       });
 
       this._socket.on('err', err => {

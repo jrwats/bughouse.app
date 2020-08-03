@@ -1,7 +1,7 @@
 import React from 'react';
 import SideMenu from './SideMenu.react';
 import Bugwho from './Bugwho.react';
-import Arena from './Arena.react';
+import Arena from './game/Arena.react';
 import { Router } from "@reach/router";
 import FicsTelnetOutput from './FicsTelnetOutput';
 

@@ -122,10 +122,12 @@ class OnlineUsers extends EventEmitter {
   }
 
   _formPartner({user, handle}) {
+    if (user == null) {
+      debugger;
+    }
     const {uid} = user;
     const viewerHandle = this._users[uid].ficsHandle;
-    if (handle in this._unpartnered &&
-        viewerHandle in this._unpartnered) {
+    if (handle in this._unpartnered && viewerHandle in this._unpartnered) {
       this._partners.push([
         this._unpartnered[handle],
         this._unpartnered[viewerHandle],
@@ -137,7 +139,7 @@ class OnlineUsers extends EventEmitter {
     delete this._incomingOffers[handle];
     delete this._unpartnered[handle];
     delete this._unpartnered[viewerHandle];
-    this.emit('partners', this._partners);
+    this.emit('partners', [...this._partners]);
     this.emit('unpartneredHandles', this._unpartnered);
   }
 
@@ -216,9 +218,9 @@ class OnlineUsers extends EventEmitter {
     delete this._subscriptions[uid];
   }
 
-  offerTo({uid, handle}) {
+  offerTo({user, handle}) {
     if (this._incomingOffers[handle]) {
-      this._formPartner({uid, handle});
+      this._formPartner({user, handle});
       return;
     };
     this._outgoingOffers[handle] = true;

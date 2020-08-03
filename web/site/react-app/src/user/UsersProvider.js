@@ -59,6 +59,8 @@ const UsersProvider = (props) => {
     return () => {
       src.off('value', usersListener);
       src.off('unpartneredHandles', unpartneredListener);
+      src.off('partners', partnersListener);
+      src.off('outgoingOffers', outgoingOffersListener);
       src.off('incomingOffers', incomingOffersListener);
     };
   });

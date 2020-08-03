@@ -10,7 +10,6 @@ import MenuIcon from '@material-ui/icons/Menu';
 import PeopleIcon from '@material-ui/icons/People';
 import { Link } from "@reach/router";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import firebase from "firebase/app";
 import {TelnetContext} from './telnet/TelnetProvider';
 import logout from './logout';
 

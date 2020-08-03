@@ -160,7 +160,7 @@ class BughouseState extends EventEmitter {
       bughousePairs.push([games[i], games[i + 1]]);
     }
     if (JSON.stringify(this._games) !== JSON.stringify(bughousePairs)) {
-      console.log(`BughouseState games: ${bughousePairs.length}`);
+      // log(`BughouseState games: ${bughousePairs.length}`);
       this.emit('games', bughousePairs);
     }
     this._games = bughousePairs;

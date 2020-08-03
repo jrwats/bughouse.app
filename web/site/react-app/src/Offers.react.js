@@ -1,14 +1,11 @@
 import React, {useContext} from 'react';
-import Users from './Users';
 import Unpartnered from './Unpartnered.react';
 import Teams from './Teams.react';
-import { UsersContext } from './user/UsersProvider';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import UnpartneredUser from './UnpartneredUser.react';
+import UnpartneredPlayer from './UnpartneredPlayer.react';
 
-const Offers = (props) => {
-  const {unpartnered, incomingOffers} = useContext(UsersContext);
+const Offers = ({unpartnered, incomingOffers}) => {
   const offerors = [];
   for (const handle in incomingOffers) {
     if (!(handle in unpartnered)) {
@@ -33,20 +30,19 @@ const Offers = (props) => {
         overflow: 'scroll',
         height: '100%'
       }} >
-      <Grid container spacing={3}>
-      {offerors.map(user => {
-        return (
-          <Grid key={user.handle} item xs={3}>
-            <UnpartneredUser user={user} />
-          </Grid>
-        );
-      })}
-    </Grid>
+        <Grid container spacing={3}>
+          {offerors.map(player => {
+            return (
+              <Grid key={player.handle} item xs={3}>
+                <UnpartneredPlayer player={player} />
+              </Grid>
+            );
+          })}
+        </Grid>
       </div>
-      </div>
+    </div>
   );
 
-  return null;
 }
 
 export default Offers;

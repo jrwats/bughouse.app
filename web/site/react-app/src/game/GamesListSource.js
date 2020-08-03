@@ -19,8 +19,8 @@ class GamesListSource extends EventEmitter {
       onGames(bug);
     };
     const onGames = ({games}) => {
-      console.log(`GamesListSource 'games' ${games}`);
-      console.log(games);
+      // console.log(`GamesListSource 'games' ${games}`);
+      // console.log(games);
       if (games == null || games.length == null) {
         debugger;
         console.error('wtf');

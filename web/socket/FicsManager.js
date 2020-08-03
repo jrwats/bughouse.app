@@ -68,8 +68,10 @@ class FicsManager extends EventEmitter {
       clearInterval(_bugwhoPoller);
       _bugwhoPoller = null;
     }
-    fics.removeAllListeners();
-    fics.destroy();
+    if (fics != null) {
+      fics.removeAllListeners();
+      fics.destroy();
+    }
   }
 
   onClientDisconnect(uid) {

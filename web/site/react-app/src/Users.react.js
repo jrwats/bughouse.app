@@ -9,7 +9,6 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
-import {UsersContext} from './user/UsersProvider';
 
 const useStyles = makeStyles({
   table: {
@@ -18,8 +17,7 @@ const useStyles = makeStyles({
   },
 });
 
-const Users = (props) => {
-  const {onlineUsers} = useContext(UsersContext);
+const Users = ({onlineUsers, ...rest}) => {
   let rows = [];
   for (const uid in onlineUsers) {
     const {displayName, photoURL, ficsHandle, email} = onlineUsers[uid];

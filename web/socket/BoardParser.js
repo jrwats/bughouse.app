@@ -1,11 +1,12 @@
+const log = require('./log');
 
-// <12> r-b----r ppNnknpp -------- -QNPb--- -------- --K-P--- P-P---PP R-----NR W -1 0 0 0 0 0 8 touchpadonly JarlC 0 2 0 43 32 31 93 20 B/@@-e5 (0:02) B@e5+ 0 1 0
-
+// https://www.freechess.org/Help/HelpFiles/style12.html
+// <12> r-b----r ppNnknpp -------- -QNPb--- -------- --K-P--- P-P---PP R-----NR W -1 0 0 0 0 0 8 foo bar 0 2 0 43 32 31 93 20 B/@@-e5 (0:02) B@e5+ 0 1 0
 const boardRE = new RegExp(
-  '^<12>(?<rows>(?: [pnbrkqPNBRKQ-]{8}){8}) ' +
+  '<12>(?<rows>(?: [pnbrkqPNBRKQ-]{8}){8}) ' +
   '(?<toMove>B|W) (?<pawnPush>-1|[0-7]) ' +
   '(?<wCS>0|1) (?<wCL>0|1) (?<bCS>0|1) (?<bCL>0|1) ' +
-  '(?<numMoves>\\d+) (?<id>\\d+) ' +
+  '(?<numHalfMoves>\\d+) (?<id>\\d+) ' +
   '(?<wHandle>\\w+) (?<bHandle>\\w+) ' +
   '(?<viewerRelation>-[1-3]|[0-2]) (?<initialTime>\\d+) (?<incr>\\d+) ' +
   '(?<wms>\\d+) (?<bms>\\d+) (?<wRT>\\d+) (?<bRT>\\d+) (?<moveNum>\\d+) ' +
@@ -16,12 +17,54 @@ const boardRE = new RegExp(
 );
 
 const holdingsRE = new RegExp(
-  '^<b1> game (?<id>\\d+) ' +
+  '<b1> game (?<id>\\d+) ' +
   'white \\[(?<wHoldings>[PNBRKQ]*)\\] ' +
   'black \\[(?<bHoldings>[PNBRKQ]*)\\]' +
   '( <- (?<passer>B|W)(?<piece>[PNBRKQ]))?.*$',
   'm'
 );
+
+
+// https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+function _getFENBoard(groups) {
+  return groups.rows.trimLeft().split(' ').map(row => {
+    let fenRow = '';
+    let lastPieceIdx = -1;
+    for (let i = 0; i < row.length; ++i) {
+      const piece = row[i];
+      if (piece !== '-') {
+        const numEmpty = i - lastPieceIdx - 1;
+        if (numEmpty > 0) {
+          fenRow += String(numEmpty);
+        }
+        fenRow += piece;
+        lastPieceIdx = i;
+      }
+    }
+    const numEmpty = 7 - lastPieceIdx;
+    if (numEmpty > 0) {
+      fenRow += String(numEmpty);
+    }
+    return fenRow;
+  }).join('/');
+}
+
+function _getFENPawnSquare(groups) {
+  const {pawnPush, toMove} = groups;
+  if (pawnPush === '-1') {
+    return '-';
+  }
+  return 'abcdefgh'[parseInt(pawnPush)] + toMove === 'W' ? '3' : '6';
+}
+
+function _getFENCastling(groups) {
+  const {wCS, wCL, bCS, bCL} = groups;
+  const castleFEN =  (wCS === '1' ? 'K' : '') +
+        (wCL === '1' ? 'Q' : '') +
+        (bCS === '1' ? 'k' : '') +
+        (bCL === '1' ? 'q' : '');
+  return castleFEN === '' ? '-' : castleFEN;
+}
 
 class BoardParser {
 
@@ -38,12 +81,13 @@ class BoardParser {
     if (match == null) {
       return {holdings: null, match};
     }
+    const {groups} = match;
     const holdings = {
-      id: match.id,
-      white: match.wHoldings,
-      black: match.bHoldings,
-      passer: match.passer,
-      piece: match.piece
+      id: groups.id,
+      white: groups.wHoldings,
+      black: groups.bHoldings,
+      passer: groups.passer,
+      piece: groups.piece
     };
     return {holdings, match};
   }
@@ -53,24 +97,23 @@ class BoardParser {
       return null;
     }
     const {groups} = match;
-    const rowArray = groups.rows.trimLeft().split(' ');
+    const fen = BoardParser._toFEN(groups);
+    log(`BoardParser: ${fen}`);
+
     return {
       id: groups.id,
-      board: rowArray,
+      fen,
+      // pieces: rowArray,
+      toMove: groups.toMove,
       pawnPush: groups.pawnPush,
       white: {
         handle: groups.wHandle,
-        cs: groups.wCS,
-        cl: groups.wCL,
         time: groups.wRT
       },
       black: {
         handle: groups.bHandle,
-        cs: groups.bCS,
-        cl: groups.bCL,
         time: groups.bRT,
       },
-      numMoves: groups.numMoves,
       moveNum: groups.moveNum,
       moveMade: groups.moveMade,
       timeTaken: groups.timeTaken,
@@ -79,6 +122,14 @@ class BoardParser {
       incr: groups.incr,
     };
   }
+
+  static _toFEN(groups) {
+    const {numHalfMoves, toMove, moveNum} = groups;
+    return _getFENBoard(groups) + ' ' + toMove.toLowerCase() + ' ' +
+      _getFENCastling(groups) +  ' '  + _getFENPawnSquare(groups) + ' ' +
+      numHalfMoves + ' ' + moveNum;
+  }
+
 }
 
 module.exports = BoardParser;

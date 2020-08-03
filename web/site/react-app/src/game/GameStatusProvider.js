@@ -7,7 +7,7 @@ export const GamesStatusContext = createContext({
   handles: {},
 });
 
-const GamesListProvider = (props) => {
+const GamesStatusProvider = (props) => {
   const {telnet} = useContext(TelnetContext);
   const src = GamesSource.get(telnet);
   const [games, setGames] = useState(src.getGames());
@@ -30,4 +30,4 @@ const GamesListProvider = (props) => {
   );
 }
 
-export default GamesListProvider;
+export default GamesStatusProvider;

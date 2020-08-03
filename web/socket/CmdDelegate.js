@@ -59,7 +59,7 @@ const _handlers = [
     onMatch: (match, clientSocket) => {
       const challenge = Pending.matchToGame(match);
       log(`CmdDelegate sock.emit('incomingChallenge', ${JSON.stringify(challenge)})`);
-      if (challenge.white.handle == null) {
+      if (challenge.challenger.handle == null) {
         log(match);
       }
       clientSocket.emit('incomingChallenge', challenge);
@@ -69,8 +69,8 @@ const _handlers = [
     // Your bughouse partner was challenged: GuestPYGY (----) GuestCDZP (----) unrated bughouse 5 0.
     // Your game will be: GuestLCVT (----) fixerator (----) unrated bughouse 5 0
     re: new RegExp(
-      '^Your bughouse partner was challenged: ' +
-        Pending.challengeGameRE().source,
+      'Your bughouse partner was challenged: ' +
+       Pending.challengeGameRE().source,
       'm'
     ),
     onMatch: (match, clientSocket) => {

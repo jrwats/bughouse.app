@@ -17,7 +17,7 @@ const BoardSummary = ({reverse, board, style}) => {
   let id = null;
   if (board.id != null) {
     id = (
-      <Typography variant="h7" noWrap>
+      <Typography variant="h6" noWrap>
         {board.id}:
       </Typography>
     );
@@ -26,7 +26,7 @@ const BoardSummary = ({reverse, board, style}) => {
   return (
     <div style={{paddingTop: '10px', paddingBottom: '10px', ...style}}>
       {users[0]}
-      <Typography style={{display: "inline"}} variant="h7" noWrap>
+      <Typography style={{display: "inline"}} variant="h6" noWrap>
         vs.
       </Typography>
       {users[1]}

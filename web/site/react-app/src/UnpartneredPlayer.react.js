@@ -26,27 +26,30 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const UnpartneredUser = ({user}) => {
-  const {telnet} = useContext(TelnetContext);
-  const {onlineUsers, outgoingOffers, pendingOffers, partnerMap} = useContext(UsersContext);
+const UnpartneredPlayer = ({player}) => {
+  const {onlineUsers, outgoingOffers, pendingOffers, partnerMap}
+    = useContext(UsersContext);
+  const {telnet, ficsHandle} = useContext(TelnetContext);
   const {user: viewer} = useContext(AuthContext);
   const {handles: playingHandles} = useContext(GamesListContext);
   const classes = useStyles();
-  const viewingFicsHandle = onlineUsers[viewer.uid]?.ficsHandle;
-  const {handle} = user;
+  if (player == null) {
+    debugger;
+  }
+  const {handle} = player;
 
   const disabled =
-    viewingFicsHandle == null ||
-    viewingFicsHandle === handle ||
-    partnerMap[viewingFicsHandle] != null ||
+    ficsHandle == null ||
+    ficsHandle === handle ||
+    partnerMap[ficsHandle] != null ||
     partnerMap[handle] != null ||
-    playingHandles[viewingFicsHandle] ||
+    playingHandles[ficsHandle] ||
     playingHandles[handle] ||
     handle in outgoingOffers;
 
   const userComponent = (
     <Paper className={`${disabled ? classes.disabled : ''} ${classes.paper}`}>
-      <User user={user} />
+      <User user={player} />
     </Paper>
   );
 
@@ -55,7 +58,7 @@ const UnpartneredUser = ({user}) => {
   }
   const onClick = (e) => {
     telnet.send(`partner ${handle}`);
-    OnlineUsers.get().offerTo({uid: viewer.uid, handle});
+    OnlineUsers.get().offerTo({user: viewer, handle});
     e.preventDefault();
   };
   return (
@@ -65,4 +68,4 @@ const UnpartneredUser = ({user}) => {
   );
 };
 
-export default UnpartneredUser;
+export default UnpartneredPlayer;

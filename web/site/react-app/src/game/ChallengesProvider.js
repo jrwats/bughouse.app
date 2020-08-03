@@ -11,7 +11,6 @@ const ChallengesProvider = (props) => {
 
   useEffect(() => {
     const onChallenges = challenges => {
-      console.log(`ChallengesProvider 'onChallenges' ${JSON.stringify(challenges)}`);
       setChallenges({...challenges});
     };
     src.on('challenges', onChallenges);

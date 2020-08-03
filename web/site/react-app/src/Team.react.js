@@ -5,7 +5,6 @@ import User from './User.react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { TelnetContext } from './telnet/TelnetProvider';
-import { UsersContext } from './user/UsersProvider';
 import { AuthContext } from './auth/AuthProvider';
 import { Link } from "@reach/router";
 import CancelIcon from '@material-ui/icons/Cancel';
@@ -51,9 +50,8 @@ const ChallengeUser = ({disabled, user, ...rest}) => {
   );
 }
 
-const Team = ({team}) => {
+const Team = ({onlineUsers, partnerMap, team}) => {
   const {telnet} = useContext(TelnetContext);
-  const {onlineUsers, partnerMap} = useContext(UsersContext);
   const {user: viewer} = useContext(AuthContext);
   const classes = useStyles();
   const viewingFicsHandle = onlineUsers[viewer.uid]?.ficsHandle;

@@ -2,6 +2,7 @@ import firebase from 'firebase/app';
 import {EventEmitter} from 'events';
 import TelnetProxy from '../telnet/TelnetProxy';
 import OnlineUsers from '../user/OnlineUsers';
+import invariant from 'invariant';
 
 const onlineUsers = OnlineUsers.get();
 const proxy = TelnetProxy.singleton();
@@ -38,23 +39,19 @@ class ChallengesSource extends EventEmitter {
   }
 
   _addChallenge(uid, challenge) {
-    const {white, black} = challenge;
+    const {challenger, challengee} = challenge;
     const viewer = onlineUsers.getUsers()[uid];
     if (viewer == null) {
       console.error(`null viewer?`);
       return;
     }
     const viewerHandle = viewer.ficsHandle;
-    if (viewerHandle != white.handle && viewerHandle != black.handle) {
-      throw (
-        `Challenges got challenge for someone else ` +
-          `viewer: ${viewerHandle},  [${white.handle}, ${black.handle}]`
-      );
-    }
-    const challenger = white.handle === viewerHandle
-      ? black.handle
-      : white.handle;
-    this._challenges[challenger] = challenge;
+    invariant(
+      viewerHandle === challengee.handle,
+      `Parse assumptions WRONG! viewer: ${viewerHandle}
+       [${challenger.handle}, ${challengee.handle}]`
+    );
+    this._challenges[challenger.handle] = challenge;
   }
 
   getPartnerChallenges() {

@@ -10,15 +10,33 @@ class ChessBoard extends EventEmitter {
   }
 
   update({id, board, holdings}) {
-    debugger;
-    invariant(id === this._id);
+    const initialized = this._board?.white?.handle !== board.white.handle;
+    invariant(id === this._id, 'WTF');
     this._board = board;
     this._holdings = holdings;
+    console.log(`ChessBoard 'update' ${id}`);
     this.emit('update', this);
+    if (initialized) {
+      this.emit('init');
+    }
+  }
+
+  isInitialized() {
+    return this._board?.white?.handle != null &&
+      this._board?.black?.handle != null;
   }
 
   getID() {
     return this._id;
+  }
+
+  getHandleColor(handle) {
+    if (handle === this._board?.white?.handle) {
+      return 'white';
+    } else if (handle === this._board?.black?.handle) {
+      return 'black';
+    }
+    return null;
   }
 
   getHandles() {
@@ -39,12 +57,15 @@ class ChessBoard extends EventEmitter {
   }
 
   static init(id) {
+    console.log(`ChessBoard.init() ${id}`);
     return new ChessBoard({
       id,
-      board: {},
+      board: {fen: '/////// w KQkq - 0 1'},
       holdings: {},
     });
   }
+  static WHITE = 'white';
+  static BLACK = 'black';
 }
 
 export default ChessBoard;
