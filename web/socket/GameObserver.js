@@ -74,7 +74,7 @@ holdings: ${JSON.stringify(this._holdings)}
     for (const uid in this._gameid2subscribers[gameID]) {
       return;
     }
-    log(`GameObserver clearing ${id}`);
+    log(`GameObserver clearing ${gameID}`);
     delete this._boards[gameID];
     delete this._holdings[gameID];
   }

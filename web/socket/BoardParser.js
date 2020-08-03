@@ -2,6 +2,11 @@ const log = require('./log');
 
 // https://www.freechess.org/Help/HelpFiles/style12.html
 // <12> r-b----r ppNnknpp -------- -QNPb--- -------- --K-P--- P-P---PP R-----NR W -1 0 0 0 0 0 8 foo bar 0 2 0 43 32 31 93 20 B/@@-e5 (0:02) B@e5+ 0 1 0
+//
+// <12> Qnb-kb-r p----ppp ----pn-- -------- -------- -------- PPPQ-PPP RNB-KBNR B -1 1 1 1 0 0 146 GuestZFRK fixerator 1 5 0 46 24 261 102 6 P/b7-a8=Q (0:05) bxa8=Q 1 1 0
+// <12> Qnbqkb-r p----ppp ----pn-- -------- -------- -------- PPPP-PPP RNBQKBNR B -1 1 1 1 0 0 47 GuestCJPY GuestRPRR 0 5 0 47 31 284 250 5 P/b7-a8=Q (0:02) bxa8=Q 0 1 0
+// <b1> game 146 white [] black [PP]
+
 const boardRE = new RegExp(
   '<12>(?<rows>(?: [pnbrkqPNBRKQ-]{8}){8}) ' +
   '(?<toMove>B|W) (?<pawnPush>-1|[0-7]) ' +
@@ -10,8 +15,8 @@ const boardRE = new RegExp(
   '(?<wHandle>\\w+) (?<bHandle>\\w+) ' +
   '(?<viewerRelation>-[1-3]|[0-2]) (?<initialTime>\\d+) (?<incr>\\d+) ' +
   '(?<wms>\\d+) (?<bms>\\d+) (?<wRT>\\d+) (?<bRT>\\d+) (?<moveNum>\\d+) ' +
-  '(?<moveMade>none|[PNBRKQ]\\/(?:[a-h][1-8]|@@)-[a-h][1-8]) ' +
-  '\\((?<timeTaken>\\d+:\\d+)\\) (?<prettyMove>none|[\\w@+#]+) ' +
+  '(?<moveMade>none|[PNBRKQ]\\/(?:[a-h][1-8]|@@)-[a-h][1-8](?:=[NBRQ])?) ' +
+  '\\((?<timeTaken>\\d+:\\d+)\\) (?<prettyMove>none|[\\w@+=#]+) ' +
   '(?<flip>0|1).*$',
   'm'
 );
