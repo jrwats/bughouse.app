@@ -1,6 +1,4 @@
-import React, {useContext} from 'react';
-import Unpartnered from './Unpartnered.react';
-import Teams from './Teams.react';
+import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import UnpartneredPlayer from './UnpartneredPlayer.react';

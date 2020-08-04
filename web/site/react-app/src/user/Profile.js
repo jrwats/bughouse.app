@@ -1,5 +1,4 @@
 import React from 'react'
-import Typography from '@material-ui/core/Typography';
 
 const Profile = ({user, ...rest}) => {
   const name = user.displayName || user.email;
@@ -18,10 +17,8 @@ const Profile = ({user, ...rest}) => {
     <React.Fragment>
       <span style={{...rest.style}}>
         {picture}
-        <span>
-          <Typography style={{display: "inline"}} variant="h6" noWrap>
-            {name}
-          </Typography>
+        <span className="h6">
+         {name}
         </span>
       </span>
     </React.Fragment>

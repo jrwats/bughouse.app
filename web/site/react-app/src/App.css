@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'SpaceMono';
+  src: url('fonts/SpaceMono-Regular.ttf') format('truetype');
+}
+
 .App {
   text-align: center;
 }
@@ -61,4 +66,31 @@
 
 .hoverExpose:hover {
   opacity: 100%;
+}
+
+body .mono {
+  font-family: 'SpaceMono', Courier, Roboto;
+}
+
+.med-text {
+  font-size: 1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  /* line-height: 1.6; */
+  letter-spacing: 0.0075em;
+}
+
+.h6 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: clamp(.5rem, 3vh, 2rem);
+  font-weight: 500;
+  /* line-height: 1.6; */
+  letter-spacing: 0.0075em;
+}
+
+.roboto {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
 }

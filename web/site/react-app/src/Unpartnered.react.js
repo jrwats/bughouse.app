@@ -1,15 +1,17 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import Grid from '@material-ui/core/Grid';
-import Profile from './user/Profile';
 import Typography from '@material-ui/core/Typography';
 import UnpartneredPlayer from './UnpartneredPlayer.react';
-import { makeStyles } from '@material-ui/core/styles';
 
 const Unpartnered = ({unpartnered}) => {
-  const players = [];
+  const bughouseUsers = [], ficsPlayers = [];
   for (const handle in unpartnered) {
-    const {rating, status} = unpartnered[handle];
-    players.push({uid: null, rating, status, handle});
+    const player = unpartnered[handle];
+    if (player.user != null) {
+      bughouseUsers.push(player);
+    } else {
+      ficsPlayers.push({handle: handle, uid: null, ...player});
+    }
   }
 
   return (
@@ -24,7 +26,7 @@ const Unpartnered = ({unpartnered}) => {
         height: '100%'
         }} >
         <Grid container spacing={3}>
-          {players.map(player => {
+          {bughouseUsers.concat(ficsPlayers).map(player => {
             return (
               <Grid key={player.handle} item xs={3}>
                 <UnpartneredPlayer player={player} />

@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
-import Typography from '@material-ui/core/Typography';
 import { Link } from "@reach/router";
-import User from './User.react';
+import Player from './Player.react';
 import { TelnetContext } from './telnet/TelnetProvider';
 import { UsersContext } from './user/UsersProvider';
 import { AuthContext } from './auth/AuthProvider';
@@ -27,8 +26,7 @@ const useStyles = makeStyles((theme) => {
 });
 
 const UnpartneredPlayer = ({player}) => {
-  const {onlineUsers, outgoingOffers, pendingOffers, partnerMap}
-    = useContext(UsersContext);
+  const {outgoingOffers, partnerMap} = useContext(UsersContext);
   const {telnet, ficsHandle} = useContext(TelnetContext);
   const {user: viewer} = useContext(AuthContext);
   const {handles: playingHandles} = useContext(GamesListContext);
@@ -38,6 +36,9 @@ const UnpartneredPlayer = ({player}) => {
   }
   const {handle} = player;
 
+  if (handle === 'fixerator') {
+    console.log(`${JSON.stringify(playingHandles)} ${JSON.stringify(partnerMap)}`);
+  }
   const disabled =
     ficsHandle == null ||
     ficsHandle === handle ||
@@ -49,7 +50,7 @@ const UnpartneredPlayer = ({player}) => {
 
   const userComponent = (
     <Paper className={`${disabled ? classes.disabled : ''} ${classes.paper}`}>
-      <User user={player} />
+      <Player player={player} />
     </Paper>
   );
 

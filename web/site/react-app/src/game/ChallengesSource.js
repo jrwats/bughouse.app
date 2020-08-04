@@ -1,4 +1,3 @@
-import firebase from 'firebase/app';
 import {EventEmitter} from 'events';
 import TelnetProxy from '../telnet/TelnetProxy';
 import OnlineUsers from '../user/OnlineUsers';

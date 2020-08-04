@@ -1,6 +1,5 @@
 import React, {useContext} from 'react'
 import Button from '@material-ui/core/Button';
-import firebase from "firebase/app";
 import {AuthContext} from './auth/AuthProvider';
 import {TelnetContext} from './telnet/TelnetProvider';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';

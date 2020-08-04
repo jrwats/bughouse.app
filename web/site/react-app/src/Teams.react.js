@@ -1,8 +1,5 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
-import Profile from './user/Profile';
-import User from './User.react';
 import Team from './Team.react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -18,14 +15,14 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const Teams = ({onlineUsers, partnerMap, partners, ...rest}) => {
+const Teams = ({partnerMap, partners, ...rest}) => {
   const classes = useStyles();
 
   return (
     <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
       <div>
         <Typography style={{marginLeft: '100px'}} variant="h5" noWrap>
-           Teams
+           Idle Teams
         </Typography>
       </div>
       <div className={classes.root}>
@@ -33,7 +30,7 @@ const Teams = ({onlineUsers, partnerMap, partners, ...rest}) => {
           {partners.map(pair => {
             return (
               <Grid item key={pair[0].handle} xs={3}>
-                <Team team={pair} {...{onlineUsers, partnerMap, partners}}/>
+                <Team team={pair} partnerMap={partnerMap} partners={partners} />
               </Grid>
             );
           })}

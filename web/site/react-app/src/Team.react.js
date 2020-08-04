@@ -1,11 +1,8 @@
 import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import User from './User.react';
-import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
+import Player from './Player.react';
 import { TelnetContext } from './telnet/TelnetProvider';
-import { AuthContext } from './auth/AuthProvider';
 import { Link } from "@reach/router";
 import CancelIcon from '@material-ui/icons/Cancel';
 
@@ -31,7 +28,7 @@ const ChallengeUser = ({disabled, user, ...rest}) => {
   const {telnet} = useContext(TelnetContext);
   const classes = useStyles();
   if (disabled) {
-    return <User className={classes.disabled} user={user} {...rest} />
+    return <Player className={classes.disabled} player={user} {...rest} />
   }
   const onClick = (e) => {
     // TODO: Popup modal dialog to set these parameters and THEN send this
@@ -45,23 +42,21 @@ const ChallengeUser = ({disabled, user, ...rest}) => {
       cursor: 'cell',
       textDecoration: 'none'
     }}>
-      <User user={user} {...rest} />
+      <Player player={user} {...rest} />
     </Link>
   );
 }
 
-const Team = ({onlineUsers, partnerMap, team}) => {
-  const {telnet} = useContext(TelnetContext);
-  const {user: viewer} = useContext(AuthContext);
+const Team = ({partnerMap, team}) => {
+  const {telnet, ficsHandle} = useContext(TelnetContext);
   const classes = useStyles();
-  const viewingFicsHandle = onlineUsers[viewer.uid]?.ficsHandle;
 
   const [player1, player2] = team;
 
   const cancellable =
-    player1.handle === viewingFicsHandle ||
-    player2.handle === viewingFicsHandle;
-  const disabled = cancellable || !(viewingFicsHandle in partnerMap);
+    player1.handle === ficsHandle ||
+    player2.handle === ficsHandle;
+  const disabled = cancellable || !(ficsHandle in partnerMap);
 
 
   let cancel = null;

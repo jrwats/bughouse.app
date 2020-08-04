@@ -1,34 +1,33 @@
 import React from 'react';
-import User from './User.react';
-import Typography from '@material-ui/core/Typography';
+import Player from './Player.react';
 
 const BoardSummary = ({reverse, board, style}) => {
   let users = [
-    <User
+    <Player
       style={{borderColor: '#333333', backgroundColor: 'white'}}
       user={{...board.white, status: null}} />,
-    <User
+    <Player
       style={{color: 'white', backgroundColor: '#202020'}}
       user={{...board.black, status: null}} />,
   ];
   if (reverse) {
     users = users.reverse();
   }
-  let id = null;
-  if (board.id != null) {
-    id = (
-      <Typography variant="h6" noWrap>
-        {board.id}:
-      </Typography>
-    );
-  }
+  // let id = null;
+  // if (board.id != null) {
+  //   id = (
+  //     <span className="h6">
+  //       {board.id}:
+  //     </span>
+  //   );
+  // }
 
   return (
     <div style={{paddingTop: '10px', paddingBottom: '10px', ...style}}>
       {users[0]}
-      <Typography style={{display: "inline"}} variant="h6" noWrap>
+      <span className="h6">
         vs.
-      </Typography>
+      </span>
       {users[1]}
     </div>
   );

@@ -1,5 +1,4 @@
 import React, {useContext} from 'react';
-import Users from './Users.react';
 import Unpartnered from './Unpartnered.react';
 import Teams from './Teams.react';
 import Offers from './Offers.react';
@@ -13,7 +12,7 @@ const Bugwho = (props) => {
   const {
     incomingOffers,
     onlineUsers,
-    outgoingOffers,
+    // outgoingOffers,
     partnerMap,
     partners,
     unpartnered,
@@ -25,7 +24,6 @@ const Bugwho = (props) => {
       <GamesList />
       <Teams {...{partners, onlineUsers, partnerMap}} />
       <Offers {...{unpartnered, incomingOffers}} />
-      <Users {...{onlineUsers}}/>
       <Unpartnered unpartnered={unpartnered} />
     </div>
   );

@@ -1,5 +1,4 @@
-import React, {useContext} from 'react';
-import {ChallengesContext} from './game/ChallengesProvider';
+import React from 'react';
 import BoardSummary from './BoardSummary.react';
 import Typography from '@material-ui/core/Typography';
 

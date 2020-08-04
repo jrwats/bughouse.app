@@ -10,11 +10,10 @@ class ChessBoard extends EventEmitter {
   }
 
   update({id, board, holdings}) {
-    const initialized = this._board?.white?.handle !== board.white.handle;
+    const initialized = this._board?.white?.handle !== board?.white.handle;
     invariant(id === this._id, 'WTF');
     this._board = board;
     this._holdings = holdings;
-    console.log(`ChessBoard 'update' ${id}`);
     this.emit('update', this);
     if (initialized) {
       this.emit('init');

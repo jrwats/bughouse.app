@@ -1,5 +1,4 @@
-import React, {useContext} from 'react';
-import Typography from '@material-ui/core/Typography';
+import React from 'react';
 import BoardSummary from './BoardSummary.react';
 import { Link } from "@reach/router";
 

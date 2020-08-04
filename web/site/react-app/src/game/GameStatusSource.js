@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import TelnetProxy from '../telnet/TelnetProxy';
 import ChessBoard from './ChessBoard';
 import { navigate } from "@reach/router";
 

@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Board from './Board.react';
 import GameStatusSource from './GameStatusSource';
-import Divider from '@material-ui/core/Divider';
 import {TelnetContext} from '../telnet/TelnetProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
@@ -10,7 +9,7 @@ import { opposite } from 'chessground/util';
 const Arena = ({gamePair}) => {
   const {ficsHandle, telnet} = useContext(TelnetContext);
   const gamesSrc = GameStatusSource.get(telnet);
-  const [id1, id2] = gamePair.split('~');
+  let [id1, id2] = gamePair.split('~');
   console.log(`Arena ${id1}/${id2}`);
   if (id1 === id2) {
     id2 = null;
@@ -42,12 +41,13 @@ const Arena = ({gamePair}) => {
   });
 
   let orientation1 = handleColor1 || 'white';
-  console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}`);
+  console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}, hc2: ${handleColor2}`);
   gamesSrc.observe(id1);
 
   let boardView2 = null;
   if (id2 != null) {
     if (handleColor2 != null) {
+      debugger;
       invariant(handleColor1 == null, `Viewer can't be on both boards: ${handleColor1} ${handleColor2}`);
       return <Redirect to={`/home/arena/${id2}~${id1}`} />;
     }
@@ -66,6 +66,7 @@ const Arena = ({gamePair}) => {
   return (
     <div style={{width: '100%'}}>
       <Board
+        id="board1"
         chessboard={board1}
         orientation={orientation1}
       />

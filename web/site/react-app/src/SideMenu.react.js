@@ -5,7 +5,8 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import MenuOpenIcon from '@material-ui/icons/MenuOpen';
+// TODO - animate menu depending on open/close state
+// import MenuOpenIcon from '@material-ui/icons/MenuOpen';
 import MenuIcon from '@material-ui/icons/Menu';
 import PeopleIcon from '@material-ui/icons/People';
 import { Link } from "@reach/router";
@@ -59,6 +60,7 @@ const SideMenu = ({style}) => {
   return (
     <div style={{ zIndex: '99', ...style }}>
       <Button
+        style={{padding: '2px 2px', minWidth: '3em'}}
         aria-controls="customized-menu"
         aria-haspopup="true"
         variant="contained"

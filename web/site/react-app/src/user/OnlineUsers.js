@@ -15,7 +15,7 @@ class OnlineUsers extends EventEmitter {
     this._uids = {};
     this._users = {};
     this._handle2uid = {};
-    this._unpartnered = [];
+    this._unpartnered = {};
     this._partners = [];
     this._listeners = {};
     this._subscriptions = {};
@@ -29,21 +29,14 @@ class OnlineUsers extends EventEmitter {
     const onBugwho = bug => {
       console.log(`onBugwho ${bug}`);
       onPartners(bug.partners);
-      onUnpartneredHandles(bug.unpartnered);
+      this._onUnpartneredHandles(bug.unpartnered);
     };
     const onPartners = partners => {
       console.log(`OnlineUsers partners`);
       console.log(partners);
       this._partners = partners;
+      this._mergePartnerHandles();
       this.emit('partners', partners);
-    };
-    const onUnpartneredHandles = unpartneredFicsPlayers => {
-      const newUnpartnered = {};
-      for (const user of unpartneredFicsPlayers) {
-        newUnpartnered[user.handle] = user;
-      }
-      this._unpartnered = newUnpartnered;
-      this.emit('unpartneredHandles', this._unpartnered);
     };
     const onPending = ({pending}) => {
       const {outgoing, incoming} = pending;
@@ -74,7 +67,7 @@ class OnlineUsers extends EventEmitter {
       this.emit('outgoingOffers', this._outgoingOffers);
     };
     proxy.on('bugwho', onBugwho);
-    proxy.on('unpartneredHandles', onUnpartneredHandles);
+    proxy.on('unpartneredHandles', (handles) => { this._onUnpartneredHandles(handles); });
     proxy.on('partners', onPartners);
     proxy.on('partnerAccepted', data => this._formPartner(data));
     proxy.on('incomingOffer', onIncomingOffer);
@@ -103,22 +96,53 @@ class OnlineUsers extends EventEmitter {
       console.log(this._uids);
 
       onlineUsers.on('child_added', (data) => {
-        console.log(`OnlineUsers online.child_added ${data.key}`);
+        // console.log(`OnlineUsers online.child_added ${data.key}`);
         this._uids[data.key] = data.val();
         this._users[data.key] = {};
         this._listenToUser(data.key);
         this.emit('value', this._users);
       });
       onlineUsers.on('child_changed', (data) => {
-        console.log(`OnlineUsers online.child_changed ${data.key}`);
+        // console.log(`OnlineUsers online.child_changed ${data.key}`);
         this._uids[data.key] = data.val();
       });
       onlineUsers.on('child_removed', (data) => {
-        console.log(`OnlineUsers online.child_removed ${data.key}`);
+        // console.log(`OnlineUsers online.child_removed ${data.key}`);
         this._unsubscribeFromUser(data.key);
         this.emit('value', this._users);
       });
     });
+  }
+
+  _onUnpartneredHandles(unpartneredFicsPlayers) {
+    const newUnpartnered = {};
+    for (const player of unpartneredFicsPlayers) {
+      const {handle} = player;
+      newUnpartnered[handle] = player;
+    }
+    this._unpartnered = newUnpartnered;
+    this._mergeUserHandles();
+    this.emit('unpartneredHandles', this._unpartnered);
+  }
+
+  _mergeUserHandles() {
+    for (const handle in this._unpartnered) {
+      if (handle in this._handle2uid) {
+        this._unpartnered[handle].user = this._users[this._handle2uid[handle]];
+      }
+    }
+  }
+
+  _mergePartnerHandles() {
+    for (let i = 0; i < this._partners.length; ++i) {
+      const [p1, p2] = this._partners[i];
+      if (p1.handle in this._handle2uid) {
+        this._partners[i][0] = {...p1, user: this.getUserFromHandle(p1.handle)};
+      }
+      if (p2.handle in this._handle2uid) {
+        this._partners[i][1] = {...p2, user: this.getUserFromHandle(p2.handle)};
+      }
+    }
   }
 
   _formPartner({user, handle}) {
@@ -158,17 +182,20 @@ class OnlineUsers extends EventEmitter {
       this.emit('value', this._users);
 
       this._listen(user, 'child_added', (data) => {
-        console.log(`OnlineUsers user.child_added ${data.key}`);
+        // console.log(`OnlineUsers user.child_added ${data.key}`);
         if (this._users[uid] != null) {
           this._users[uid][data.key] = data.val();
           if (data.key === 'ficsHandle') {
             this._handle2uid[data.val()] = uid;
+            this._mergeUserHandles();
+            this._mergePartnerHandles();
+            this.emit('unpartneredHandles', this._unpartnered);
           }
           this.emit('value', this._users);
         }
       });
       this._listen(user, 'child_changed', (data) => {
-        console.log(`OnlineUsers user.child_changed ${data.key}`);
+        // console.log(`OnlineUsers user.child_changed ${data.key}`);
         if (this._users[uid] != null) {
           if (data.key === 'ficsHandle') {
             this._handle2uid[data.val()] = uid;
@@ -178,7 +205,7 @@ class OnlineUsers extends EventEmitter {
         this.emit('value', this._users);
       });
       this._listen(user, 'child_removed', (data) => {
-        console.log(`OnlineUsers user.child_removed ${data.key}`);
+        // console.log(`OnlineUsers user.child_removed ${data.key}`);
         if (!(uid in this._users)) {
           console.error(`${uid} already gone?`);
           return;

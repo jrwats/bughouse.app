@@ -1,6 +1,4 @@
-import React, {useContext} from 'react';
-import Typography from '@material-ui/core/Typography';
-import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+import React from 'react';
 import FiberManualRecordTwoToneIcon from '@material-ui/icons/FiberManualRecordTwoTone';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -48,7 +46,7 @@ const status2Alt = {
   ':': 'Not open for play',
 };
 
-const Status = ({status}) => {
+const Status = ({status, style}) => {
   const classes = useStyles();
   if (status == null) {
     return null;
@@ -58,7 +56,7 @@ const Status = ({status}) => {
       alt={status2Alt[status]}
       title={status2Alt[status]}
       className={classes[status2Class[status]]}
-      style={{position: 'relative', top: '6px', paddingTop: '10px'}}
+      style={style}
     />
   );
 };
