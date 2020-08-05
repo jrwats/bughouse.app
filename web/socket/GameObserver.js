@@ -39,6 +39,7 @@ class GameObserver extends EventEmitter {
         holdings: this._holdings[gameID],
       });
     }
+    this._refreshGame(gameID);
   }
 
   dump() {
@@ -113,8 +114,13 @@ holdings: ${JSON.stringify(this._holdings)}
     }
     log(`GameObserver 'refresh' of ${id} to ${socket.id}`);
     socket.emit('boardUpdate', this.getBoard(id));
-    const observer = this._gameid2observer[id];
-    this._ficsMgr.get(observer).send(`refresh ${id}`);
+    this._refreshGame(id);
+  }
+
+  _refreshGame(gameID) {
+    log(`GameObserver calling refresh for ${gameID}`);
+    const observer = this._gameid2observer[gameID];
+    this._ficsMgr.get(observer).send(`refresh ${gameID}`);
   }
 
   onMatch({board, holdings}) {
@@ -152,7 +158,7 @@ holdings: ${JSON.stringify(this._holdings)}
   }
 
   _notifySubscribers(gameID, board) {
-    log(`!!! GameObserver notifying ${JSON.stringify(this._gameid2subscribers[gameID])} ${JSON.stringify(board)}`);
+    log(`!!! GameObserver notifying ${gameID}: ${JSON.stringify(this._gameid2subscribers[gameID])} ${JSON.stringify(board)}`);
     for (const uid in this._gameid2subscribers[gameID]) {
       this._socketMgr.emit(uid, 'boardUpdate', board);
     }

@@ -14,7 +14,8 @@ class FicsClient extends EventEmitter {
     super();
     this._uid = uid;
     this._db = db;
-    this._username = null;
+    this._handleRef = null;
+    this._handle = null;
     this._ready = false;
     this._initialized = false;
     this._isLoggedIn = false;
@@ -27,7 +28,7 @@ class FicsClient extends EventEmitter {
 
   login(creds) {
     if (this._isLoggedIn) {
-      console.error(`already connected for ${this._username}`);
+      console.error(`already connected for ${this._handle}`);
       return Promise.resolve();
     }
     const username = creds.username || 'guest';
@@ -42,21 +43,22 @@ class FicsClient extends EventEmitter {
     log('FicsClient connecting...');
     this._conn.on('data', chunks => {
       const result = chunks.toString();
-      // log(`FicsClient ${this._username} on 'data' '${result.substr(0,20)}...'`);
-      if (this._username == null) {
+      // log(`FicsClient ${this._handle} on 'data' '${result.substr(0,20)}...'`);
+      if (this._handle == null) {
         if (username !== 'guest') {
-          this._username = username;
+          this._handle = username;
         } else {
           let match = /Logging you in as "(\w+)";/.exec(result);
           if (match != null) {
-            this._username = match[1];
+            this._handle = match[1];
           }
         }
-        if (this._username != null) {
-          const ref = this._db.ref(`users/${this._uid}/ficsHandle`);
-          ref.set(this._username);
-          ref.onDisconnect().remove();
-          this.emit('login', this._username);
+        if (this._handle != null) {
+          this._handleRef = this._db.ref(`users/${this._uid}/ficsHandle`);
+          this._handleRef.set(this._handle);
+          this._handleRef.onDisconnect().remove();
+          log(`FicsClient ficsHandle ${this._uid}: ${this._handle}`);
+          this.emit('login', this._handle);
         }
       }
       if (this._isPolling && result.match(BughouseState.regexp())) {
@@ -106,13 +108,13 @@ class FicsClient extends EventEmitter {
 
     this._conn.on('close', err => {
       console.error(
-        `FicsClient ${this._uid} ${this._username} 'close' ...`,
+        `FicsClient ${this._uid} ${this._handle} 'close' ...`,
       );
       this.emit('close', {uid: this._uid, fics: this});
     });
     this._conn.on('end', err => {
       console.error(
-        `FicsClient ${this._uid} ${this._username} 'end'...`
+        `FicsClient ${this._uid} ${this._handle} 'end'...`
       );
       this.emit('end', {uid: this._uid, fics: this});
     });
@@ -194,7 +196,7 @@ class FicsClient extends EventEmitter {
   }
 
   _dedupe(cmd) {
-    return false; // let all commands thru (no deduping)
+    return /^refresh /.test(cmd);
   }
 
   _queue(cmd, opts, preSend) {
@@ -238,7 +240,7 @@ class FicsClient extends EventEmitter {
   }
 
   getUsername() {
-    return this._username;
+    return this._handle;
   }
 
   isLoggedIn() {
@@ -251,13 +253,15 @@ class FicsClient extends EventEmitter {
 
   destroy() {
     this.emit('destroy', {uid: this._uid, fics: this});
-    const ref = this._db.ref(`users/${this._uid}/ficsHandle`);
-    ref.set(null);
-    log(`FicsClient 'destroy' setting ${this._username} to null`);
+    if (this._handleRef != null) {
+      log(`FicsClient 'destroy' setting ${this._handle} to null`);
+      this._handleRef.set(null);
+      this._handleRef = null;
+    }
     // ref.remove();
     this._ready = false;
     this._isLoggedIn = false;
-    this._username = null;
+    this._handle = null;
     this._conn.destroy();
     this._conn.removeAllListeners();
   }
