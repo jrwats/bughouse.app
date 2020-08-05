@@ -9,10 +9,7 @@ import { opposite } from 'chessground/util';
 const Board = ({chessboard, orientation, id}) => {
   const {telnet, ficsHandle} = useContext(TelnetContext);
   const handleColor = chessboard.getHandleColor(ficsHandle);
-  const [viewOnly, setViewOnly] = useState(
-    chessboard.isInitialized() &&
-    handleColor == null
-  );
+  const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
 

@@ -47,13 +47,13 @@ class TelnetProxy extends EventEmitter {
         this._initialized = true;
       });
 
-      this._socket.on('login', (username) => {
-        this._username = username;
-        if (username == null) {
+      this._socket.on('login', (handle) => {
+        this._handle = handle;
+        if (handle == null) {
           this._logout();
           return;
         }
-        this._emit('login', {uid: this._user.uid, ficsHandle: username});
+        this._emit('login', {uid: this._user.uid, ficsHandle: handle});
         this._socket.emit('bugwho'); // request bughouse state from server
         this._socket.emit('pending'); // request pending offers from server
       });
@@ -169,7 +169,7 @@ class TelnetProxy extends EventEmitter {
 
   _logout() {
     this._loggedOut = true;
-    this._username = null;
+    this._handle = null;
     this._emit('logout', {user: this._user});
   }
 
@@ -180,11 +180,11 @@ class TelnetProxy extends EventEmitter {
   }
 
   isLoggedIn() {
-    return this._username != null;
+    return this._handle != null;
   }
 
   isLoggedOut() {
-    return this._loggedOut && this._username == null;
+    return this._loggedOut && this._handle == null;
   }
 
   isInitialized() {
@@ -197,6 +197,10 @@ class TelnetProxy extends EventEmitter {
 
   getUid() {
     return this._user.uid;
+  }
+
+  getHandle() {
+    return this._handle;
   }
 
   _emit(event, data) {

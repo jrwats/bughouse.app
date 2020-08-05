@@ -78,7 +78,7 @@ const Team = ({partnerMap, team}) => {
   }
 
   return (
-    <Paper className={classes.paper}>
+    <Paper elevation={8} className={classes.paper}>
       <div className="grid">
         <span style={{flexGrow: 0}}>
           <ChallengeUser disabled={disabled} user={player1} />

@@ -171,3 +171,7 @@ a:hover {
 body .makeStyles-paper-161 {
   color: #dfdfdf;
 }
+
+.shadow {
+  boxShadow: '10px 5px 5px #404040',
+}

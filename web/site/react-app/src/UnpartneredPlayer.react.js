@@ -36,9 +36,6 @@ const UnpartneredPlayer = ({player}) => {
   }
   const {handle} = player;
 
-  if (handle === 'fixerator') {
-    console.log(`${JSON.stringify(playingHandles)} ${JSON.stringify(partnerMap)}`);
-  }
   const disabled =
     ficsHandle == null ||
     ficsHandle === handle ||
@@ -49,7 +46,7 @@ const UnpartneredPlayer = ({player}) => {
     handle in outgoingOffers;
 
   const userComponent = (
-    <Paper className={`${disabled ? classes.disabled : ''} ${classes.paper}`}>
+    <Paper elevation={8} className={`${disabled ? classes.disabled : ''} ${classes.paper}`}>
       <Player player={player} />
     </Paper>
   );

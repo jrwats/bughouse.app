@@ -15,10 +15,13 @@ const normalize = msg => msg.split('\n\r').join('\n')
 
 const TelnetProvider = (props) => {
   const {user} = props;
-  console.log(`TelnetProvider.user ${user.uid}`);
-  const [telnet, setTelnet] = useState(null);
-  const [ficsHandle, setHandle] = useState(null);
-  const [loggedOut, setLoggedOut] = useState(null);
+  console.log(`${Date.now()}: TelnetProvider creating TelnetProxy. ${user.uid}`);
+  const proxy = TelnetProxy.get(user);
+  console.log(`TelnetProvider.setTelnet ${user.uid}`);
+
+  const [telnet, setTelnet] = useState(proxy);
+  const [ficsHandle, setHandle] = useState(proxy.getHandle());
+  const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState('');
   const log = useRef('');
 

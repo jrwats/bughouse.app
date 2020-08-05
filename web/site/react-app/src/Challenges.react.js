@@ -9,16 +9,11 @@ import { Link } from "@reach/router";
 const useStyles = makeStyles((theme) => {
   window.__theme = theme;
   return {
-    root: {
-      paddingBottom: '40px',
-      paddingLeft: '100px',
-      paddingRight: '100px'
-    },
     paper: {
       padding: '2px 0px',
       textAlign: 'center',
       color: theme.palette.text.primary,
-      backgroundColor: '#acccfd',
+      backgroundColor: '#303030',
       width: 'auto',
     },
   };
@@ -42,7 +37,7 @@ const Challenges = ({challenges, ...rest}) => {
           to="#accept"
           onClick={(e) => { onClick(e, challenge.id || ''); }}
           style={{textDecoration: 'none'}}>
-          <Paper className={classes.paper}>
+          <Paper elevation={8}className={classes.paper}>
             <ChallengeSummary challenge={challenge} />
           </Paper>
         </Link>
@@ -55,10 +50,10 @@ const Challenges = ({challenges, ...rest}) => {
 
   return (
     <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
-      <div className="h5 mono" style={{marginLeft: '100px'}} >
+      <div className="h5 mono leftBuffer">
         Incoming Challenges
       </div>
-      <div className={classes.root}>
+      <div className="leftPad">
         <div className="grid">
           {challengeComponents}
         </div>

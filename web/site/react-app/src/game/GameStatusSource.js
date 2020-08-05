@@ -20,11 +20,7 @@ class GameStatusSource extends EventEmitter {
     if (board.board == null) {
       console.error(`NULL board?`);
     }
-    if (!(board.id in this._boards)) {
-      this._boards[board.id] = new ChessBoard(board);
-    } else {
-      this._boards[board.id].update(board);
-    }
+    this.getBoard(board.id).update(board);
     this.emit('boardUpdate', this._boards[board.id]);
   }
 

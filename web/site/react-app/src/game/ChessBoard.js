@@ -7,15 +7,16 @@ class ChessBoard extends EventEmitter {
     this._id = id;
     this._board = board;
     this._holdings = holdings;
+    this._initialized = false;
   }
 
   update({id, board, holdings}) {
-    const initialized = this._board?.white?.handle !== board?.white.handle;
-    invariant(id === this._id, 'WTF');
+    invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     this._board = board;
     this._holdings = holdings;
     this.emit('update', this);
-    if (initialized) {
+    if (!this._initialized) {
+      this._initialized = true;
       this.emit('init');
     }
   }
