@@ -47,13 +47,13 @@ class TelnetProxy extends EventEmitter {
         this._initialized = true;
       });
 
-      this._socket.on('login', (username) => {
-        this._username = username;
-        if (username == null) {
+      this._socket.on('login', (handle) => {
+        this._handle = handle;
+        if (handle == null) {
           this._logout();
           return;
         }
-        this._emit('login', {uid: this._user.uid, ficsHandle: username});
+        this._emit('login', {uid: this._user.uid, ficsHandle: handle});
         this._socket.emit('bugwho'); // request bughouse state from server
         this._socket.emit('pending'); // request pending offers from server
       });
@@ -63,7 +63,8 @@ class TelnetProxy extends EventEmitter {
       });
 
       this._socket.on('data', msg => {
-        console.log(`TelnetProxy.emit('data')`);
+        const summary = msg.substr(0,30).replace(/\s+/, ' ');
+        console.log(`TelnetProxy.emit('data'): ${summary}`);
         this.emit('data', msg);
       });
       this._socket.on('bugwho', bug => { this._emit('bugwho', bug); });
@@ -111,6 +112,10 @@ class TelnetProxy extends EventEmitter {
         this._emit('gameStart', {user: this._user, game});
       });
 
+      this._socket.on('gameOver', (board) => {
+        this._emit('gameOver', {user: this._user, board});
+      });
+
       this._socket.on('boardUpdate', (board) => {
         this._emit('boardUpdate', {user: this._user, board});
       });
@@ -147,6 +152,7 @@ class TelnetProxy extends EventEmitter {
   }
 
   sendEvent(name, data) {
+    console.log(`TelnetProxy sending '${name}' ${Date.now()}`);
     this._socket.emit(name, data);
   }
 
@@ -169,7 +175,7 @@ class TelnetProxy extends EventEmitter {
 
   _logout() {
     this._loggedOut = true;
-    this._username = null;
+    this._handle = null;
     this._emit('logout', {user: this._user});
   }
 
@@ -180,11 +186,11 @@ class TelnetProxy extends EventEmitter {
   }
 
   isLoggedIn() {
-    return this._username != null;
+    return this._handle != null;
   }
 
   isLoggedOut() {
-    return this._loggedOut && this._username == null;
+    return this._loggedOut && this._handle == null;
   }
 
   isInitialized() {
@@ -197,6 +203,10 @@ class TelnetProxy extends EventEmitter {
 
   getUid() {
     return this._user.uid;
+  }
+
+  getHandle() {
+    return this._handle;
   }
 
   _emit(event, data) {

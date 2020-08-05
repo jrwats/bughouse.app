@@ -25,18 +25,20 @@ const _mapPartners = (partners) => {
 const UsersProvider = (props) => {
   const src = OnlineUsers.get();
   const {user} = useContext(AuthContext);
+  const [handleToUser, setHandleToUser] = useState(src.getHandleToUsers());
+  const [incomingOffers, setIncomingOffers] = useState(src.getIncomingOffers());
   const [onlineUsers, setOnlineUsers] = useState(src.getUsers());
-  const [viewingUser, setViewingUser] = useState(onlineUsers[user.uid]);
-  const [unpartnered, setUnpartnered] = useState(src.getUnpartnered());
+  const [outgoingOffers, setOutgoingOffers] = useState(src.getOutgoingOffers());
   const [partners, setPartners] = useState(src.getPartners());
   const [partnerMap, setPartnerMap] = useState(_mapPartners(partners));
-  const [outgoingOffers, setOutgoingOffers] = useState(src.getOutgoingOffers());
-  const [incomingOffers, setIncomingOffers] = useState(src.getIncomingOffers());
+  const [unpartnered, setUnpartnered] = useState(src.getUnpartnered());
+  const [viewingUser, setViewingUser] = useState(onlineUsers[user.uid]);
 
   useEffect(() => {
     const usersListener = (users) => {
       setOnlineUsers({...users});
       setViewingUser(users[user.uid]);
+      setHandleToUser(src.getHandleToUsers());
     };
     const unpartneredListener = (users) => {
       setUnpartnered(users);
@@ -69,6 +71,7 @@ const UsersProvider = (props) => {
     <UsersContext.Provider value={{
       viewingUser,
       onlineUsers,
+      handleToUser,
       incomingOffers,
       outgoingOffers,
       partners,

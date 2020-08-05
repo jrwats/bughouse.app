@@ -9,7 +9,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 const useStyles = makeStyles((theme) => {
   return {
     disabled: {
-      opacity: '50%',
+      opacity: '70%',
       cursor: 'default',
     },
 
@@ -39,7 +39,7 @@ const ChallengeUser = ({disabled, user}) => {
 
   return (
     <Link to="#challenge" onClick={onClick} style={{
-      cursor: 'cell',
+      cursor: 'pointer',
       textDecoration: 'none'
     }}>
       <Player player={user} />
@@ -78,7 +78,7 @@ const Team = ({partnerMap, team}) => {
   }
 
   return (
-    <Paper className={classes.paper}>
+    <Paper elevation={8} className={classes.paper}>
       <div className="grid">
         <span style={{flexGrow: 0}}>
           <ChallengeUser disabled={disabled} user={player1} />

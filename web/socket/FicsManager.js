@@ -13,7 +13,16 @@ const bugwho = () => {
     return;
   }
   fics.bugPoll();
-}
+
+  const uid2handle = {};
+  for (const k in _instance._uid2destroy) {
+    uid2handle[k] = _instance._uid2fics[k].getHandle();
+  }
+  if (Object.keys(uid2handle).length > 0) {
+    log(`FicsManager: pending destructions: ${JSON.stringify(uid2handle)}`);
+  }
+};
+
 let _bugwhoPoller;
 
 class FicsManager extends EventEmitter {
@@ -30,8 +39,13 @@ class FicsManager extends EventEmitter {
     };
   }
 
+  unsafeGet(uid) {
+    return this._uid2fics[uid];
+  }
+
   get(uid) {
     if (uid in this._uid2destroy) {
+      log(`Aborting destruction of ${uid} ${this.getHandle(uid)}`);
       clearTimeout(this._uid2destroy[uid]);
       delete this._uid2destroy[uid];
     }
@@ -45,14 +59,14 @@ class FicsManager extends EventEmitter {
       this._uids = Object.keys(this._uid2fics);
     } else {
       const fics = this._uid2fics[uid];
-      log(`Reusing FICS telnet connection for ${uid}, ${fics.getUsername()}`);
+      log(`Reusing FICS telnet connection for ${uid}, ${fics.getHandle()}`);
     }
     return this._uid2fics[uid];
   }
 
-  getUsername(uid) {
+  getHandle(uid) {
     if (uid in this._uid2fics) {
-      return this._uid2fics[uid].getUsername();
+      return this._uid2fics[uid].getHandle();
     };
     return null;
   }
@@ -85,7 +99,7 @@ class FicsManager extends EventEmitter {
   onClientDisconnect(uid) {
     // In 30s delete our telnet connection
     this._uid2destroy[uid] = setTimeout(() => { this.logout(uid); }, 1000 * 30);
-    log(`${uid} Waiting 30s to destroy FICS telnet conn of ${this.getUsername(uid)}`);
+    log(`${uid} Waiting 30s to destroy FICS telnet conn of ${this.getHandle(uid)}`);
   }
 
   /**

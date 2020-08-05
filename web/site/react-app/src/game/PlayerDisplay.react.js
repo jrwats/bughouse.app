@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { EventEmitter } from 'events';
+import HandleDisplay from './HandleDisplay.react';
 
 class Ticker extends EventEmitter {
   onTick() {
@@ -10,6 +11,7 @@ const _ticker = new Ticker();
 setInterval(() => { _ticker.onTick(); }, 1000);
 
 const PlayerDisplay = ({color, chessboard}) => {
+
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const [time, setTime] = useState(parseInt(playerData?.time));
@@ -35,19 +37,14 @@ const PlayerDisplay = ({color, chessboard}) => {
       _ticker.off('tick', onTick);
     };
   });
-      const mins = Math.floor(time / 60);
-      const secs = Math.floor(time % 60);
-      return (
-        <div style={{
-          display: 'flex',
-          width: 'min(100%, 90vh)',
-          justifyContent: 'space-around'}} >
-          <span className="h6 roboto light">
-           {handle}
-          </span>
-          <span className="h6 mono bold light">
-            {mins}:{(secs < 10 ? '0' : '') + secs}
-          </span>
+  const mins = Math.floor(time / 60);
+  const secs = Math.floor(time % 60);
+  return (
+    <div className="playerData">
+      <HandleDisplay handle={handle} />
+      <span className="h6 mono bold light">
+        {mins}:{(secs < 10 ? '0' : '') + secs}
+      </span>
     </div>
   );
 }

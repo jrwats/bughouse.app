@@ -3,7 +3,6 @@
  * bugwho, partnering, challenges, game status, droppable pieces, messages, etc
  */
 const log = require('./log');
-const FicsManager = require('./FicsManager');
 const {rating: ratingRE} = require('./Regex');
 const Pending = require('./Pending');
 const {EventEmitter} = require('events');
@@ -109,6 +108,7 @@ class CmdDelegate extends EventEmitter {
     this._handlers = [..._handlers];
     socket.on('disconnect', () => {
       this._socket = null;
+      fics.off('data', dataListener);
     });
   }
 
@@ -137,7 +137,9 @@ class CmdDelegate extends EventEmitter {
         handled = true;
       }
     }
-    if (handled && text.length > 0) {
+    if (handled &&
+        text.length > 0 &&
+        text.replace(/\s*fics%\s*/mg, '').length != 0) {
       log(`CmdDelegate emitting 'data' '${text.substr(20)}...' (len: ${text.length})`);
       if (this._socket != null) {
         this._socket.emit('data', text);

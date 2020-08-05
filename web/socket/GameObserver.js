@@ -164,13 +164,15 @@ holdings: ${JSON.stringify(this._holdings)}
     }
   }
 
+  msgSubscribers(boardID, event, data) {
+    log(`!!! GameObserver messaging ${boardID}: ${event} ${JSON.stringify(data)}`);
+    for (const uid in this._gameid2subscribers[boardID]) {
+      this._socketMgr.emit(uid, event, data);
+    }
+  }
+
   _onLogout(uid) {
     this.unsubscribeAll(uid);
-    if (uid in this._observer2gameIDs) {
-      for (gameID in this._observer2gameIDs[uid]) {
-        this._unobserve(uid, gameID);
-      }
-    }
   }
 
   // We know uid is playing gameID and can rely on the viewer for "free"
@@ -193,12 +195,15 @@ holdings: ${JSON.stringify(this._holdings)}
     // pick first associated subscriber, issue an 'observe' command, and stash
     // this uid away as our 'observer'
     for (const uid in (this._gameid2subscribers[gameID] || {})) {
-      this._ficsMgr.get(uid).send(`observe ${gameID}`);
-      this._gameid2observer[gameID] = uid;
-      const gameIDs = this._observer2gameIDs[uid] ||
-        (this._observer2gameIDs[uid] = {});
-      gameIDs[gameID] = 1;
-      return;
+      const fics = this._ficsMgr.unsafeGet(uid);
+      if (fics != null) {
+        fics.send(`observe ${gameID}`);
+        this._gameid2observer[gameID] = uid;
+        const gameIDs = this._observer2gameIDs[uid] ||
+              (this._observer2gameIDs[uid] = {});
+        gameIDs[gameID] = 1;
+        return;
+      }
     }
   }
 

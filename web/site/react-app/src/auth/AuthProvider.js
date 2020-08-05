@@ -2,6 +2,13 @@ import React, {createContext, useEffect, useState} from 'react';
 import auth from "./firebase-init";
 import {EventEmitter} from 'events';
 
+function needsEmailVerification(user) {
+  const nonPass = ({providerId}) => providerId !== 'password';
+  return user &&
+    user.providerData.filter(nonPass).length === 0 &&
+    !user.emailVerified;
+}
+
 class AuthListener extends EventEmitter {
 
   constructor(auth) {
@@ -9,17 +16,15 @@ class AuthListener extends EventEmitter {
     this._user = auth.currentUser;
     this._claims =  {};
     this._pendingInit = true;
+    this._needsEmailVerified = needsEmailVerification(this._user);
 
     auth.onAuthStateChanged(userAuth => {
       this._user = userAuth;
+      this._needsEmailVerified = needsEmailVerification(userAuth);
       this._pendingInit = false;
-      console.log(`AuthListener userAuth=${userAuth}`);
-      console.log(`AuthListener pendingInit=${this._pendingInit}`);
       if (userAuth != null) {
         userAuth.getIdTokenResult()
           .then(idTokenResult => {
-            console.log('AuthListener claims');
-            console.log(idTokenResult.claims);
             this._claims = idTokenResult.claims;
             this._notify();
           })
@@ -46,6 +51,7 @@ class AuthListener extends EventEmitter {
   _notify() {
     this.emit('value', {
       user: this._user,
+      needsEmailVerified: this._needsEmailVerified,
       pendingInit: this._pendingInit,
       claims: this._claims,
     });
@@ -60,18 +66,22 @@ const _singleton = new AuthListener(auth);
  */
 export const AuthContext = createContext({
   user: auth.currentUser,
+  needsEmailVerified: false,
   claims: {},
   pendingInit: true,
 });
 const AuthProvider = (props) => {
   const [pendingInit, setPending] = useState(true);
   const [user, setUser] = useState(auth.currentUser);
+  const [needsEmailVerified, setEmailVerified] =
+    useState(needsEmailVerification(auth.currentUser));
   const [claims, setClaims] = useState({});
 
   useEffect(() => {
-    const onValue = ({user, pendingInit, claims}) => {
+    const onValue = ({user, needsEmailVerified, pendingInit, claims}) => {
       setUser(user);
       setPending(pendingInit);
+      setEmailVerified(needsEmailVerified);
       setClaims(claims);
     };
     _singleton.on('value', onValue);
@@ -82,7 +92,7 @@ const AuthProvider = (props) => {
   });
 
   return (
-    <AuthContext.Provider value={{user, claims, pendingInit}}>
+    <AuthContext.Provider value={{user, claims, needsEmailVerified, pendingInit}}>
       {props.children}
     </AuthContext.Provider>
   );

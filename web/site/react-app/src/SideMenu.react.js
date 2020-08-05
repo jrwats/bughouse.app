@@ -81,7 +81,7 @@ const SideMenu = ({style}) => {
             <ListItemIcon>
               <PeopleIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Players" />
+            <ListItemText primary="Dashboard" />
           </StyledMenuItem>
         </Link>
         <Link to="/home/fics_console">
@@ -92,12 +92,14 @@ const SideMenu = ({style}) => {
               <ListItemText primary="Console" />
           </StyledMenuItem>
         </Link>
+        {/*
         <StyledMenuItem>
           <ListItemIcon>
             <img alt="console" style={{backgroundColor: "black"}} src="/favicon.ico" width="18px" />
           </ListItemIcon>
           <ListItemText primary="Game" />
         </StyledMenuItem>
+        */}
         <StyledMenuItem onClick={(e) => {telnet.logout(); }} >
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />

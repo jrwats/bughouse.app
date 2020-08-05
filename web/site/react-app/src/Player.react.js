@@ -1,7 +1,8 @@
 import React from 'react';
 import Status from './Status.react';
+import UserName from './UserName.react';
 
-const Player = ({player, black, white, style}) => {
+const Player = ({player, black, className, white, style}) => {
   const {user} = player;
   const fontWeight = user != null ? 'bold' : 'auto';
   let photo = null;
@@ -12,17 +13,6 @@ const Player = ({player, black, white, style}) => {
       width: '40px'}}
       src={user.photoURL}
     />;
-  }
-  let name = null;
-  if (user != null) {
-    const displayName = user.displayName || (user.email || '').split('@')[0];
-    name = (
-      <div style={{display: 'block'}}>
-        (<span className="roboto" style={{overflow: 'ellipsis', maxWidth: '20rem'}}>
-          {displayName}
-        </span>)
-      </div>
-    );
   }
   const backgroundColor = black != null
     ? '#2a2a2a'
@@ -43,7 +33,8 @@ const Player = ({player, black, white, style}) => {
       display: 'flex',
       justifyContent: 'left',
       padding: '4px',
-      }} >
+      }}
+      className={className}>
       <span className="med-text mono" style={{paddingRight: '4px'}}>
         {rating}
       </span>
@@ -53,7 +44,7 @@ const Player = ({player, black, white, style}) => {
         <div className="med-text" style={{display: 'inline-block', fontWeight}} >
           {player.handle}
         </div>
-        {name}
+        <UserName user={user} />
       </span>
     </span>
   );

@@ -104,6 +104,12 @@ body .mono {
   font-weight: 600;
 }
 
+.playerData {
+  display: flex;
+  width: min(100%, 90vh);
+  justify-content: space-around;
+}
+
 .h6 {
   overflow: hidden;
   white-space: nowrap;
@@ -114,6 +120,11 @@ body .mono {
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
 }
+
+.clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
+  font-size: clamp(.5em, min(2vw, 3vh), 1.5em);
+}
+
 
 .roboto {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
@@ -136,7 +147,6 @@ body .dark {
 }
 
 .grid {
-  width: 100%;
   width: 100%;
   display: flex;
   flex-wrap: wrap;
@@ -168,6 +178,18 @@ a:hover {
   color: #ffffff;
 }
 
+a.firebaseui-link, a.firebaseui-link:visited {
+  color: #4255f4;
+}
+
+p a.firebaseui-link, p a.firebaseui-link:visited {
+  color: #dfdfdf;
+}
+
 body .makeStyles-paper-161 {
   color: #dfdfdf;
+}
+
+.shadow {
+  boxShadow: 10px 5px 5px #404040,
 }

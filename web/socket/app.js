@@ -12,6 +12,7 @@ const Pending = require('./Pending');
 const GameObserver = require('./GameObserver');
 const SocketManager = require('./SocketManager');
 const GameStartParser = require('./GameStartParser');
+const GameOverParser = require('./GameOverParser');
 
 app.enable('trust proxy');
 app.get('/', (req, res) => {
@@ -76,7 +77,6 @@ io.on('connection', (socket) => {
   }
   console.log('Got socket connection');
   console.log(token);
-  const pending = Pending.get(uid);
 
   log(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
@@ -92,27 +92,29 @@ io.on('connection', (socket) => {
       onlineTimestamp.onDisconnect().remove();
 
       const fics = ficsMgr.get(uid);
+      const pending = Pending.get(uid);
       const cmdDelegate = new CmdDelegate(socket, fics);
       cmdDelegate.addHandler(pending);
       cmdDelegate.addHandler(gameObserver);
       cmdDelegate.addHandler(new GameStartParser(uid, gameObserver));
-      if (fics.getUsername() != null) {
-        socket.emit('login', fics.getUsername());
+      cmdDelegate.addHandler(new GameOverParser(gameObserver));
+      if (fics.getHandle() != null) {
+        socket.emit('login', fics.getHandle());
       } else {
         socket.emit('logged_out');
       }
       socket.on('fics_login', creds => {
         let ficsConn = ficsMgr.get(uid);
         if (ficsConn.isLoggedIn()) {
-          socket.emit('login', ficsConn.getUsername());
-          log(`Already connected as ${ficsConn.getUsername()}`);
+          socket.emit('login', ficsConn.getHandle());
+          log(`Already connected as ${ficsConn.getHandle()}`);
           return;
         }
         log(`login(${creds.username})`);
         ficsConn.login(creds)
           .then(() => {
-            socket.emit('login', ficsConn.getUsername());
-            log(`${uid} logged in ${ficsConn.getUsername()}`);
+            socket.emit('login', ficsConn.getHandle());
+            log(`${uid} logged in ${ficsConn.getHandle()}`);
           }).catch(err => {
             console.error(err);
             socket.emit('failedlogin', err.message);
@@ -124,7 +126,7 @@ io.on('connection', (socket) => {
       });
 
       socket.on('fics_logout', () => {
-        log(`${uid} logout ${fics && fics.getUsername()}`);
+        log(`${uid} logout ${fics && fics.getHandle()}`);
         socket.emit('logged_out');
         ficsMgr.logout(uid);
       });
@@ -142,16 +144,15 @@ io.on('connection', (socket) => {
       bughouseState.on('games', gamesListener);
 
       socket.on('disconnect', (reason) => {
-        let username = ficsMgr.getUsername(uid) || 'NULL (not logged in)';
+        let username = ficsMgr.getHandle(uid) || 'NULL';
+        socketMgr.remove(uid, socket);
         log(`${uid} disconnected: ${username} ${JSON.stringify(reason)}`);
         bughouseState.off('unpartnered', unpartneredListener);
         bughouseState.off('partners', partnerListener);
         bughouseState.off('games', gamesListener);
         socket.removeAllListeners();
-        ficsMgr.onClientDisconnect(uid);
         pending.destroy();
         onlineTimestamp.remove();
-        socketMgr.remove(uid, socket);
       });
 
       socket.on('cmd', async cmd => {

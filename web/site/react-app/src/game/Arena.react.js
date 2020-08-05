@@ -10,44 +10,53 @@ const Arena = ({gamePair}) => {
   const {ficsHandle, telnet} = useContext(TelnetContext);
   const gamesSrc = GameStatusSource.get(telnet);
   let [id1, id2] = gamePair.split('~');
-  console.log(`Arena ${id1}/${id2}`);
+  console.log(`Arena ${id1}/${id2} ${ficsHandle}`);
   if (id1 === id2) {
     id2 = null;
   }
-  const board1 = gamesSrc.getBoard(id1);
-  const board2 = gamesSrc.getBoard(id2);
+  const [board1, setBoard1] = useState(gamesSrc.getBoard(id1))
+  const [board2, setBoard2] = useState(gamesSrc.getBoard(id2))
+  useEffect(()  => { setBoard1(gamesSrc.getBoard(id1)); }, [id1])
+  useEffect(()  => { setBoard2(gamesSrc.getBoard(id2)); }, [id2])
   const [handleColor1, setHandleColor1] =
     useState(board1.getHandleColor(ficsHandle));
   const [handleColor2, setHandleColor2] =
     useState(board2 != null ? board2.getHandleColor(ficsHandle) : null);
   useEffect(() => {
     const onBoard1 = () => {
-      setHandleColor1(board1.getHandleColor(ficsHandle));
+      const newHC1 = board1.getHandleColor(ficsHandle);
+      console.log(`onBoard1 ${ficsHandle} ${newHC1} ${JSON.stringify(board1.getBoard())}`);
+      setHandleColor1(newHC1);
     };
-    board1.on('update', onBoard1);
+    onBoard1();
+    board1.on('init', onBoard1);
     return () => {
-      board1.off('update', onBoard1);
+      board1.off('init', onBoard1);
     }
-  });
+  }, [ficsHandle, board1, gamesSrc]);
   useEffect(() => {
     const onBoard2 = () => {
-      console.log(`onBoard2 ${board2}`);
+      const newHC2 = board2.getHandleColor(ficsHandle);
+      console.log(`onBoard2 ${ficsHandle} ${newHC2} ${JSON.stringify(board2.getBoard())}`);
       invariant(board2 != null, 'wtf');
-      setHandleColor2(board2.getHandleColor(ficsHandle));
+      console.log(`setHandleColor2(${newHC2})`);
+      setHandleColor2(newHC2);
     };
-    board2.on('update', onBoard2);
+    onBoard2();
+    board2.on('init', onBoard2);
     return () => {
-      board2.off('update', onBoard2);
+      board2.off('init', onBoard2);
     };
-  });
+  }, [ficsHandle, board2, gamesSrc]);
 
   // Run only once on first load
   useEffect(() => {
+    console.log(`Arena subscribing ${id1} ${id2}`);
     gamesSrc.observe(id1);
     if (id2 != null) {
       gamesSrc.observe(id2);
     }
-  }, [])
+  }, [gamesSrc, id1, id2]);
 
   let orientation1 = handleColor1 || 'white';
   console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}, hc2: ${handleColor2}`);
@@ -55,9 +64,8 @@ const Arena = ({gamePair}) => {
   let boardView2 = null;
   if (id2 != null) {
     if (handleColor2 != null) {
-      debugger;
       invariant(handleColor1 == null, `Viewer can't be on both boards: ${handleColor1} ${handleColor2}`);
-      return <Redirect push to={`/home/arena/${id2}~${id1}`} />;
+      return <Redirect to={`/home/arena/${id2}~${id1}`} />;
     }
     boardView2 = (
       <Board

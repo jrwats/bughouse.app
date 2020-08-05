@@ -1,5 +1,6 @@
 // {Game 58 (fixerator vs. GuestGTWN) Creating unrated bughouse match\\.}
 // Your partner is playing game 59 (GuestXYBH vs. GuestVBTD).
+const log = require('./log');
 
 const re = new RegExp(
   '\\{Game (\\d+) \\((\\w+) vs. (\\w+)\\) ' +
@@ -18,6 +19,7 @@ class GameStartParser {
     if (match == null) {
       return null;
     }
+    log(`!!!!!!!! got game over match !!!!!!`);
     const [_, id1, w1, b1, rated, id2, w2, b2] = match;
     return {
       viewer: {

@@ -5,10 +5,10 @@ import Offers from './Offers.react';
 import GamesList from './GamesList.react';
 import Challenges from './Challenges.react';
 import { UsersContext } from './user/UsersProvider';
-import { ChallengesContext } from './game/ChallengesProvider';
+import ChallengesProvider from './game/ChallengesProvider';
+import GamesListProvider from './game/GamesListProvider';
 
 const Bugwho = (props) => {
-  const { challenges } = useContext(ChallengesContext);
   const {
     incomingOffers,
     onlineUsers,
@@ -19,13 +19,17 @@ const Bugwho = (props) => {
   } = useContext(UsersContext);
 
   return (
-    <div>
-      <Challenges challenges={challenges} />
-      <GamesList />
-      <Teams {...{partners, onlineUsers, partnerMap}} />
-      <Offers {...{unpartnered, incomingOffers}} />
-      <Unpartnered unpartnered={unpartnered} />
-    </div>
+    <GamesListProvider>
+      <ChallengesProvider>
+        <div>
+          <Challenges />
+          <GamesList />
+          <Teams {...{partners, onlineUsers, partnerMap}} />
+          <Offers {...{unpartnered, incomingOffers}} />
+          <Unpartnered unpartnered={unpartnered} />
+        </div>
+      </ChallengesProvider>
+    </GamesListProvider>
   );
 
 }

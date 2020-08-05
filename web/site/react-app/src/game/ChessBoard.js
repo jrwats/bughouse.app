@@ -7,22 +7,35 @@ class ChessBoard extends EventEmitter {
     this._id = id;
     this._board = board;
     this._holdings = holdings;
+    this._initialized = false;
+    this._finished = false;
+    this._reason = '';
+    this._winner = null;
+
   }
 
   update({id, board, holdings}) {
-    const initialized = this._board?.white?.handle !== board?.white.handle;
-    invariant(id === this._id, 'WTF');
+    invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     this._board = board;
     this._holdings = holdings;
     this.emit('update', this);
-    if (initialized) {
+    if (!this._initialized) {
+      this._initialized = true;
       this.emit('init');
     }
   }
 
+  updateTime({id, white, black}) {
+    console.log(`ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(black)}`);
+    if (this._board.white != null) {
+      this._board.white.time = white.time;
+      this._board.black.time = black.time;
+      this.emit('update', this);
+    }
+  }
+
   isInitialized() {
-    return this._board?.white?.handle != null &&
-      this._board?.black?.handle != null;
+    return this._initialized;
   }
 
   getID() {
@@ -67,9 +80,24 @@ class ChessBoard extends EventEmitter {
     return this._holdings;
   }
 
-  ongameOver(data) {
-    invariant(data.id === this._id);
+  onGameOver(data) {
+    invariant(data.id === this._id, `Mismatched board IDs? ${data.id} ${this._id}`);
+    this._finished = true;
+    this._reason = data.reason;
+    this._winner = data.result[0] === '1' ? 'white' : 'black';
     this.emit('gameOver', data);
+  }
+
+  isFinished() {
+    return this._finished;
+  }
+
+  getWinner() {
+    return this._winner;
+  }
+
+  getReason() {
+    return this._reason;
   }
 
   static init(id) {

@@ -275,6 +275,15 @@ class OnlineUsers extends EventEmitter {
     return uid && this._users[uid];
   }
 
+  getHandleToUsers() {
+    const handle2user = {};
+    for (const handle in this._handle2uid) {
+      const uid = this._handle2uid[handle];
+      handle2user[handle] = this._users[uid];
+    }
+    return handle2user;
+  }
+
   // Filters (deduplicates) out existing bughouse.app users
   getUnpartnered() {
     return this._unpartnered;

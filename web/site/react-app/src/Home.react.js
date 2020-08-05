@@ -1,11 +1,10 @@
+import React, {useContext} from 'react'
+
 import FicsLogin from './FicsLogin.react';
 import Loading from './Loading.react';
 import Main from './Main.react';
-import React, {useContext} from 'react'
 import TelnetProvider, {TelnetContext} from './telnet/TelnetProvider';
 import UsersProvider from './user/UsersProvider';
-import ChallengesProvider from './game/ChallengesProvider';
-import GamesListProvider from './game/GamesListProvider';
 import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';
 
@@ -23,22 +22,21 @@ const HomeRouter = (props) => {
 }
 
 const Home = (props) => {
-  const {user} = useContext(AuthContext);
+  const {user, needsEmailVerified} = useContext(AuthContext);
   const navigate = useNavigate();
   if (user == null) {
     console.log(`Home user is null, navigating to login`);
     navigate('/', true);
+    return null;
+  } else if (needsEmailVerified) {
+    navigate('/verify', true);
     return null;
   }
 
   return (
     <TelnetProvider user={user}>
       <UsersProvider>
-        <GamesListProvider>
-          <ChallengesProvider>
-            <HomeRouter />
-          </ChallengesProvider>
-        </GamesListProvider>
+        <HomeRouter />
       </UsersProvider>
     </TelnetProvider>
   );

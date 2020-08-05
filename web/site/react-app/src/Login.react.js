@@ -25,9 +25,15 @@ const Login = ({ navigate }) => {
     signInSuccessUrl: '/home',
     callbacks: {
       signInSuccessWithAuthResult: function(authResult, redirectUrl) {
+        // TODO: this should go serverside...
+        if (authResult.additionalUserInfo?.providerId === 'password' &&
+            !authResult.user.emailVerified) {
+          console.log('needs email verification');
+          user.sendEmailVerification();
+        }
         console.log('signin successful');
-        console.log(authResult);
-        console.log(redirectUrl);
+        // console.log(authResult);
+        // console.log(redirectUrl);
         // User successfully signed in.
         // Return type determines whether we continue the redirect automatically
         // or whether we leave that to developer to handle.

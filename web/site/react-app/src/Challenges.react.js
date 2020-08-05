@@ -1,38 +1,48 @@
-import React, {useContext} from 'react';
+import React, {useEffect, useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ChallengeSummary from './ChallengeSummary.react';
-import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import { TelnetContext } from './telnet/TelnetProvider';
 import { Link } from "@reach/router";
+import { EventEmitter } from 'events';
+import { ChallengesContext } from './game/ChallengesProvider';
 
 const useStyles = makeStyles((theme) => {
   window.__theme = theme;
   return {
-    root: {
-      paddingBottom: '40px',
-      paddingLeft: '100px',
-      paddingRight: '100px'
-    },
     paper: {
       padding: '2px 0px',
       textAlign: 'center',
       color: theme.palette.text.primary,
-      backgroundColor: '#acccfd',
+      backgroundColor: '#303030',
       width: 'auto',
     },
   };
 });
 
-const Challenges = ({challenges, ...rest}) => {
+class Ticker extends EventEmitter {
+  tick() { this.emit('tick'); }
+}
+const _ticker = new Ticker();
+setInterval(() => { _ticker.tick(); }, 5000);
+
+const Challenges = () => {
   const {telnet} = useContext(TelnetContext);
+  const {challenges} = useContext(ChallengesContext);
   const classes = useStyles();
 
   const onClick = (e, id) => {
     telnet.send(`accept ${id}`);
     e.preventDefault();
   };
-
+  useEffect(() => {
+    const onTick = () => {
+      console.log(`Challenges requesting 'pending'`);
+      telnet.sendEvent('pending');
+    };
+    _ticker.on('tick', onTick);
+    return () => { _ticker.off('tick', onTick); };
+  }, [telnet]);
   const challengeComponents = [];
   for (const challengerHandle in challenges) {
     const challenge = challenges[challengerHandle];
@@ -42,7 +52,7 @@ const Challenges = ({challenges, ...rest}) => {
           to="#accept"
           onClick={(e) => { onClick(e, challenge.id || ''); }}
           style={{textDecoration: 'none'}}>
-          <Paper className={classes.paper}>
+          <Paper elevation={8}className={classes.paper}>
             <ChallengeSummary challenge={challenge} />
           </Paper>
         </Link>
@@ -55,10 +65,10 @@ const Challenges = ({challenges, ...rest}) => {
 
   return (
     <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
-      <div className="h5 mono" style={{marginLeft: '100px'}} >
+      <div className="h5 mono leftBuffer">
         Incoming Challenges
       </div>
-      <div className={classes.root}>
+      <div className="leftPad">
         <div className="grid">
           {challengeComponents}
         </div>

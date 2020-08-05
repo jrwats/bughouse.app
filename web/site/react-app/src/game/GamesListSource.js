@@ -1,15 +1,13 @@
 import {EventEmitter} from 'events';
-import TelnetProxy from '../telnet/TelnetProxy';
-
-const proxy = TelnetProxy.singleton();
 
 /**
  * Listens to the firebase DB 'online' table, and then individual listens to
  * each user to get their FICS data, display info, etc.
  */
 class GamesListSource extends EventEmitter {
-  constructor() {
+  constructor(telnet) {
     super();
+    this._telnet = telnet;
     this._games = [];
     const onBugwho = bug => {
       if (bug.games == null) {
@@ -19,19 +17,12 @@ class GamesListSource extends EventEmitter {
       onGames(bug);
     };
     const onGames = ({games}) => {
-      // console.log(`GamesListSource 'games' ${games}`);
-      // console.log(games);
-      if (games == null || games.length == null) {
-        debugger;
-        console.error('wtf');
-        throw new Error('games?');
-      }
       this._games = games;
       this.emit('games', games);
     };
 
-    proxy.on('bugwho', onBugwho);
-    proxy.on('games', onGames);
+    telnet.on('bugwho', onBugwho);
+    telnet.on('games', onGames);
   }
 
   getGames() {
@@ -39,6 +30,10 @@ class GamesListSource extends EventEmitter {
   }
 }
 
-const singleton = new GamesListSource();
-
-export default { get() { return singleton; } };
+const _cache = {};
+export default {
+  get(telnet) {
+    const uid = telnet.getUid();
+    return _cache[uid] || (_cache[uid] = new GamesListSource(telnet));
+  }
+};

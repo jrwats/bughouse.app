@@ -138,7 +138,9 @@ class FicsClient extends EventEmitter {
   // send `bughouse` command for global bughouse state
   bugPoll() {
     const onResult = result => {
-      // log(`FicsClient bugPoll result`);
+      if (result == null) {
+        log(`FicsClient NULL 'bugwho' result (all logged out?)`);
+      }
       this._isPolling = false;
       const [prefix, suffix] = _bughouseState.parseBugwho(result);
 
@@ -226,7 +228,10 @@ class FicsClient extends EventEmitter {
     preSend && preSend();
     this._inflight = true;
     log(`FicsClient dequeued.send '${cmd}'`);
-    const result = await this._conn.send(cmd, opts);
+    let result = null;
+    if (this._conn != null) {
+      result = await this._conn.send(cmd, opts);
+    }
     log(`FicsClient resolving '${cmd}' in dequeue`);
     this._inflight = false;
     resolve(result);
@@ -239,7 +244,7 @@ class FicsClient extends EventEmitter {
     }
   }
 
-  getUsername() {
+  getHandle() {
     return this._handle;
   }
 
@@ -264,6 +269,7 @@ class FicsClient extends EventEmitter {
     this._handle = null;
     this._conn.destroy();
     this._conn.removeAllListeners();
+    this._conn = null;
   }
 
 }

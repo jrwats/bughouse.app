@@ -1,12 +1,8 @@
-
-const _nullSocket = {
-  emit() { return; }
-};
+const log = require('./log');
 
 class SocketManager {
   constructor(ficsMgr) {
     this._ficsMgr = ficsMgr;
-    this._ficsMgr.on('logout', (uid) => { this.destroyAll(uid); });
     this._uid2socks = {};
   }
 
@@ -16,12 +12,21 @@ class SocketManager {
     }
     for (const socketId in this._uid2socks[uid]) {
       const socket = this._uid2socks[uid][socketId];
-      socket.emit.apply(socket, rest);
+      if (socket.connected) {
+        socket.emit.apply(socket, rest);
+      }
     }
   }
 
-  getSocks(uid) {
-    return this._uid2socks[uid];
+  dump(uid) {
+    const handle = this._ficsMgr.getUsername(uid);
+    let connections = {};
+    for (const u in this._uid2socks) {
+      for (const s in this._uid2socks[u]) {
+        connections[s.id] = this._uid2socks[s].connected ? '1' : '0';
+      }
+    }
+    log(`SocketMgr handle: ${handle}: ${JSON.stringify(connections)}`);
   }
 
   add(uid, clientSocket) {
@@ -30,9 +35,15 @@ class SocketManager {
   }
 
   remove(uid, clientSocket) {
+    log(`SocketMgr.removing ${uid} ${clientSocket.id}`);
     if (uid in this._uid2socks) {
       delete this._uid2socks[uid][clientSocket.id];
+      for (const id in this._uid2socks[uid]) {
+        return;
+      }
+      delete this._uid2socks[uid];
     }
+    this._ficsMgr.onClientDisconnect(uid);
   }
 
   destroyAll(uid) {

@@ -5,16 +5,15 @@ import PlayerDisplay from './PlayerDisplay.react'
 import './chessground.css'
 import { TelnetContext } from '../telnet/TelnetProvider';
 import { opposite } from 'chessground/util';
+import GameOverMessage from './GameOverMessage.react';
+import invariant from 'invariant';
 
 const Board = ({chessboard, orientation, id}) => {
   const {telnet, ficsHandle} = useContext(TelnetContext);
-  const handleColor = chessboard.getHandleColor(ficsHandle);
-  const [viewOnly, setViewOnly] = useState(
-    chessboard.isInitialized() &&
-    handleColor == null
-  );
+  const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
+  const [finished, setFinished] = useState(chessboard.isFinished());
 
   useEffect(() => {
     const onUpdate = (_) => {
@@ -28,6 +27,9 @@ const Board = ({chessboard, orientation, id}) => {
       );
     };
     const onGameOver = () => {
+      console.log(`onGameOver`);
+      invariant(chessboard.isFinished(), 'WTF?');
+      setFinished(true);
     };
     chessboard.on('update', onUpdate);
     chessboard.on('gameOver', onGameOver);
@@ -35,8 +37,23 @@ const Board = ({chessboard, orientation, id}) => {
       chessboard.off('update', onUpdate);
       chessboard.off('gameOver', onGameOver);
     };
-  });
+  }, [ficsHandle, chessboard]);
+
+  useEffect(() => {
+    const onGameOver = ({board}) => {
+      setFinished(true);
+    };
+    chessboard.on('gameOver', onGameOver);
+    return () => { chessboard.off('gameOver', onGameOver); };
+  }, [chessboard]);
+
   const chessgroundRef = React.useRef(null);
+
+  let alert = null;
+  console.log(`Board ${chessboard.getID()} finished: ${finished}`);
+  if (finished) {
+    alert = <GameOverMessage chessboard={chessboard} />;
+  }
 
   return (
     <div style={{display: 'inline-block', width: '50%'}}>
@@ -48,6 +65,7 @@ const Board = ({chessboard, orientation, id}) => {
           height: 'min(44vw, 90vh)',
           width: '100%',
         }} >
+        {alert}
         <Holdings
           chessground={chessgroundRef}
           orientation={orientation}

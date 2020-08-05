@@ -131,7 +131,7 @@ class Pending {
   }
 
   onMatch({pending, match}, clientSocket) {
-    log(`Pending cmdDelegate ${JSON.stringify(pending)}`);
+    log(`Pending ${this._uid} cmdDelegate ${JSON.stringify(pending)}`);
     if (clientSocket != null) {
       clientSocket.emit('pending', pending);
     }

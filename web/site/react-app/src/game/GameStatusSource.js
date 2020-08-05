@@ -1,6 +1,16 @@
 import { EventEmitter } from 'events';
 import ChessBoard from './ChessBoard';
 import { navigate } from "@reach/router";
+import GamesListSource from './GamesListSource';
+
+function getTime(board) {
+  const wMatch = /(\d+):(\d+)/.exec(board.white.time);
+  const bMatch = /(\d+):(\d+)/.exec(board.black.time);
+  return {
+    white: {time: (wMatch[1] * 60) + parseInt(wMatch[2])},
+    black: {time: (bMatch[1] * 60) + parseInt(bMatch[2])},
+  };
+}
 
 class GameStatusSource extends EventEmitter {
   constructor(telnet) {
@@ -10,6 +20,19 @@ class GameStatusSource extends EventEmitter {
     const uid = this._telnet.getUid();
     this._telnet.on('logout', () => { this._destroy(uid); });
     this._boards = {};
+    this._allGames = GamesListSource.get(telnet);
+    this._allGames.on('games', games => {
+      for (const game of games) {
+        const [board1, board2] = game;
+        if (board1.id in this._boards) {
+          this._boards[board1.id].updateTime(getTime(board1));
+        }
+        if (board2.id in this._boards) {
+          this._boards[board2.id].updateTime(getTime(board2));
+        }
+      }
+    });
+
     this._telnet.on('boardUpdate', data => this._onBoardUpdate(data));
     this._telnet.on('gameOver', data => this._onGameOver(data));
     this._telnet.on('gameStart', data => this._onGameStart(data));
@@ -20,23 +43,18 @@ class GameStatusSource extends EventEmitter {
     if (board.board == null) {
       console.error(`NULL board?`);
     }
-    if (!(board.id in this._boards)) {
-      this._boards[board.id] = new ChessBoard(board);
-    } else {
-      this._boards[board.id].update(board);
-    }
+    this.getBoard(board.id).update(board);
     this.emit('boardUpdate', this._boards[board.id]);
   }
 
-  _onGameOver({boards}) {
-    for (const b of boards) {
-      if (b.id in this._boards) {
-        this._boards[b.id].onGameOver(b);
-      }
-      delete this._boards[b.id];
-      delete this._observing[b.id];
+  _onGameOver({board}) {
+    console.log(`GameStatusSource 'gameOver' ${JSON.stringify(board)}`);
+    if (board.id in this._boards) {
+      this._boards[board.id].onGameOver(board);
     }
-    this.emit('gameOver', boards);
+    // delete this._boards[board.id];
+    // delete this._observing[board.id];
+    this.emit('gameOver', board);
   }
 
   _onGameStart({game}) {

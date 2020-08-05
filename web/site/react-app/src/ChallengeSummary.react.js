@@ -15,7 +15,10 @@ const ChallengeSummary = ({challenge}) => {
         marginLeft: '10px',
         padding: '4px',
         borderRadius: 4,
-        backgroundColor: '#484848',
+        backgroundColor: '#131313',
+        borderColor: '#dfdfdf',
+        borderWidth: '1px',
+        borderStyle: 'solid',
         color: '#efefef'}} >
         <span className="h6" style={{display: 'inline', padding: '4px'}}>
           {challenge.mins}
