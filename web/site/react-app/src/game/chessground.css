@@ -24,6 +24,29 @@ piece.react-draggable.disabled {
   cursor:default;
 }
 
+.countCircle {
+  position: absolute;
+  height: 1rem;
+  width: 1rem;
+  line-height: 1.4rem;
+  font-weight: 800;
+  font-size: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 30%;
+  display: inline-block;
+  border-color: #000;
+  border-width: 1px;
+  border-style: solid;
+  color: #303030;
+  left: calc(min(4vw, 8vh) - .8em);
+  transform: translate(0px, calc(min(4vw, 8vh) - .7em));
+  z-index: 100;
+  font-family: 'SpaceMono';
+  padding-bottom: 4px;
+  padding-left: 4px;
+  padding-right: 0px;
+}
+
 piece.react-draggable-dragging, piece.dragging {
   cursor:move;
   z-index:9;
@@ -31,6 +54,7 @@ piece.react-draggable-dragging, piece.dragging {
 .cg-wrap{
   width:min(44vw, 90vh);
   height:min(44vw, 90vh);
+  /* height: min(43.7vw, 90vh); */
   position:relative;
   display:block
 }
@@ -38,8 +62,9 @@ cg-helper{
   position:absolute;
   width:12.5%;
   padding-bottom:12.5%;
-  display:table;
-  bottom:0
+  display:block;
+  bottom:0px;
+  left:0px;
 }
 cg-container{
   position:absolute;
@@ -58,7 +83,7 @@ cg-board{
   -moz-user-select:none;
   -ms-user-select:none;
   user-select:none;
-  line-height:0;
+  line-height: 0;
   background-size:cover;
   cursor:pointer;
 }

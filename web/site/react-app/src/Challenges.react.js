@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ChallengeSummary from './ChallengeSummary.react';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import { TelnetContext } from './telnet/TelnetProvider';
@@ -11,16 +10,15 @@ const useStyles = makeStyles((theme) => {
   window.__theme = theme;
   return {
     root: {
-      flexGrow: 1,
       paddingBottom: '40px',
       paddingLeft: '100px',
       paddingRight: '100px'
     },
     paper: {
-      padding: theme.spacing(1),
+      padding: '2px 0px',
       textAlign: 'center',
       color: theme.palette.text.primary,
-      backgroundColor: theme.palette.info.light,
+      backgroundColor: '#acccfd',
       width: 'auto',
     },
   };
@@ -39,7 +37,7 @@ const Challenges = ({challenges, ...rest}) => {
   for (const challengerHandle in challenges) {
     const challenge = challenges[challengerHandle];
     challengeComponents.push(
-      <Grid key={challenge.id || challengerHandle} item xs={5}>
+      <div className="cell">
         <Link
           to="#accept"
           onClick={(e) => { onClick(e, challenge.id || ''); }}
@@ -48,7 +46,7 @@ const Challenges = ({challenges, ...rest}) => {
             <ChallengeSummary challenge={challenge} />
           </Paper>
         </Link>
-      </Grid>
+      </div>
     );
   }
   if (challengeComponents.length === 0) {
@@ -57,15 +55,13 @@ const Challenges = ({challenges, ...rest}) => {
 
   return (
     <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
-      <div>
-        <Typography style={{marginLeft: '100px'}} variant="h5" noWrap>
-           Incoming Challenges
-        </Typography>
+      <div className="h5 mono" style={{marginLeft: '100px'}} >
+        Incoming Challenges
       </div>
       <div className={classes.root}>
-        <Grid container spacing={3}>
+        <div className="grid">
           {challengeComponents}
-        </Grid>
+        </div>
       </div>
     </div>
   );

@@ -25,6 +25,9 @@ class FicsManager extends EventEmitter {
     this._uids = [];
     this._uid2fics = {};
     this._uid2destroy = {};
+    this._onClosedListener = ({uid, fics}) => {
+      this._cleanup(uid, fics);
+    };
   }
 
   get(uid) {
@@ -33,7 +36,9 @@ class FicsManager extends EventEmitter {
       delete this._uid2destroy[uid];
     }
     if (!(uid in this._uid2fics)) {
-      this._uid2fics[uid] = new FicsClient(uid, this._db);
+      const fics = this._uid2fics[uid] = new FicsClient(uid, this._db);
+      fics.on('close', this._onClosedListener);
+      fics.on('end', this._onClosedListener);
       if (_bugwhoPoller == null) {
         _bugwhoPoller = setInterval(bugwho, 5000);
       }
@@ -54,7 +59,10 @@ class FicsManager extends EventEmitter {
 
   logout(uid) {
     this.emit('logout', uid);
-    let fics = this._uid2fics[uid];
+    this._cleanup(uid,  this._uid2fics[uid]);
+  }
+
+  _cleanup(uid, fics) {
     log(`Deleting FICS telnet connection for ${uid}`);
     delete this._uid2destroy[uid];
     delete this._uid2fics[uid];

@@ -1,26 +1,27 @@
-import React from 'react';
-import BoardSummary from './BoardSummary.react';
-import Typography from '@material-ui/core/Typography';
+import React/*, {useContext}*/ from 'react';
+import Player from './Player.react';
+// import { UsersContext } from './user/UsersProvider';
 
 const ChallengeSummary = ({challenge}) => {
-  const {id, challenger, challengee} = challenge;
+  // Show Challenger partner?
+  // const {partners, partnerMap} = useContext(UsersContext);
+  const {challenger} = challenge;
   return (
-    <div>
-      {/* TODO challenger isn't necessarily white.  Stop using board summary*/}
-      <BoardSummary
-        board={{id, white: challenger, black: challengee}}
-          style={{display: 'inline'}} />
+    <div className="challenge">
+      <span>
+        <Player player={challenger} />
+      </span>
       <span style={{
         marginLeft: '10px',
         padding: '4px',
         borderRadius: 4,
-        backgroundColor: '#303f9f',
+        backgroundColor: '#484848',
         color: '#efefef'}} >
-        <Typography variant="h6" noWrap style={{display: 'inline', padding: '4px'}}>
+        <span className="h6" style={{display: 'inline', padding: '4px'}}>
           {challenge.mins}
            /
           {challenge.incr}
-        </Typography>
+        </span>
       </span>
 
     </div>

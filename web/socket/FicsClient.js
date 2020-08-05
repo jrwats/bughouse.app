@@ -103,6 +103,19 @@ class FicsClient extends EventEmitter {
       console.error('FicsClient.failedlogin');
       this.emit('failedlogin', err);
     });
+
+    this._conn.on('close', err => {
+      console.error(
+        `FicsClient ${this._uid} ${this._username} 'close' ...`,
+      );
+      this.emit('close', {uid: this._uid, fics: this});
+    });
+    this._conn.on('end', err => {
+      console.error(
+        `FicsClient ${this._uid} ${this._username} 'end'...`
+      );
+      this.emit('end', {uid: this._uid, fics: this});
+    });
     return this._conn.connect({
       port: 5000,
       host: 'freechess.org',
@@ -237,6 +250,7 @@ class FicsClient extends EventEmitter {
   }
 
   destroy() {
+    this.emit('destroy', {uid: this._uid, fics: this});
     const ref = this._db.ref(`users/${this._uid}/ficsHandle`);
     ref.set(null);
     log(`FicsClient 'destroy' setting ${this._username} to null`);

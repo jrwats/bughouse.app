@@ -11,9 +11,16 @@ const roles = {
   Q: 'queen',
 };
 
-const HeldPiece = ({chessgroundRef, piece, color, count, top, viewOnly}) => {
+const HeldPiece = ({
+  chessgroundRef,
+  chessboard,
+  piece,
+  color,
+  count,
+  top,
+  viewOnly
+}) => {
   const disabled = viewOnly || count === 0;
-  const visibility = count === 0 ? 'hidden' : 'visible';
   const pieceRef = React.useRef(null);
   const {telnet} = useContext(TelnetContext);
   const [coords, setCoords] = useState({x: 0,y: 0});
@@ -36,39 +43,24 @@ const HeldPiece = ({chessgroundRef, piece, color, count, top, viewOnly}) => {
     const key = pos2key(pos);
     // if the move is offboard or there is a piece in the location,
     // just cancel immediately.
-    if (key == null ||
-        chessground.cg.state.pieces.get(key) != null ||
-        // TODO support pre-drop
-        chessground.cg.state.turnColor !== color) {
-      // pieceRef.current.style.transform = 'translate(0px, 0px)';
-      setCoords({x: 0,y: 0})
+    setTimeout(() => { setCoords({x: 0,y: 0}); }, 80);
+    if (key == null || chessboard.getColorToMove() !== color) {
       return;
-    } else {
-      setCoords(coords);
     }
+    chessground.cg.newPiece({role: roles[piece], color: color}, key);
+    chessboard.decrHolding({color, piece});
     telnet.sendEvent('move', `${piece}@${key}`);
   }
 
-  // let pieceCount = null;
-  // if (count > 1) {
-  //   pieceCount = (
-  //     <div
-  //       data-piece={piece}
-  //       ref={pieceRef}
-  //       className={`${color} ${roles[piece]}${viewOnly ? ' disabled' : ''}`}
-  //       style={{
-  //         position: 'absolute',
-  //         visibility: visibility,
-  //         top: top + 'px',
-  //         left: 0,
-  //         width: '100%',
-  //         height: '12.5%'
-  //       }}>
-  //       {pieceCount}
-  //     </div>
-  //   );
-  // }
-
+  const visibility = count === 0 ? 'hidden' : 'visible';
+  let countCircle = null;
+  if (count > 1) {
+    countCircle = (
+      <span className="countCircle" >
+        {count}
+      </span>
+    );
+  }
   return (
     <div style={{
       visibility: visibility,
@@ -95,9 +87,9 @@ const HeldPiece = ({chessgroundRef, piece, color, count, top, viewOnly}) => {
             left: 0,
             width: '100%',
             height: '12.5%',
-            // transform: transform,
           }} />
       </Draggable>
+      {countCircle}
     </div>
   );
 };

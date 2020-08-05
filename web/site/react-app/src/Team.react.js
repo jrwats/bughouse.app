@@ -14,21 +14,21 @@ const useStyles = makeStyles((theme) => {
     },
 
     paper: {
-      paddingBottom: theme.spacing(1),
-      paddingTop: '0px',
+      minWidth: '220px',
+      paddingRight: '8px',
+      paddingLeft: '4px',
       textAlign: 'center',
       color: theme.palette.text.primary,
       backgroundColor: theme.palette.background.default,
-      width: 'auto',
     },
   };
 });
 
-const ChallengeUser = ({disabled, user, ...rest}) => {
+const ChallengeUser = ({disabled, user}) => {
   const {telnet} = useContext(TelnetContext);
   const classes = useStyles();
   if (disabled) {
-    return <Player className={classes.disabled} player={user} {...rest} />
+    return <Player className={classes.disabled} player={user} />
   }
   const onClick = (e) => {
     // TODO: Popup modal dialog to set these parameters and THEN send this
@@ -42,7 +42,7 @@ const ChallengeUser = ({disabled, user, ...rest}) => {
       cursor: 'cell',
       textDecoration: 'none'
     }}>
-      <Player player={user} {...rest} />
+      <Player player={user} />
     </Link>
   );
 }
@@ -66,22 +66,26 @@ const Team = ({partnerMap, team}) => {
       e.preventDefault();
     }
     cancel = (
-      <div style={{position: 'absolute', zIndex: 99}}>
+      <div style={{zIndex: 99}}>
         <Link to="#disband"
           className='hoverExpose'
           onClick={disband}
-          style={{position: 'relative', top: '4px', left: '260px'}} >
+          style={{position: 'relative', top: '4px'}} >
           <CancelIcon style={{color: "red"}} />
       </Link>
     </div>
     );
   }
-  const style = {display: 'block'};
+
   return (
     <Paper className={classes.paper}>
-      {cancel}
-      <ChallengeUser disabled={disabled} user={player1} style={style}/>
-      <ChallengeUser disabled={disabled} user={player2} style={style}/>
+      <div className="grid">
+        <span style={{flexGrow: 0}}>
+          <ChallengeUser disabled={disabled} user={player1} />
+          <ChallengeUser disabled={disabled} user={player2} />
+        </span>
+        <span style={{flexGrow: 0}}>{cancel}</span>
+      </div>
     </Paper>
   );
 };

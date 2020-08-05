@@ -10,7 +10,7 @@ const Loading = (props) => {
   };
   return (
     <div style={style} >
-      <CircularProgress />
+      <CircularProgress className="dark" />
     </div>
   );
 };

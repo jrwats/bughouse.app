@@ -1,15 +1,28 @@
 import React from 'react';
-import BoardSummary from './BoardSummary.react';
+import Player from './Player.react';
+import Paper from '@material-ui/core/Paper';
 import { Link } from "@reach/router";
 
 const BughouseGameSummary = ({bughouseGame}) => {
   const [board1, board2] = bughouseGame;
+
   return (
-    <Link to={`/home/arena/${board1.id}~${board2.id}`} >
-      <div>
-        <BoardSummary board={board1} />
-        <BoardSummary reverse board={board2} />
-      </div>
+    <Link to={`/home/arena/${board1.id}~${board2.id}`}
+      style={{textDecoration: 'none'}}>
+      <span className="grid" style={{
+        alignItems: 'center',
+        justifyContent: 'center'
+        }}>
+        <Paper className="cell">
+          <Player white player={board1.white} />
+          <Player black player={board2.black} />
+        </Paper>
+        <span className="h6 dark">vs.</span>
+        <Paper className="cell">
+          <Player black player={board1.black} />
+          <Player white player={board2.white} />
+        </Paper>
+      </span>
     </Link>
   );
 }

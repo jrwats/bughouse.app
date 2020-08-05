@@ -60,7 +60,7 @@ const SideMenu = ({style}) => {
   return (
     <div style={{ zIndex: '99', ...style }}>
       <Button
-        style={{padding: '2px 2px', minWidth: '3em'}}
+        style={{padding: '2px 2px', minWidth: '3em', color: '#efef', backgroundColor: '#6c8cad'}}
         aria-controls="customized-menu"
         aria-haspopup="true"
         variant="contained"

@@ -88,7 +88,7 @@ holdings: ${JSON.stringify(this._holdings)}
     if (holdings != null) {
       this._holdings[holdings.id] = holdings;
     }
-    log(`GameObserver parsed ${board} ${holdings}`);
+    // log(`GameObserver parsed ${board} ${holdings}`);
     return board == null && holdings == null
       ? null
       : {board, holdings, boardMatch, holdingsMatch};
@@ -113,6 +113,8 @@ holdings: ${JSON.stringify(this._holdings)}
     }
     log(`GameObserver 'refresh' of ${id} to ${socket.id}`);
     socket.emit('boardUpdate', this.getBoard(id));
+    const observer = this._gameid2observer[id];
+    this._ficsMgr.get(observer).send(`refresh ${id}`);
   }
 
   onMatch({board, holdings}) {

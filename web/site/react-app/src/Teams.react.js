@@ -1,7 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Team from './Team.react';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme) => {
@@ -20,21 +19,22 @@ const Teams = ({partnerMap, partners, ...rest}) => {
 
   return (
     <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
-      <div>
-        <Typography style={{marginLeft: '100px'}} variant="h5" noWrap>
-           Idle Teams
-        </Typography>
+      <div className="h5 mono leftBuffer" >
+        Idle Teams
       </div>
-      <div className={classes.root}>
-        <Grid container spacing={3}>
+      <div className="leftPad">
+        <div className="grid">
           {partners.map(pair => {
             return (
-              <Grid item key={pair[0].handle} xs={3}>
+              <div className="cell" style={{
+                flexGrow: 0,
+                minWidth: '0px',
+              }}>
                 <Team team={pair} partnerMap={partnerMap} partners={partners} />
-              </Grid>
+              </div>
             );
           })}
-        </Grid>
+        </div>
       </div>
     </div>
   );

@@ -67,7 +67,11 @@ const Login = ({ navigate }) => {
   };
   return (
     <div id="login" className="row">
-      <div className="column">
+      <div className="column" style={{
+        padding: '30px',
+        borderRadius: '2rem',
+        boxShadow: '10px 5px 5px #404040',
+        backgroundColor: "#dfe0ef"}}>
         <img alt="logo" src="/bha_logo.png" />
       </div>
       <div className="column">

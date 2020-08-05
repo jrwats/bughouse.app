@@ -92,32 +92,17 @@ io.on('connection', (socket) => {
       onlineTimestamp.onDisconnect().remove();
 
       const fics = ficsMgr.get(uid);
-      const cmdDelegate = new CmdDelegate(socket, uid);
-      const gameStartParser = new GameStartParser(uid, gameObserver);
+      const cmdDelegate = new CmdDelegate(socket, fics);
       cmdDelegate.addHandler(pending);
       cmdDelegate.addHandler(gameObserver);
-      cmdDelegate.addHandler(gameStartParser);
+      cmdDelegate.addHandler(new GameStartParser(uid, gameObserver));
       if (fics.getUsername() != null) {
         socket.emit('login', fics.getUsername());
       } else {
         socket.emit('logged_out');
       }
-      const dataListener = data => {
-        log(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
-        if (cmdDelegate.handle(data)) {
-          return;
-        }
-        socket.emit('data', data);
-      };
-      fics.on('data', dataListener);
       socket.on('fics_login', creds => {
         let ficsConn = ficsMgr.get(uid);
-        if (ficsConn != fics) {
-          log(`app relistening to 'data'`);
-          ficsConn.on('data', dataListener);
-        } else {
-          log(`app NOT relistening to 'data'`);
-        }
         if (ficsConn.isLoggedIn()) {
           socket.emit('login', ficsConn.getUsername());
           log(`Already connected as ${ficsConn.getUsername()}`);
@@ -165,9 +150,6 @@ io.on('connection', (socket) => {
         socket.removeAllListeners();
         ficsMgr.onClientDisconnect(uid);
         pending.destroy();
-        if (fics) {
-          fics.off('data', dataListener);
-        }
         onlineTimestamp.remove();
         socketMgr.remove(uid, socket);
       });

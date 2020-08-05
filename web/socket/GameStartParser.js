@@ -39,7 +39,9 @@ class GameStartParser {
 
   onMatch(match, clientSocket) {
     this._gameObserver.addPlayer(this._uid, match.viewer.id);
-    clientSocket.emit('gameStart', match);
+    if (clientSocket != null) {
+      clientSocket.emit('gameStart', match);
+    }
   }
 
   // Go ahead and let this thru to the client console

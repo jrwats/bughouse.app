@@ -42,10 +42,10 @@ const PlayerDisplay = ({color, chessboard}) => {
           display: 'flex',
           width: 'min(100%, 90vh)',
           justifyContent: 'space-around'}} >
-          <span className="h6 roboto">
+          <span className="h6 roboto light">
            {handle}
           </span>
-          <span className="h6 mono">
+          <span className="h6 mono bold light">
             {mins}:{(secs < 10 ? '0' : '') + secs}
           </span>
     </div>

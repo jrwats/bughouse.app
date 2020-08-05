@@ -1,6 +1,5 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
 import UnpartneredPlayer from './UnpartneredPlayer.react';
 
 const Offers = ({unpartnered, incomingOffers}) => {
@@ -19,24 +18,19 @@ const Offers = ({unpartnered, incomingOffers}) => {
   console.log(`Offers ${Object.keys(incomingOffers).length}`);
   return (
     <div style={{width: '100%'}}>
-      <Typography style={{marginLeft: '100px'}} variant="h5" noWrap>
+      <div class="h5 mono leftBuffer">
         Incoming Partner Offers
-      </Typography>
-      <div style={{
-        paddingLeft: '100px',
-        paddingRight: '100px',
-        overflow: 'scroll',
-        height: '100%'
-      }} >
-        <Grid container spacing={3}>
+      </div>
+      <div className="leftPad">
+        <div className="grid">
           {offerors.map(player => {
             return (
-              <Grid key={player.handle} item xs={3}>
+              <div className="cell">
                 <UnpartneredPlayer player={player} />
-              </Grid>
+              </div>
             );
           })}
-        </Grid>
+        </div>
       </div>
     </div>
   );

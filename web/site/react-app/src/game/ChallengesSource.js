@@ -1,9 +1,9 @@
 import {EventEmitter} from 'events';
 import TelnetProxy from '../telnet/TelnetProxy';
-import OnlineUsers from '../user/OnlineUsers';
-import invariant from 'invariant';
+// import OnlineUsers from '../user/OnlineUsers';
+// import invariant from 'invariant';
 
-const onlineUsers = OnlineUsers.get();
+// const onlineUsers = OnlineUsers.get();
 const proxy = TelnetProxy.singleton();
 
 /**
@@ -38,18 +38,18 @@ class ChallengesSource extends EventEmitter {
   }
 
   _addChallenge(uid, challenge) {
-    const {challenger, challengee} = challenge;
-    const viewer = onlineUsers.getUsers()[uid];
-    if (viewer == null) {
-      console.error(`null viewer?`);
-      return;
-    }
-    const viewerHandle = viewer.ficsHandle;
-    invariant(
-      viewerHandle === challengee.handle,
-      `Parse assumptions WRONG! viewer: ${viewerHandle}
-       [${challenger.handle}, ${challengee.handle}]`
-    );
+    const {challenger} = challenge;
+    // const viewer = onlineUsers.getUsers()[uid];
+    // if (viewer == null) {
+    //   console.error(`null viewer?`);
+    //   return;
+    // }
+    // const viewerHandle = viewer.ficsHandle;
+    // invariant(
+    //   viewerHandle === challengee.handle,
+    //   `Parse assumptions WRONG! viewer: ${viewerHandle}
+    //    [${challenger.handle}, ${challengee.handle}]`
+    // );
     this._challenges[challenger.handle] = challenge;
   }
 

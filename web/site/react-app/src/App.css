@@ -4,7 +4,7 @@
 }
 
 .App {
-  text-align: center;
+  /* text-align: center; */
 }
 
 .App-logo {
@@ -43,14 +43,17 @@
 }
 
 #login.row {
-  max-width: 800px;
-  margin: auto;
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .column {
   padding-top: 20px;
-  float: left;
-  width: 50%;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 /* Clear floats after the columns */
@@ -61,11 +64,24 @@
 }
 
 .hoverExpose {
-  opacity: 50%;
+  opacity: 80%;
 }
 
 .hoverExpose:hover {
   opacity: 100%;
+}
+
+body {
+  background-color: #606170;
+  color: #e9e9e9;
+}
+
+.leftBuffer {
+  margin-left: max(2em, 3vw);
+}
+
+.leftPad {
+  padding-left: max(2em, 3vw);
 }
 
 body .mono {
@@ -81,11 +97,19 @@ body .mono {
   letter-spacing: 0.0075em;
 }
 
+.h5 {
+  color: #d0cfe5;
+  text-overflow: ellipsis;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
 .h6 {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: clamp(.5rem, 3vh, 2rem);
+  /* font-size: clamp(.5rem, min(2vw, 3vh), 1.5rem); */
+  font-size: 1.2rem;
   font-weight: 500;
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
@@ -93,4 +117,57 @@ body .mono {
 
 .roboto {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+body .light {
+  color: #dfdfdf;
+}
+
+body .light label {
+  color: #dfdfdf;
+}
+
+body .dark {
+  color: #303030;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.grid {
+  width: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cell {
+  padding: 4px;
+  flex-grow: 0;
+  max-width: 25%;
+  min-width: 220px;
+}
+
+.challenge {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+body .firebaseui-tos {
+  color: #c0c0e0;
+}
+
+a {
+ text-decoration: none;
+}
+a:link, a:visited {
+  color: #dfdfdf;
+}
+a:hover {
+  color: #ffffff;
+}
+
+body .makeStyles-paper-161 {
+  color: #dfdfdf;
 }

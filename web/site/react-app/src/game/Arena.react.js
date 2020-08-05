@@ -24,9 +24,9 @@ const Arena = ({gamePair}) => {
     const onBoard1 = () => {
       setHandleColor1(board1.getHandleColor(ficsHandle));
     };
-    board1.on('init', onBoard1);
+    board1.on('update', onBoard1);
     return () => {
-      board1.off('init', onBoard1);
+      board1.off('update', onBoard1);
     }
   });
   useEffect(() => {
@@ -35,21 +35,29 @@ const Arena = ({gamePair}) => {
       invariant(board2 != null, 'wtf');
       setHandleColor2(board2.getHandleColor(ficsHandle));
     };
+    board2.on('update', onBoard2);
     return () => {
-      board2.off('init', onBoard2);
+      board2.off('update', onBoard2);
     };
   });
 
+  // Run only once on first load
+  useEffect(() => {
+    gamesSrc.observe(id1);
+    if (id2 != null) {
+      gamesSrc.observe(id2);
+    }
+  }, [])
+
   let orientation1 = handleColor1 || 'white';
   console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}, hc2: ${handleColor2}`);
-  gamesSrc.observe(id1);
 
   let boardView2 = null;
   if (id2 != null) {
     if (handleColor2 != null) {
       debugger;
       invariant(handleColor1 == null, `Viewer can't be on both boards: ${handleColor1} ${handleColor2}`);
-      return <Redirect to={`/home/arena/${id2}~${id1}`} />;
+      return <Redirect push to={`/home/arena/${id2}~${id1}`} />;
     }
     boardView2 = (
       <Board
@@ -57,7 +65,6 @@ const Arena = ({gamePair}) => {
         orientation={opposite(orientation1)}
       />
     );
-    gamesSrc.observe(id2);
     console.log(`Arena hc2: ${handleColor2}`);
   } else {
     console.log(`Arena only observing one game?`);

@@ -17,7 +17,7 @@ const Profile = ({user, ...rest}) => {
     <React.Fragment>
       <span style={{...rest.style}}>
         {picture}
-        <span className="h6">
+        <span className="h6" style={{fontSize:'1.5em'}}>
          {name}
         </span>
       </span>

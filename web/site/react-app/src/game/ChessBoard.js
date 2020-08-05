@@ -38,6 +38,23 @@ class ChessBoard extends EventEmitter {
     return null;
   }
 
+  decrHolding({color, piece}) {
+    const holdings = this._holdings[color];
+    const idx = holdings.indexOf(piece);
+    if (idx < 0) {
+      console.error(`decrementing unheld piece?`);
+    }
+    const prevHoldings = holdings;
+    this._holdings[color] = holdings.substr(0, idx) + holdings.substr(idx + 1);
+    console.log(`ChessBoard decrHolding ${prevHoldings} => ${this._holdings[color]}`);
+    this.emit('update', this);
+  }
+
+  getColorToMove() {
+    const {toMove} = this._board;
+    return toMove === 'W' ? 'white' : (toMove === 'B' ? 'black' : null);
+  }
+
   getHandles() {
     return [this._board.white.handle, this._board.black.handle];
   }

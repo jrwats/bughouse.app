@@ -1,5 +1,4 @@
 import React from 'react';
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import UnpartneredPlayer from './UnpartneredPlayer.react';
 
@@ -16,24 +15,22 @@ const Unpartnered = ({unpartnered}) => {
 
   return (
     <div style={{width: '100%'}}>
-      <Typography style={{marginLeft: '100px'}} variant="h5" noWrap>
+      <div class="h5 mono leftBuffer">
          Unpartnered Players
-      </Typography>
-      <div style={{
-        paddingLeft: '100px',
-        paddingRight: '100px',
+      </div>
+      <div className="leftPad" style={{
         overflow: 'scroll',
         height: '100%'
         }} >
-        <Grid container spacing={3}>
+        <div className="grid">
           {bughouseUsers.concat(ficsPlayers).map(player => {
             return (
-              <Grid key={player.handle} item xs={3}>
+              <div className="cell" key={player.handle} >
                 <UnpartneredPlayer player={player} />
-              </Grid>
+              </div>
             );
           })}
-        </Grid>
+        </div>
       </div>
     </div>
   );

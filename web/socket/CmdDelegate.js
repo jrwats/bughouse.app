@@ -6,6 +6,7 @@ const log = require('./log');
 const FicsManager = require('./FicsManager');
 const {rating: ratingRE} = require('./Regex');
 const Pending = require('./Pending');
+const {EventEmitter} = require('events');
 
 class SimpleHandler {
   constructor(re, onMatch) {
@@ -30,28 +31,28 @@ const _handlers = [
     re: /(\w+) offers to be your bughouse partner;.*$/m,
     onMatch: (match, clientSocket) => {
       log(`CmdDelegate sock.emit('incomingOffer', ${match[1]})`);
-      clientSocket.emit('incomingOffer', match[1]);
+      clientSocket && clientSocket && clientSocket.emit('incomingOffer', match[1]);
     },
   },
   {
     re: /(\w+) agrees to be your partner.*$/m,
     onMatch: (match, clientSocket) => {
       log(`CmdDelegate sock.emit('partnerAccepted')`);
-      clientSocket.emit('partnerAccepted', match[1]);
+      clientSocket && clientSocket.emit('partnerAccepted', match[1]);
     }
   },
   {
     re: /Partnership offer to (\w+) withdrawn.*$/m,
     onMatch: (match, clientSocket) => {
       log(`CmdDelegate sock.emit('outgoingPartnerCancelled)'`);
-      clientSocket.emit('outgoingOfferCancelled', match[1]);
+      clientSocket && clientSocket.emit('outgoingOfferCancelled', match[1]);
     },
   },
   {
     re: /You no longer have a bughouse partner.*$/m,
     onMatch: (match, clientSocket) => {
       log(`CmdDelegate sock.emit('unpartnered)'`);
-      clientSocket.emit('unpartnered');
+      clientSocket && clientSocket.emit('unpartnered');
     }
   },
   {
@@ -62,7 +63,7 @@ const _handlers = [
       if (challenge.challenger.handle == null) {
         log(match);
       }
-      clientSocket.emit('incomingChallenge', challenge);
+      clientSocket && clientSocket.emit('incomingChallenge', challenge);
     },
   },
   {
@@ -76,7 +77,7 @@ const _handlers = [
     onMatch: (match, clientSocket) => {
       const game = Pending.matchToGame(match);
       log(`CmdDelegate sock.emit('challenge', ${game})`);
-      clientSocket.emit('incomingPartnerChallenge', game);
+      clientSocket && clientSocket.emit('incomingPartnerChallenge', game);
     },
   },
   {
@@ -90,18 +91,35 @@ const _handlers = [
     onMatch: (match, clientSocket) => {
       const game = Pending.matchToGame(match);
       log(`CmdDelegate sock.emit('challenge', ${game})`);
-      clientSocket.emit('outgoingPartnerChallenge', game);
+      clientSocket && clientSocket.emit('outgoingPartnerChallenge', game);
     },
   },
 ].map(({re, onMatch}) => {
   return new SimpleHandler(re, onMatch);
 });
 
-class CmdDelegate {
-  constructor(socket) {
-    this._ficsMgr = FicsManager.get();
+class CmdDelegate extends EventEmitter {
+
+  constructor(socket, fics) {
+    super();
     this._socket = socket;
+    this._fics = fics;
+    const dataListener = (data) => { this._onData(data); };
+    fics.on('data', dataListener);
     this._handlers = [..._handlers];
+    socket.on('disconnect', () => {
+      this._socket = null;
+    });
+  }
+
+  _onData(data) {
+    if (this.handle(data)) {
+      return;
+    }
+    log(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
+    if (this._socket != null) {
+      this._socket.emit('data', data);
+    }
   }
 
   addHandler(handler) {
@@ -121,7 +139,9 @@ class CmdDelegate {
     }
     if (handled && text.length > 0) {
       log(`CmdDelegate emitting 'data' '${text.substr(20)}...' (len: ${text.length})`);
-      this._socket.emit('data', text);
+      if (this._socket != null) {
+        this._socket.emit('data', text);
+      }
     }
     return handled;
   }

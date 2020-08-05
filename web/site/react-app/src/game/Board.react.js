@@ -52,6 +52,7 @@ const Board = ({chessboard, orientation, id}) => {
           chessground={chessgroundRef}
           orientation={orientation}
           holdings={holdings}
+          chessboard={chessboard}
           viewOnly={viewOnly} />
         <Chessground
           ref={chessgroundRef}
@@ -67,6 +68,9 @@ const Board = ({chessboard, orientation, id}) => {
           pieceKey={true}
           coordinates={false}
           drawable={{enabled: false}}
+          promotion={(e) => {
+            debugger;
+          }}
           style={{display: 'inline-block'}}
         />
       </div>
