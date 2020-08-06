@@ -25,6 +25,11 @@ const FicsLogin = () => {
                   Login to FICS
                 </Typography>
               </Grid>
+              <Grid item xs={8} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                <div style={{fontWeight: 300, fontSize: '.7em'}}>
+                  Free Internet Chess Server @ freechess.org
+                </div>
+              </Grid>
               <Grid item>
                 <Grid item >
                   <TextField
