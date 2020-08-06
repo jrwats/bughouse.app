@@ -1,5 +1,6 @@
 import {EventEmitter} from 'events';
 import invariant from 'invariant';
+import ScreenLock from './ScreenLock';
 
 class ChessBoard extends EventEmitter {
   constructor({id, board, holdings}) {
@@ -84,6 +85,7 @@ class ChessBoard extends EventEmitter {
     this._finished = true;
     this._reason = data.reason;
     this._winner = data.result[0] === '1' ? 'white' : 'black';
+    ScreenLock.release();
     this.emit('gameOver', data);
   }
 

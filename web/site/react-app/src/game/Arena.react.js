@@ -5,6 +5,7 @@ import {TelnetContext} from '../telnet/TelnetProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';
+import ScreenLock from './ScreenLock';
 
 const Arena = ({gamePair}) => {
   const {ficsHandle, telnet} = useContext(TelnetContext);
@@ -57,6 +58,7 @@ const Arena = ({gamePair}) => {
       gamesSrc.observe(id2);
     }
   }, [gamesSrc, id1, id2]);
+  useEffect(() => { ScreenLock.attemptAcquire(); }, [id1, id2]);
 
   let orientation1 = handleColor1 || 'white';
   console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}, hc2: ${handleColor2}`);

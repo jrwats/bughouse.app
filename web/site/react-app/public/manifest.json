@@ -1,6 +1,7 @@
 {
-  "short_name": "bughouse.app",
-  "name": "Play Bughouse - 2v2 Chess",
+  "short_name": "Bughouse",
+  "name": "buhouse.app",
+  "description": "Play 2v2 Chess",
   "icons": [
     {
       "src": "favicon.ico",
