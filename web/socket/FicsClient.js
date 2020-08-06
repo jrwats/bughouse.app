@@ -56,7 +56,7 @@ class FicsClient extends EventEmitter {
         if (this._handle != null) {
           this._handleRef = this._db.ref(`users/${this._uid}/ficsHandle`);
           this._handleRef.set(this._handle);
-          this._handleRef.onDisconnect().remove();
+          // this._handleRef.onDisconnect().remove();
           log(`FicsClient ficsHandle ${this._uid}: ${this._handle}`);
           this.emit('login', this._handle);
         }
@@ -140,6 +140,7 @@ class FicsClient extends EventEmitter {
     const onResult = result => {
       if (result == null) {
         log(`FicsClient NULL 'bugwho' result (all logged out?)`);
+        return;
       }
       this._isPolling = false;
       const [prefix, suffix] = _bughouseState.parseBugwho(result);

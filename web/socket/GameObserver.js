@@ -82,17 +82,16 @@ holdings: ${JSON.stringify(this._holdings)}
 
   parse(text) {
     const {board, match: boardMatch} = BoardParser.parseBoard(text);
-    if (board != null) {
-      this._boards[board.id] = board;
-    }
     const {holdings, match: holdingsMatch} = BoardParser.parseHoldings(text);
-    if (holdings != null) {
-      this._holdings[holdings.id] = holdings;
+    if (board == null && holdings == null) {
+      return null;
     }
-    // log(`GameObserver parsed ${board} ${holdings}`);
-    return board == null && holdings == null
-      ? null
-      : {board, holdings, boardMatch, holdingsMatch};
+    return {
+      board: board,
+      holdings: holdings,
+      boardMatch,
+      holdingsMatch
+    };
   }
 
   getMatch(text) {
@@ -124,25 +123,29 @@ holdings: ${JSON.stringify(this._holdings)}
   }
 
   onMatch({board, holdings}) {
+    const ids = {};
     if (board != null) {
+      ids[board.id] = 1;
       this._boards[board.id] = board;
-    } else {
-      board = this._boards[holdings.id];
-      if (board == null) {
-        console.error(`NULL board? ${holdings.id}`);
-      }
+    } else if (!(holdings.id in this._boards)) {
+      console.error(`NULL board? ${holdings.id}`);
     }
 
     if (holdings != null) {
+      ids[holdings.id] = 1;
       this._holdings[holdings.id] = holdings;
-    } else {
-      holdings = this._holdings[board.id];
-      if (holdings == null) {
-        console.error(`NULL holdings? ${board.id}`);
-      }
+    } else if (!(board.id in this._holdings)) {
+      console.error(`NULL holdings? ${board.id}`);
     }
-    const id = board == null ? holdings.id : board.id;
-    this._notifySubscribers(id, {id, board, holdings});
+
+    log(`GameObserver ${JSON.stringify(ids)} ${JSON.stringify(this._boards)}`);
+    for (const id in ids) {
+      this._notifySubscribers(id, {
+        id,
+        board: this._boards[id],
+        holdings: this._holdings[id],
+      });
+    }
   }
 
   stripMatch({boardMatch, holdingsMatch}, text) {

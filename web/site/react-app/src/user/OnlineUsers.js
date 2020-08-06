@@ -75,6 +75,9 @@ class OnlineUsers extends EventEmitter {
     proxy.on('pending', onPending);
     proxy.on('logout', onLogout);
     proxy.on('unpartnered', ({user}) => {
+      if (!(user.uid in this._users)) {
+        return;
+      }
       const ficsHandle = this._users[user.uid].ficsHandle;
       for (let i = 0; i < this._partners.length; ++i) {
         const [p1, p2] = this._partners[i];
