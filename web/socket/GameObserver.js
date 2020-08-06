@@ -83,15 +83,9 @@ holdings: ${JSON.stringify(this._holdings)}
   parse(text) {
     const {board, match: boardMatch} = BoardParser.parseBoard(text);
     const {holdings, match: holdingsMatch} = BoardParser.parseHoldings(text);
-    if (board == null && holdings == null) {
-      return null;
-    }
-    return {
-      board: board,
-      holdings: holdings,
-      boardMatch,
-      holdingsMatch
-    };
+    return board == null && holdings == null
+      ? null
+      : {board, holdings, boardMatch, holdingsMatch};
   }
 
   getMatch(text) {

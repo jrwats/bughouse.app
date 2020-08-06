@@ -23,9 +23,9 @@ const boardRE = new RegExp(
 
 const holdingsRE = new RegExp(
   '<b1> game (?<id>\\d+) ' +
-  'white \\[(?<wHoldings>[PNBRKQ]*)\\] ' +
-  'black \\[(?<bHoldings>[PNBRKQ]*)\\]' +
-  '( <- (?<passer>B|W)(?<piece>[PNBRKQ]))?.*$',
+  'white \\[(?<wHoldings>[PNBRQ]*)\\] ' +
+  'black \\[(?<bHoldings>[PNBRQ]*)\\]' +
+  '( <- (?<passer>B|W)(?<piece>[PNBRQ]))?.*$',
   'm'
 );
 
