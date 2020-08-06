@@ -191,5 +191,9 @@ body .makeStyles-paper-161 {
 }
 
 .shadow {
+<<<<<<< HEAD
   boxShadow: 10px 5px 5px #404040,
+=======
+  boxShadow: '10px 5px 5px #404040',
+>>>>>>> 2cd96e06be10e09226ce1ed0f26bf2239bd088c7
 }

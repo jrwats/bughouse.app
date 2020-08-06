@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+Import React, {useContext, useEffect, useState} from 'react';
 import Chessground from 'react-chessground'
 import Holdings from './Holdings.react'
 import PlayerDisplay from './PlayerDisplay.react'

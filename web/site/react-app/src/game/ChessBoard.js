@@ -11,7 +11,6 @@ class ChessBoard extends EventEmitter {
     this._finished = false;
     this._reason = '';
     this._winner = null;
-
   }
 
   update({id, board, holdings}) {
