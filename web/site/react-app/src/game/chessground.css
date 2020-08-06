@@ -46,14 +46,12 @@ piece.react-draggable.disabled {
 .gameOver {
   z-index: 200;
   position: absolute;
-  left: min(24vw, 40vh);
-  top: min(24vw, 40vh);
+  left: min(10vw, 30vh);
+  top: min(10vw, 30vh);
 }
 
 .gameOver .gameOverMsg {
   position: relative;
-  left: -20%;
-  top: -39px;
   width: min(34vw, 50vh);
 }
 
