@@ -1,5 +1,4 @@
 import React, {useContext} from 'react';
-import Paper from '@material-ui/core/Paper';
 import { UsersContext } from '../user/UsersProvider';
 import UserName from '../UserName.react';
 

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext} from 'react';
 import { opposite } from 'chessground/util';
 import Paper from '@material-ui/core/Paper';
 import HandleDisplay from './HandleDisplay.react';

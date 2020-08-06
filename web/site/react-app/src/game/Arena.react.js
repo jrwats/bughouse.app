@@ -16,8 +16,8 @@ const Arena = ({gamePair}) => {
   }
   const [board1, setBoard1] = useState(gamesSrc.getBoard(id1))
   const [board2, setBoard2] = useState(gamesSrc.getBoard(id2))
-  useEffect(()  => { setBoard1(gamesSrc.getBoard(id1)); }, [id1])
-  useEffect(()  => { setBoard2(gamesSrc.getBoard(id2)); }, [id2])
+  useEffect(()  => { setBoard1(gamesSrc.getBoard(id1)); }, [gamesSrc, id1])
+  useEffect(()  => { setBoard2(gamesSrc.getBoard(id2)); }, [gamesSrc, id2])
   const [handleColor1, setHandleColor1] =
     useState(board1.getHandleColor(ficsHandle));
   const [handleColor2, setHandleColor2] =
