@@ -13,7 +13,11 @@ class ScreenLock {
       return;
     }
     if ('wakeLock' in global.navigator) {
-      _lock = await navigator.wakeLock.request('screen');
+      try {
+        _lock = await navigator.wakeLock.request('screen');
+      } catch (e) {
+        console.error(e);
+      }
     }
   }
 }

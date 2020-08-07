@@ -14,7 +14,7 @@ const Unpartnered = ({unpartnered}) => {
 
   return (
     <div style={{width: '100%'}}>
-      <div class="h5 mono leftBuffer">
+      <div className="h5 mono leftBuffer">
          Unpartnered Players
       </div>
       <div className="leftPad" style={{

@@ -9,12 +9,15 @@ import { Link } from "@reach/router";
 
 const GameOverMessage = ({chessboard}) => {
   const {ficsHandle} = useContext(TelnetContext);
-
+  const board = chessboard.getBoard();
   const winnerColor = chessboard.getWinner();
   console.log(`GameOverMessage ${chessboard.id}`);
 
-  const winnerHandle = chessboard.getBoard()[winnerColor].handle;
-  const loserHandle = chessboard.getBoard()[opposite(winnerColor)].handle;
+  if (board[winnerColor] == null) {
+    return null;
+  }
+  const winnerHandle = board[winnerColor].handle;
+  const loserHandle = board[opposite(winnerColor)].handle;
   let msg;
   if (ficsHandle === winnerHandle) {
     msg = 'You won';

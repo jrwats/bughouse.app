@@ -47,7 +47,7 @@ const Challenges = () => {
   for (const challengerHandle in challenges) {
     const challenge = challenges[challengerHandle];
     challengeComponents.push(
-      <div className="cell">
+      <div key={challengerHandle} className="cell">
         <Link
           to="#accept"
           onClick={(e) => { onClick(e, challenge.id || ''); }}

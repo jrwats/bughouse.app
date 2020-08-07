@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import { EventEmitter } from 'events';
 import HandleDisplay from './HandleDisplay.react';
 
@@ -14,20 +14,32 @@ const PlayerDisplay = ({color, chessboard}) => {
 
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
-  const [time, setTime] = useState(parseInt(playerData?.time));
+  const refTime = useRef(parseInt(playerData?.time));
+  const [time, setTime] = useState(refTime.current);
 
   useEffect(() => {
     const onUpdate = () => {
       const playerData = chessboard.getBoard()[color];
-      if (playerData?.handle !== handle) {
+      if (playerData == null) {
+        console.log(`PlayerDisplay NULL for ${chessboard.getID()} ${color}`);
+        return;
+      }
+      if (playerData.handle !== handle) {
         setHandle(playerData.handle);
       }
-      setTime(parseInt(playerData?.time));
+      const numTime = parseInt(playerData.time);
+      if (Number.isNaN(numTime)) {
+        console.log(`PlayerDisplay ${playerData.time} isNaN`);
+        return;
+      }
+      refTime.current = parseInt(playerData?.time);
+      setTime(refTime.current);
     };
     const onTick = () => {
       const board = chessboard.getBoard();
       if ((board.toMove === 'W') === (color === 'white')) {
-        setTime(Math.max(0, time - 1));
+        refTime.current = Math.max(0, refTime.current - 1);
+        setTime(refTime.current);
       }
     };
     chessboard.on('update', onUpdate);
@@ -36,7 +48,7 @@ const PlayerDisplay = ({color, chessboard}) => {
       chessboard.off('update', onUpdate);
       _ticker.off('tick', onTick);
     };
-  });
+  }, [color, chessboard]);
   const mins = Math.floor(time / 60);
   const secs = Math.floor(time % 60);
   return (

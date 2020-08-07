@@ -35,6 +35,7 @@ const TelnetProvider = (props) => {
       setHandle(ficsHandle);
       setLoggedOut(false);
     };
+    // FICS logout
     const onLogout = () => {
       console.log(`TelnetProvider.logout`);
       setHandle(null);
@@ -45,14 +46,20 @@ const TelnetProvider = (props) => {
       setOutputLog(log.current);
       console.log(`log length: ${log.current.length}`);
     }
+    // App sign out
+    const onDestroy = () => {
+      setTelnet(null);
+    };
     proxy.on('data', onData);
     proxy.on('logging_in', onLoggingIn);
     proxy.on('login', onLogin);
     proxy.on('logout', onLogout);
+    proxy.on('destroy', onDestroy);
     return function() {
       proxy.off('logging_in', onLoggingIn);
       proxy.off('login', onLogin);
       proxy.off('logout', onLogout);
+      proxy.off('destroy', onDestroy);
       proxy.off('data', onData);
     };
   }, [user]);

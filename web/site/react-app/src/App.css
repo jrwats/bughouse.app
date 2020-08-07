@@ -155,7 +155,6 @@ body .dark {
 .cell {
   padding: 4px;
   flex-grow: 0;
-  max-width: 25%;
   min-width: 220px;
 }
 

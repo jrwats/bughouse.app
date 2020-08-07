@@ -11,7 +11,7 @@ const Teams = ({partnerMap, partners, ...rest}) => {
         <div className="grid">
           {partners.map(pair => {
             return (
-              <div className="cell" style={{
+              <div key={pair[0].handle} className="cell" style={{
                 flexGrow: 0,
                 minWidth: '0px',
               }}>
