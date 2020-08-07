@@ -64,7 +64,7 @@ const Challenges = () => {
   }
 
   return (
-    <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
+    <div>
       <div className="h5 mono leftBuffer">
         Incoming Challenges
       </div>

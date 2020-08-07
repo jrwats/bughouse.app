@@ -18,7 +18,6 @@ const Unpartnered = ({unpartnered}) => {
          Unpartnered Players
       </div>
       <div className="leftPad" style={{
-        overflow: 'scroll',
         height: '100%'
         }} >
         <div className="grid">

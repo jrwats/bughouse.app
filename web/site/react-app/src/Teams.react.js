@@ -3,7 +3,7 @@ import Team from './Team.react';
 
 const Teams = ({partnerMap, partners, ...rest}) => {
   return (
-    <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
+    <div>
       <div className="h5 mono leftBuffer" >
         Idle Teams
       </div>

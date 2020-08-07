@@ -22,7 +22,7 @@ const GamesList = (props) => {
   const classes = useStyles();
 
   return (
-    <div style={{overflow: 'scroll', minHeight: '60px', height: '100%'}} >
+    <div>
       <div className="h5 mono leftBuffer">
         Games in progress
       </div>

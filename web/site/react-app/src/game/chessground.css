@@ -57,7 +57,7 @@ piece.react-draggable.disabled {
   position: relative;
   width: min(34vw, 60vh);
   border-color: #000;
-  border-width: clamp(1px, min(.2vw, .4vh), 2px);
+  border-width: 1px;
   border-style: solid;
 }
 

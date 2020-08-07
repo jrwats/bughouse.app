@@ -48,7 +48,7 @@ const PlayerDisplay = ({color, chessboard}) => {
       chessboard.off('update', onUpdate);
       _ticker.off('tick', onTick);
     };
-  }, [color, chessboard]);
+  }, [color, chessboard, handle]);
   const mins = Math.floor(time / 60);
   const secs = Math.floor(time % 60);
   return (

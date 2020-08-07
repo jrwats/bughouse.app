@@ -33,7 +33,7 @@ const GameOverMessage = ({chessboard}) => {
   }
   return (
     <div className="gameOver">
-      <Paper className="gameOverMsg" elevation={17} >
+      <Paper className="gameOverMsg" elevation={20} >
       <div className="grid clamped" style={{
         alignItems: 'center',
         justifyContent: 'space-evenly',
