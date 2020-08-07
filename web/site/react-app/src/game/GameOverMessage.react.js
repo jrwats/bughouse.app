@@ -33,9 +33,7 @@ const GameOverMessage = ({chessboard}) => {
   }
   return (
     <div className="gameOver">
-      <Paper className="gameOverMsg" elevation={12} style={{
-        padding: '4px 4px 8px 4px',
-        alignText: 'center'}}>
+      <Paper className="gameOverMsg" elevation={17} >
       <div className="grid clamped" style={{
         alignItems: 'center',
         justifyContent: 'space-evenly',
@@ -43,7 +41,7 @@ const GameOverMessage = ({chessboard}) => {
       }}>
           <div className="h6">{msg}</div>
           <div style={{paddingTop: '8px'}}>{chessboard.getReason()}</div>
-          <Link to="/home" style={{marginTop: 'min(2vw, 5vh)'}}>
+          <Link to="/home" style={{marginTop: 'min(3vw, 7vh)'}}>
             <Button variant="contained" color="primary">
               <PeopleIcon fontSize="small" style={{paddingRight: '.8em'}}/>
               Return to Dashboard

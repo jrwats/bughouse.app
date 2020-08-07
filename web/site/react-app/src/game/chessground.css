@@ -46,13 +46,19 @@ piece.react-draggable.disabled {
 .gameOver {
   z-index: 200;
   position: absolute;
-  left: min(10vw, 30vh);
-  top: min(10vw, 30vh);
+  top: 50%;
+  left: min(27vw, 55vh);
+  transform: translate(-50%, -50%);
 }
 
 .gameOver .gameOverMsg {
+  padding: 4px 4px 8px 4px;
+  alignText: center;
   position: relative;
-  width: min(34vw, 50vh);
+  width: min(34vw, 60vh);
+  border-color: #000;
+  border-width: clamp(1px, min(.2vw, .4vh), 2px);
+  border-style: solid;
 }
 
 piece.react-draggable-dragging, piece.dragging {
