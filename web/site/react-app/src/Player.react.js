@@ -2,7 +2,7 @@ import React from 'react';
 import Status from './Status.react';
 import UserName from './UserName.react';
 
-const Player = ({player, black, className, white, style}) => {
+const Player = ({player, black, white, className, style}) => {
   const {user} = player;
   const fontWeight = user != null ? 'bold' : 'auto';
   let photo = null;
@@ -16,8 +16,8 @@ const Player = ({player, black, className, white, style}) => {
   }
   const backgroundColor = black != null
     ? '#2a2a2a'
-    : (white != null ? 'efefef' : undefined);
-  const color = black != null ? '#efefef' : undefined;
+    : (white != null ? '#efefef' : undefined);
+  const color = white != null ? '#000' : undefined;
 
   let rating = '';
   for (let i = 0; i < 4 - player.rating.length; ++i) {
