@@ -30,7 +30,7 @@ const getServer = () => {
   // To install certs on MacOS:
   //
   // mkdir -p .localhost-ssl
-  // sudo openssl genrsa -out localhost.key 2048
+  // sudo openssl genrsa -out .localhost-ssl/localhost.key 2048
   // sudo openssl req -new -x509 -key .localhost-ssl/localhost.key \
   //   -out .localhost-ssl/localhost.crt -days 1024 -subj /CN=localhost
   //
