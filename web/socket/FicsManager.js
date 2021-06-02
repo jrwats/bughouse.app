@@ -50,6 +50,7 @@ class FicsManager extends EventEmitter {
       delete this._uid2destroy[uid];
     }
     if (!(uid in this._uid2fics)) {
+      log(`Creating new FICS client`);
       const fics = this._uid2fics[uid] = new FicsClient(uid, this._db);
       fics.on('close', this._onClosedListener);
       fics.on('end', this._onClosedListener);

@@ -68,7 +68,10 @@ const FicsLogin = () => {
                     disabled={loggedOut === false}
                     variant="contained"
                     color="primary"
-                    onClick={() => {telnet.login({username: 'guest'}); }} >
+                    onClick={() => {
+                      console.log('FicsLogin onClick');
+                      telnet.login({username: 'guest'});
+                    }} >
                   Login as guest
                 </Button>
               </Grid>

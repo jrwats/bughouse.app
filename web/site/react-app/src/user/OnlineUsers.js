@@ -305,4 +305,7 @@ class OnlineUsers extends EventEmitter {
 const singleton = new OnlineUsers(firebase.database());
 window.__onlineUsers = singleton;
 
-export default { get() { return singleton; } };
+const OnlineUsersGetter = {
+  get() { return singleton; }
+};
+export default OnlineUsersGetter;

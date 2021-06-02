@@ -64,4 +64,10 @@ class ChallengesSource extends EventEmitter {
 
 const singleton = new ChallengesSource();
 
-export default { get() { return singleton; } };
+const ChallengesSourceGetter = {
+  get() {
+    return singleton;
+  }
+};
+
+export default ChallengesSourceGetter;

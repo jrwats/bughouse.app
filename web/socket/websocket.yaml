@@ -1,6 +1,6 @@
 # [START appengine_websockets_yaml]
 service: websocket
-runtime: nodejs
+runtime: nodejs14
 env: flex
 
 automatic_scaling:

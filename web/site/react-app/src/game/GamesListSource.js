@@ -31,9 +31,10 @@ class GamesListSource extends EventEmitter {
 }
 
 const _cache = {};
-export default {
+const GamesListSourceGetter = {
   get(telnet) {
     const uid = telnet.getUid();
     return _cache[uid] || (_cache[uid] = new GamesListSource(telnet));
   }
 };
+export default GamesListSourceGetter;

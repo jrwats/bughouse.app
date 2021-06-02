@@ -92,9 +92,10 @@ class GameStatusSource extends EventEmitter {
 }
 
 const _cache = {};
-export default {
+const GameStatusSourceGetter = {
   get(telnet) {
     const uid = telnet.getUid();
     return _cache[uid] || (_cache[uid] = new GameStatusSource(telnet));
   }
 };
+export default GameStatusSourceGetter;

@@ -27,15 +27,21 @@ const getServer = () => {
   }
   console.log('creating https server');
   const https = require('https');
-  // To install certs on MacOS:
-  //
-  // mkdir -p .localhost-ssl
-  // sudo openssl genrsa -out .localhost-ssl/localhost.key 2048
-  // sudo openssl req -new -x509 -key .localhost-ssl/localhost.key \
-  //   -out .localhost-ssl/localhost.crt -days 1024 -subj /CN=localhost
-  //
-  // sudo security add-trusted-cert -d -r trustRoot -k \
-  //   /Library/Keychains/System.keychain .localhost-ssl/localhost.crt
+  /************************** To install certs (on MacOS)**********************
+  mkdir -p .localhost-ssl
+  sudo openssl genrsa -out .localhost-ssl/localhost.key 2048
+  sudo openssl req -new -x509 -key .localhost-ssl/localhost.key \
+    -out .localhost-ssl/localhost.crt -days 1024 -subj /CN=localhost
+  sudo chmod a+r .localhost-ssl/localhost.key
+
+  # Linx/WSL
+  sudo cp .localhost-ssl/localhost.crt /usr/local/share/ca-certificats/
+  sudo update-ca-certificates
+
+  # Mac
+  sudo security add-trusted-cert -d -r trustRoot -k \
+    /Library/Keychains/System.keychain .localhost-ssl/localhost.crt
+  ****************************************************************************/
   return https.createServer({
     key: fs.readFileSync('.localhost-ssl/localhost.key'),
     cert: fs.readFileSync('.localhost-ssl/localhost.crt'),
@@ -66,8 +72,8 @@ const gameObserver = GameObserver.get(socketMgr, ficsMgr);
 
 io.on('connection', (socket) => {
   let uid = null;
-  log('connection');
   const token = socket.handshake.query.token;
+  log(`connection: '${(token || '<null>').substr(0,20)}...'`);
   if (token == null) {
     socket.emit('err', {
       type: 'auth',
@@ -75,16 +81,14 @@ io.on('connection', (socket) => {
     });
     return socket.disconnect(true);
   }
-  console.log('Got socket connection');
-  console.log(token);
 
-  log(`token='${token.substr(0,20)}...'`);
   admin.auth().verifyIdToken(token)
     .then(decodedToken => {
       uid = decodedToken.uid;
       socketMgr.add(uid, socket);
       log(`Authenticated '${uid}'`);
       socket.emit('authenticated', true);
+      log(`emitted 'authenticated'`);
       // log(decodedToken);
       const onlineTimestamp = db.ref(`online/${uid}/connections`).push();
       onlineTimestamp.set(Date.now());

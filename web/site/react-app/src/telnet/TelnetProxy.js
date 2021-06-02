@@ -1,4 +1,4 @@
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import { EventEmitter } from 'events';
 import invariant from 'invariant';
 import GamesStatusSource from '../game/GameStatusSource';
@@ -6,10 +6,10 @@ import GamesStatusSource from '../game/GameStatusSource';
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
+const PROD_URL = 'https://websocket-dot-bughouse-274816.nn.r.appspot.com';
+const DEV_URL = 'https://localhost:7777';
 const URL = process.env.REACT_APP_SOCKET_URL ||
-  (process.env.NODE_ENV === 'production'
-   ? 'https://websocket-dot-bughouse-274816.nn.r.appspot.com'
-   : 'https://localhost:7777');
+  (process.env.NODE_ENV === 'production' ? PROD_URL : DEV_URL);
 
 const _singleton = new EventEmitter();
 const _cache = {};
@@ -31,23 +31,32 @@ class TelnetProxy extends EventEmitter {
   }
 
   _connect() {
+    console.log(`${this._gcn()}  _connect`);
     invariant(this._user.getIdToken != null, 'WTF');
     this._user.getIdToken(/*force refresh*/ true).then(idToken => {
       this._idToken = idToken;
       this._socket = io(URL, {
+        autoConnect: false,
         secure: true,
         reconnect: true,
         // ca:
-        rejectUnauthorized: process.env.NODE_ENV !== 'production',
+        rejectUnauthorized: !/localhost/.test(URL),
         query: {token: idToken},
+        timeout: 10000, // 10s
+        transports: ["websocket"],
+      });
+
+      this._socket.onAny((event, ...args) => {
+        console.log(event, args);
       });
 
       this._socket.on('authenticated', (msg) => {
-        console.log('TelnetProxy authenticated!');
+        console.log(`${this._gcn()}  authenticated!`);
         this._initialized = true;
       });
 
       this._socket.on('login', (handle) => {
+        console.log(`${this._gcn()}  login`);
         this._handle = handle;
         if (handle == null) {
           this._logout();
@@ -58,13 +67,13 @@ class TelnetProxy extends EventEmitter {
         this._socket.emit('pending'); // request pending offers from server
       });
       this._socket.on('logged_out', () => {
-        console.log('TelnetProxy received logged_out');
+        console.log(`${this._gcn()}  received logged_out`);
         this._logout();
       });
 
       this._socket.on('data', msg => {
         const summary = msg.substr(0,30).replace(/\s+/, ' ');
-        console.log(`TelnetProxy.emit('data'): ${summary}`);
+        console.log(`${this._gcn()}.emit('data'): ${summary}`);
         this.emit('data', msg);
       });
       this._socket.on('bugwho', bug => { this._emit('bugwho', bug); });
@@ -77,11 +86,11 @@ class TelnetProxy extends EventEmitter {
       this._socket.on('partners', bug => { this._emit('partners', bug); });
 
       this._socket.on('incomingOffer', handle => {
-        console.log(`TelnetProxy.incomingOffer(${handle})`);
+        console.log(`${this._gcn()}.incomingOffer(${handle})`);
         this._emit('incomingOffer', {user: this._user, handle});
       });
       this._socket.on('outgoingOfferCancelled', handle => {
-        console.log(`TelnetProxy.outgoingOfferCancelled(${handle})`);
+        console.log(`${this._gcn()}.outgoingOfferCancelled(${handle})`);
         this._emit('outgoingOfferCancelled', {user: this._user, handle});
       });
 
@@ -95,12 +104,12 @@ class TelnetProxy extends EventEmitter {
         this._emit('outgoingPartnerChallenge', {user: this._user, challenge});
       });
       this._socket.on('partnerAccepted', handle => {
-        console.log(`TelnetProxy.partnerAccepted(${handle})`);
+        console.log(`${this._gcn()}.partnerAccepted(${handle})`);
         this._emit('partnerAccepted', {user: this._user, handle});
       });
 
       this._socket.on('unpartnered', () => {
-        console.log(`TelnetProxy.unpartnered`);
+        console.log(`${this._gcn()}.unpartnered`);
         this._emit('unpartnered', {user: this._user});
       });
 
@@ -121,7 +130,7 @@ class TelnetProxy extends EventEmitter {
       });
 
       this._socket.on('err', err => {
-        console.error('TelnetProxy socket error');
+        console.error(`${this._gcn()}  socket error`);
         console.error(err);
         this.emit('err', err);
         if (err.type === 'auth') {
@@ -129,20 +138,25 @@ class TelnetProxy extends EventEmitter {
           this._connect();
         }
       });
-      this._socket.on('pong', latency => {
-        this.emit('latency', latency);
-        console.log(`bughouse.app latency: ${latency}ms`);
-      });
+      // this._socket.on('pong', latency => {
+      //   this.emit('latency', latency);
+      //   console.log(`bughouse.app latency: ${latency}ms`);
+      // });
+      this._socket.connect();
     }).catch(err => {
       console.error(err);
     });
   }
 
+  _gcn() { return `TelnetProxy`; }
+
   destroy() {
+    console.log(`${this._gcn()} destroy`);
     this._logout();
     this._socket.removeAllListeners();
     this._socket.close();
     this._socket = null;
+    console.log(`${this._gcn()} socket = null`);
     delete _cache[this._user.uid];
     this._emit('destroy', {user: this._user});
     this.removeAllListeners();
@@ -153,15 +167,15 @@ class TelnetProxy extends EventEmitter {
   }
 
   sendEvent(name, data) {
-    console.log(`TelnetProxy sending '${name}' ${Date.now()}`);
+    console.log(`${this._gcn()} sending '${name}' ${Date.now()}`);
     this._socket.emit(name, data);
   }
 
   login(creds) {
-    console.log('TelnetProxy.login()');
+    console.log(`${this._gcn()}.login()`);
     this.emit('logging_in', {user: this._user});
     this._loggedOut = false;
-    console.log(`TelnetProxy creds: ${JSON.stringify(creds)}`);
+    console.log(`${this._gcn()} creds: ${JSON.stringify(creds)}`);
     this._socket.emit('fics_login', creds);
     console.log(`Sent 'login' to socket`);
     return new Promise((resolve, reject) => {
@@ -181,7 +195,7 @@ class TelnetProxy extends EventEmitter {
   }
 
   logout() {
-    console.log(`TelnetProxy.logout`);
+    console.log(`${this._gcn()}.logout`);
     this._socket.emit('fics_logout');
     this._logout();
   }

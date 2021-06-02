@@ -26,7 +26,7 @@ class Presence {
 
       connectedRef.on('value', snap => {
         const isOnline = snap.val();
-        console.log(`Setting presence to ${isOnline} for ${uid}`);
+        console.log(`Presence is ${isOnline} for ${uid}`);
         if (isOnline) {
           lastOnlineRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
         }
