@@ -6,7 +6,7 @@ import GamesStatusSource from '../game/GameStatusSource';
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
-const PROD_URL = 'https://websocket-dot-bughouse-274816.nn.r.appspot.com';
+const PROD_URL = 'https://ws.bughouse.app';
 const DEV_URL = 'https://localhost:7777';
 const URL = process.env.REACT_APP_SOCKET_URL ||
   (process.env.NODE_ENV === 'production' ? PROD_URL : DEV_URL);
