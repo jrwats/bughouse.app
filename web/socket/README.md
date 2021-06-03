@@ -9,3 +9,8 @@ Now you can run:
 node ... | logger -t bughouse
 ```
 
+If using logging agent (kinda expensive on underpowered VMs) Google logging:
+```
+sudo cp bughouse.conf /etc/google-fluentd/config.d/bughouse.conf
+sudo service google-fluentd restart
+```
