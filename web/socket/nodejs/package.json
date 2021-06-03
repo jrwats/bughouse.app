@@ -12,7 +12,6 @@
     "deploy": "gcloud app deploy websocket.yaml",
     "start": "DEBUG=1 node app.js",
     "lint": "eslint .",
-    "ssh-vm1": "gcloud beta compute ssh --zone 'us-east1-c' 'vm1' --project 'bughouse-274816'"
   },
   "devDependencies": {
     "eslint": "^7.27.x",
