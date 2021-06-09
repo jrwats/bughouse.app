@@ -11,7 +11,7 @@
     "preinstall": "bash preinstall.sh",
     "deploy": "gcloud app deploy websocket.yaml",
     "start": "DEBUG=1 node app.js",
-    "lint": "eslint .",
+    "lint": "eslint ."
   },
   "devDependencies": {
     "eslint": "^7.27.x",
