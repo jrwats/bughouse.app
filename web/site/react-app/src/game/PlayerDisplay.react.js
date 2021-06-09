@@ -2,13 +2,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import { EventEmitter } from 'events';
 import HandleDisplay from './HandleDisplay.react';
 
-class Ticker extends EventEmitter {
-  onTick() {
-    this.emit('tick');
-  }
-}
-const _ticker = new Ticker();
-setInterval(() => { _ticker.onTick(); }, 1000);
+const _ticker = new EventEmitter();
+setInterval(() => { _ticker.emit('tick'); }, 1000);
 
 const PlayerDisplay = ({color, chessboard}) => {
 

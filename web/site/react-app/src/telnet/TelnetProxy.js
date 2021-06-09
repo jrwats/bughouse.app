@@ -14,6 +14,13 @@ const URL = process.env.REACT_APP_SOCKET_URL ||
 const _singleton = new EventEmitter();
 const _cache = {};
 
+const _ticker = new EventEmitter();
+setInterval(() => { _ticker.emit('tick'); }, 5000);
+
+const _dontLogAny = {
+  ack: true,
+};
+
 /**
  * Proxy to our telnet connection that emits raw console output as well as
  * parsed game and environment data.
@@ -28,6 +35,10 @@ class TelnetProxy extends EventEmitter {
     this._socket = null;
     this._connect();
     GamesStatusSource.get(this); // instantiate a listener
+  }
+
+  _onTick() {
+    this._socket && this._socket.emit('enq', {timestamp: Date.now()});
   }
 
   _connect() {
@@ -47,11 +58,16 @@ class TelnetProxy extends EventEmitter {
       });
 
       this._socket.onAny((event, ...args) => {
-        console.log(event, args);
+        if (_dontLogAny[event]) {
+          return;
+        }
+        console.debug(event, args);
       });
 
       this._socket.on('authenticated', (msg) => {
         console.log(`${this._gcn()}  authenticated!`);
+        this.onTick = this._onTick.bind(this);
+        _ticker.on('tick', this.onTick);
         this._initialized = true;
       });
 
@@ -138,10 +154,11 @@ class TelnetProxy extends EventEmitter {
           this._connect();
         }
       });
-      // this._socket.on('pong', latency => {
-      //   this.emit('latency', latency);
-      //   console.log(`bughouse.app latency: ${latency}ms`);
-      // });
+      this._socket.on('ack', msg => {
+        const latency = Date.now() - msg.timestamp;
+        this.emit('latency', latency);
+        console.log(`bughouse.app latency: ${latency}ms`);
+      });
       this._socket.connect();
     }).catch(err => {
       console.error(err);
@@ -154,6 +171,7 @@ class TelnetProxy extends EventEmitter {
     console.log(`${this._gcn()} destroy`);
     this._logout();
     this._socket.removeAllListeners();
+    _ticker.off('tick', this.onTick);
     this._socket.close();
     this._socket = null;
     console.log(`${this._gcn()} socket = null`);
