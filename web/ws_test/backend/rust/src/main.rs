@@ -25,7 +25,7 @@ async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, 
     res
 }
 
-pub fn get_timestamp_ns() -> u64 { Utc::now().timestamp_subsec_nanos() as u64}
+pub fn get_timestamp_ns() -> u64 { Utc::now().timestamp_nanos() as u64}
 
 // #[derive(Serialize, Deserialize, Debug)]
 // struct Enq {
@@ -131,16 +131,15 @@ impl MyWebSocket {
     fn ack_handler(&self, text: &String, ctx: &mut <Self as Actor>::Context) -> JsonResult<()> {
         let val: Value = serde_json::from_str(text)?;
         if val["kind"] == "enq" {
-            let ack = json!({ "type": "ack", "timestamp": val["timestamp"]});
+            let ack = json!({ "kind": "ack", "timestamp": val["timestamp"]});
             ctx.text(ack.to_string());
         } else if val["kind"] == "ack" {
-            assert!(val["timestamp"].is_u64());
             let now = get_timestamp_ns();
+            assert!(val["timestamp"].is_u64());
             let then = val["timestamp"].as_u64().unwrap();
             let delta = now - then;
-            ctx.text(json!({"kind": "latency", "latency": delta}).to_string());
-
             let ms = delta as f64 / 1_000_000.0;
+            ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
             println!("delta: {}ms", ms);
         } else {
             println!("Unknown message: {}", text);
@@ -161,7 +160,7 @@ async fn main() -> std::io::Result<()> {
             // enable logger
             .wrap(middleware::Logger::default())
             // websocket route
-            .service(web::resource("/ws/").route(web::get().to(ws_index)))
+            .service(web::resource("/ws_rust/").route(web::get().to(ws_index)))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })

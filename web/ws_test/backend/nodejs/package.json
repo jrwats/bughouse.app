@@ -11,6 +11,6 @@
     "ws": "^7.4.6"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "PORT=8090 node index.js"
   }
 }
