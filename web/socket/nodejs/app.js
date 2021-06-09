@@ -129,6 +129,11 @@ io.on('connection', (socket) => {
           });
       });
 
+      socket.on('enq', (msg) => {
+        console.log(`enq ${msg.timestamp}`);
+        socket.emit('ack', {timestamp: msg.timestamp});
+      });
+
       socket.on('fics_logout', () => {
         log(`${uid} logout ${fics && fics.getHandle()}`);
         socket.emit('logged_out');
