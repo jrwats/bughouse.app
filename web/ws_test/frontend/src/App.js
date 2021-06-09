@@ -1,13 +1,17 @@
 import './App.css';
-const PORT = 8080;
+import packageJson from '../package.json';
+const PORT = process.env.PORT || 8090;
 
-let ws = null;
+const homepage = new URL(packageJson.homepage);
+const {hostname, pathname} = homepage;
+
+let wsJs = null;
 
 function enqRequest() {
-  if (ws == null || ws.readyState !== WebSocket.OPEN) {
+  if (wsJs == null || ws.readyState !== WebSocket.OPEN) {
     return;
   }
-  ws.send(JSON.stringify({
+  wsJs.send(JSON.stringify({
     kind: 'enq',
     timestamp: Date.now(),
   }));
@@ -19,7 +23,7 @@ const handlers = {
     console.log(`server-reported latency: ${msg.ms}`);
   },
   enq: (msg) => {
-    ws.send(JSON.stringify({
+    wsJs.send(JSON.stringify({
       kind: 'ack',
       timestamp: msg.timestamp
     }));
@@ -34,24 +38,24 @@ const handlers = {
 }
 
 function startup(_evt) {
-  if (ws != null) {
+  if (wsJs != null) {
     return;
   }
-  ws = new WebSocket(`ws://localhost:${PORT}`);
-  console.log(ws);
-  window.__ws = ws;
-  ws.onopen = (evt) => {
+  wsJs = new WebSocket(`ws://${hostname}${pathname}/ws_js:${PORT}`);
+  console.log(wsJs);
+  window.__wsJs = ws;
+  wsJs.onopen = (evt) => {
     console.log(evt);
   };
-  ws.onclose = (evt) => {
-    ws = null;
+  wsJs.onclose = (evt) => {
+    wsJs = null;
     console.log(evt);
   };
-  ws.onerror = (evt) => {
+  wsJs.onerror = (evt) => {
     console.log(evt);
   };
 
-  ws.onmessage = (evt) => {
+  wsJs.onmessage = (evt) => {
     try {
       const msg = JSON.parse(evt.data);
       const handler = handlers[msg.kind];
