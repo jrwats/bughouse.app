@@ -8,7 +8,7 @@ const {hostname, pathname} = homepage;
 let wsJs = null;
 
 function enqRequest() {
-  if (wsJs == null || ws.readyState !== WebSocket.OPEN) {
+  if (wsJs == null || wsJs.readyState !== WebSocket.OPEN) {
     return;
   }
   wsJs.send(JSON.stringify({
@@ -43,7 +43,7 @@ function startup(_evt) {
   }
   wsJs = new WebSocket(`ws://${hostname}${pathname}/ws_js:${PORT}`);
   console.log(wsJs);
-  window.__wsJs = ws;
+  window.__wsJs = wsJS;
   wsJs.onopen = (evt) => {
     console.log(evt);
   };
