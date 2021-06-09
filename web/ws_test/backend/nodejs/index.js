@@ -2,29 +2,29 @@ const WebSocket = require('ws');
 
 const port = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ port });
- 
+
 console.log(`Listening on port: ${port}`);
 const handlers = {
   ack: (ws, msg) => {
     const ms = Date.now() - msg.timestamp;
     console.log(`latency: ${ms}`);
     ws.send(JSON.stringify({
-      type: 'latency', 
+      kind: 'latency',
       ms,
     }));
   },
   enq: (ws, msg) => {
     ws.send(JSON.stringify({
-      type: 'ack', 
+      kind: 'ack',
       timestamp: msg.timestamp
     }));
   }
 }
 
-function enqAll() { 
+function enqAll() {
   for (client of wss.clients) {
     client.send(JSON.stringify({
-      type: 'enq',
+      kind: 'enq',
       timestamp: Date.now(),
     }));
   }
@@ -37,15 +37,15 @@ wss.on('connection', (ws) => {
   console.log('!!! connection !!!');
   console.log(ws);
 
-  // sockets[ws] = ws; 
+  // sockets[ws] = ws;
 
   ws.on('close', (msgStr) => {
-    // sockets.delete(ws);
+    console.log('### CLOSED ###');
   });
   ws.on('message', (msgStr) => {
     try {
       const msg = JSON.parse(msgStr);
-      const handler = handlers[msg.type];
+      const handler = handlers[msg.kind];
       if (!handler) {
         throw new Error('unknown msg');
       }
@@ -55,5 +55,5 @@ wss.on('connection', (ws) => {
     }
   });
 
-  ws.send(JSON.stringify({type: 'message', message: 'something'}));
+  ws.send(JSON.stringify({kind: 'message', message: 'something'}));
 });

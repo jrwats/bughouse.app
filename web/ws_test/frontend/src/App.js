@@ -3,12 +3,12 @@ const PORT = 8080;
 
 let ws = null;
 
-function enqRequest() { 
+function enqRequest() {
   if (ws == null || ws.readyState !== WebSocket.OPEN) {
     return;
   }
   ws.send(JSON.stringify({
-    type: 'enq',
+    kind: 'enq',
     timestamp: Date.now(),
   }));
 }
@@ -20,7 +20,7 @@ const handlers = {
   },
   enq: (msg) => {
     ws.send(JSON.stringify({
-      type: 'ack', 
+      kind: 'ack',
       timestamp: msg.timestamp
     }));
   },
@@ -54,7 +54,7 @@ function startup(_evt) {
   ws.onmessage = (evt) => {
     try {
       const msg = JSON.parse(evt.data);
-      const handler = handlers[msg.type];
+      const handler = handlers[msg.kind];
       if (!handler) {
         throw new Error('unknown msg');
       }
