@@ -1,4 +1,4 @@
-CREATE KEYSPACE bughouse 
+CREATE KEYSPACE IF NOT EXISTS bughouse 
   WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
 USE bughouse;
@@ -23,8 +23,8 @@ CREATE TABLE games (
   start_time timestamp,
   result int,
   time_ctrl time_control, 
-  board_1 board,
-  board_2 board,
+  board_a board,
+  board_b board,
   moves map<int, int>, // time,player => bitmap encoding
 );
 CREATE INDEX ON games(result);
