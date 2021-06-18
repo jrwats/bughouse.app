@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Player from './Player.react';
-import { TelnetContext } from './telnet/TelnetProvider';
+import { TelnetContext } from './socket/TelnetProvider';
 import { Link } from "@reach/router";
 import CancelIcon from '@material-ui/icons/Cancel';
 

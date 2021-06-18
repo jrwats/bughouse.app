@@ -3,7 +3,7 @@ import Chessground from 'react-chessground'
 import Holdings from './Holdings.react'
 import PlayerDisplay from './PlayerDisplay.react'
 import './chessground.css'
-import { TelnetContext } from '../telnet/TelnetProvider';
+import { TelnetContext } from '../socket/TelnetProvider';
 import { opposite } from 'chessground/util';
 import GameOverMessage from './GameOverMessage.react';
 import invariant from 'invariant';

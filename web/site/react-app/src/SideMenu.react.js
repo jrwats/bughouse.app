@@ -11,7 +11,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import PeopleIcon from '@material-ui/icons/People';
 import { Link } from "@reach/router";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import {TelnetContext} from './telnet/TelnetProvider';
+import {TelnetContext} from './socket/TelnetProvider';
 import logout from './logout';
 
 const StyledMenu = withStyles({

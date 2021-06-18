@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 import { Link } from "@reach/router";
 import Player from './Player.react';
-import { TelnetContext } from './telnet/TelnetProvider';
+import { TelnetContext } from './socket/TelnetProvider';
 import { UsersContext } from './user/UsersProvider';
 import { AuthContext } from './auth/AuthProvider';
 import { GamesListContext } from './game/GamesListProvider';
