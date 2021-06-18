@@ -1,7 +1,7 @@
 import React, {useContext, useState} from 'react';
 import Draggable from 'react-draggable';
 import { pos2key } from 'chessground/util';
-import { TelnetContext } from '../telnet/TelnetProvider';
+import { TelnetContext } from '../socket/TelnetProvider';
 
 const roles = {
   P: 'pawn',

@@ -1,7 +1,7 @@
 import React, {useContext} from 'react'
 import Button from '@material-ui/core/Button';
 import {AuthContext} from './auth/AuthProvider';
-import {TelnetContext} from './telnet/TelnetProvider';
+import {TelnetContext} from './socket/TelnetProvider';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import logout from './logout';
 

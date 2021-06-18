@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useContext} from 'react';
-import {TelnetContext} from './telnet/TelnetProvider';
+import {TelnetContext} from './socket/TelnetProvider';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';

@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Board from './Board.react';
 import GameStatusSource from './GameStatusSource';
-import {TelnetContext} from '../telnet/TelnetProvider';
+import {TelnetContext} from '../socket/TelnetProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';

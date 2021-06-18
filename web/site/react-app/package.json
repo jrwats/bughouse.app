@@ -18,7 +18,6 @@
     "react-draggable": "^4.4.3",
     "react-firebaseui": "^5.0.2",
     "react-scripts": "4.0.3",
-    "socket.io-client": "^4.1.2",
     "web-vitals": "^1.0.1"
   },
   "engines": {

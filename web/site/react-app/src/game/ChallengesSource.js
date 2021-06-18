@@ -1,5 +1,5 @@
 import {EventEmitter} from 'events';
-import TelnetProxy from '../telnet/TelnetProxy';
+import TelnetProxy from '../socket/TelnetProxy';
 // import OnlineUsers from '../user/OnlineUsers';
 // import invariant from 'invariant';
 

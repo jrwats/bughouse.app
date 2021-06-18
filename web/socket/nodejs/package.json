@@ -1,5 +1,6 @@
 {
   "name": "bughouse-websocket",
+  "main": "main/app.js",
   "description": "Node.js websocket service for bughouse",
   "version": "0.0.1",
   "private": true,
@@ -10,7 +11,7 @@
   "scripts": {
     "preinstall": "bash preinstall.sh",
     "deploy": "gcloud app deploy websocket.yaml",
-    "start": "DEBUG=1 node app.js",
+    "start": "DEBUG=1 node src/app.js",
     "lint": "eslint ."
   },
   "devDependencies": {
@@ -25,6 +26,7 @@
     "express": "^4.17.1",
     "firebase-admin": "^8.11.0",
     "invariant": "^2.2.4",
-    "socket.io": "^4.1.x"
+    "socket.io": "^4.1.x",
+    "ws": "^7.5.0"
   }
 }

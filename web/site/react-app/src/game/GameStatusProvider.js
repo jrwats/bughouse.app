@@ -1,6 +1,6 @@
 import React, {createContext, useEffect, useState} from 'react';
 import GameStatusSource from "./GameStatusSource";
-import {TelnetContext} from './telnet/TelnetProvider';
+import {TelnetContext} from './socket/TelnetProvider';
 
 export const GamesStatusContext = createContext({
   boards: [],

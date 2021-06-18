@@ -2,7 +2,7 @@ import React, {useEffect, useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ChallengeSummary from './ChallengeSummary.react';
 import Paper from '@material-ui/core/Paper';
-import { TelnetContext } from './telnet/TelnetProvider';
+import { TelnetContext } from './socket/TelnetProvider';
 import { Link } from "@reach/router";
 import { EventEmitter } from 'events';
 import { ChallengesContext } from './game/ChallengesProvider';

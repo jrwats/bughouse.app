@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import { opposite } from 'chessground/util';
 import Paper from '@material-ui/core/Paper';
 import HandleDisplay from './HandleDisplay.react';
-import { TelnetContext} from '../telnet/TelnetProvider';
+import { TelnetContext} from '../socket/TelnetProvider';
 import PeopleIcon from '@material-ui/icons/People';
 import Button from '@material-ui/core/Button';
 import { Link } from "@reach/router";

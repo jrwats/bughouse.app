@@ -1,6 +1,6 @@
 import firebase from 'firebase/app';
 import {EventEmitter} from 'events';
-import TelnetProxy from '../telnet/TelnetProxy';
+import TelnetProxy from '../socket/TelnetProxy';
 
 const proxy = TelnetProxy.singleton();
 

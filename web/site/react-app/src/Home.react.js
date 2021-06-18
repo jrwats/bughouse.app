@@ -3,7 +3,7 @@ import React, {useContext} from 'react'
 import FicsLogin from './FicsLogin.react';
 import Loading from './Loading.react';
 import Main from './Main.react';
-import TelnetProvider, {TelnetContext} from './telnet/TelnetProvider';
+import TelnetProvider, {TelnetContext} from './socket/TelnetProvider';
 import UsersProvider from './user/UsersProvider';
 import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';

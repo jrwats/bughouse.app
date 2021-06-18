@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import GamesListSource from "./GamesListSource";
-import {TelnetContext} from '../telnet/TelnetProvider';
+import {TelnetContext} from '../socket/TelnetProvider';
 
 export const GamesListContext = createContext({
   games: [],
