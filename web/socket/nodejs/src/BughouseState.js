@@ -161,7 +161,7 @@ class BughouseState extends EventEmitter {
     }
     if (JSON.stringify(this._games) !== JSON.stringify(bughousePairs)) {
       // log(`BughouseState games: ${bughousePairs.length}`);
-      this.emit('games', bughousePairs);
+      this.emit('games', {games: bughousePairs});
     }
     this._games = bughousePairs;
   }
@@ -192,7 +192,7 @@ class BughouseState extends EventEmitter {
     this._partners = partners;
     if (changed) {
       log(`partners: ${JSON.stringify(partners)}`);
-      this.emit('partners', partners);
+      this.emit('partners', {partners});
     }
     return changed;
   }
@@ -215,7 +215,7 @@ class BughouseState extends EventEmitter {
     const changed = JSON.stringify(unpartnered) !== JSON.stringify(this._unpartnered);
     this._unpartnered = unpartnered;
     if (changed) {
-      this.emit('unpartnered', unpartnered);
+      this.emit('unpartnered', {handles: unpartnered});
     }
     return changed;
   }

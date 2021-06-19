@@ -2,13 +2,15 @@
 import { EventEmitter } from 'events';
 import invariant from 'invariant';
 import GamesStatusSource from '../game/GameStatusSource';
+import PhoenixSocket  from './PhoenixSocket';
 
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
+const hostname = window.location.hostname;
 const PROD_URL = 'wss://ws.bughouse.app';
-const DEV_URL = 'ws://localhost:7777';
-const URL = process.env.REACT_APP_SOCKET_URL ||
+const DEV_URL = `ws://${hostname}:7777`;
+const WS_URL = process.env.REACT_APP_SOCKET_URL ||
   (process.env.NODE_ENV === 'production' ? PROD_URL : DEV_URL);
 
 const _singleton = new EventEmitter();
@@ -16,10 +18,6 @@ const _cache = {};
 
 const _ticker = new EventEmitter();
 setInterval(() => { _ticker.emit('tick'); }, 5000);
-
-const _dontLogAny = {
-  ack: true,
-};
 
 /**
  * Proxy to our telnet connection that emits raw console output as well as
@@ -32,13 +30,16 @@ class TelnetProxy extends EventEmitter {
     this._user = user;
     this._initialized = false;
     this._loggedOut = true;
-    this._socket = null;
     this._connect();
     GamesStatusSource.get(this); // instantiate a listener
   }
 
   _onTick() {
-    this._socket && this._socket.emit('enq', {timestamp: Date.now()});
+    this._send('enq', {timestamp: Date.now()});
+  }
+
+  _send(kind, data) {
+    this._sock && this._sock.send(JSON.stringify({kind, ...data}));
   }
 
   _connect() {
@@ -46,32 +47,15 @@ class TelnetProxy extends EventEmitter {
     invariant(this._user.getIdToken != null, 'WTF');
     this._user.getIdToken(/*force refresh*/ true).then(idToken => {
       this._idToken = idToken;
-      this._socket = io(URL, {
-        autoConnect: false,
-        secure: true,
-        reconnect: true,
-        // ca:
-        rejectUnauthorized: !/localhost/.test(URL),
-        query: {token: idToken},
-        timeout: 10000, // 10s
-        transports: ["websocket"],
-      });
-
-      this._socket.onAny((event, ...args) => {
-        if (_dontLogAny[event]) {
-          return;
-        }
-        console.debug(event, args);
-      });
-
-      this._socket.on('authenticated', (msg) => {
+      const handlers = {}
+      handlers['authenticated'] = (msg) => {
         console.log(`${this._gcn()}  authenticated!`);
         this.onTick = this._onTick.bind(this);
         _ticker.on('tick', this.onTick);
         this._initialized = true;
-      });
+      };
 
-      this._socket.on('login', (handle) => {
+      handlers['login'] = (handle) => {
         console.log(`${this._gcn()}  login`);
         this._handle = handle;
         if (handle == null) {
@@ -79,87 +63,113 @@ class TelnetProxy extends EventEmitter {
           return;
         }
         this._emit('login', {uid: this._user.uid, ficsHandle: handle});
-        this._socket.emit('bugwho'); // request bughouse state from server
-        this._socket.emit('pending'); // request pending offers from server
-      });
-      this._socket.on('logged_out', () => {
+        this._sock.send('bugwho'); // request bughouse state from server
+        this._sock.send('pending'); // request pending offers from server
+      };
+      handlers['logged_out'] = () => {
         console.log(`${this._gcn()}  received logged_out`);
         this._logout();
-      });
+      };
 
-      this._socket.on('data', msg => {
+      handlers['data'] = msg => {
         const summary = msg.substr(0,30).replace(/\s+/, ' ');
         console.log(`${this._gcn()}.emit('data'): ${summary}`);
         this.emit('data', msg);
-      });
-      this._socket.on('bugwho', bug => { this._emit('bugwho', bug); });
-      this._socket.on('pending', pending => {
+      };
+      handlers['bugwho'] = bug => { this._emit('bugwho', bug); };
+      handlers['pending'] = pending => {
         this._emit('pending', {user: this._user, pending});
-      });
-      this._socket.on('unpartneredHandles', bug => {
-        this._emit('unpartneredHandles', bug);
-      });
-      this._socket.on('partners', bug => { this._emit('partners', bug); });
+      };
+      handlers['unpartneredHandles'] = ({handles}) => {
+        this._emit('unpartneredHandles', handles);
+      };
+      handlers['partners'] = ({partners}) => { this._emit('partners', partners); };
 
-      this._socket.on('incomingOffer', handle => {
+      handlers['incomingOffer'] = handle => {
         console.log(`${this._gcn()}.incomingOffer(${handle})`);
         this._emit('incomingOffer', {user: this._user, handle});
-      });
-      this._socket.on('outgoingOfferCancelled', handle => {
+      };
+      handlers['outgoingOfferCancelled'] = handle => {
         console.log(`${this._gcn()}.outgoingOfferCancelled(${handle})`);
         this._emit('outgoingOfferCancelled', {user: this._user, handle});
-      });
+      };
 
-      this._socket.on('incomingChallenge', challenge => {
+      handlers['incomingChallenge'] = challenge => {
         this._emit('incomingChallenge', {user: this._user, challenge});
-      });
-      this._socket.on('incomingPartnerChallenge', challenge => {
+      };
+      handlers['incomingPartnerChallenge'] = challenge => {
         this._emit('incomingPartnerChallenge', {user: this._user, challenge});
-      });
-      this._socket.on('outgoingPartnerChallenge', challenge => {
+      };
+      handlers['outgoingPartnerChallenge'] = challenge => {
         this._emit('outgoingPartnerChallenge', {user: this._user, challenge});
-      });
-      this._socket.on('partnerAccepted', handle => {
+      };
+      handlers['partnerAccepted'] = handle => {
         console.log(`${this._gcn()}.partnerAccepted(${handle})`);
         this._emit('partnerAccepted', {user: this._user, handle});
-      });
+      };
 
-      this._socket.on('unpartnered', () => {
+      handlers['unpartnered'] = () => {
         console.log(`${this._gcn()}.unpartnered`);
         this._emit('unpartnered', {user: this._user});
-      });
+      };
 
-      this._socket.on('games', (games) => {
+      handlers['games'] = ({games}) => {
         this._emit('games', {user: this._user, games});
-      });
+      };
 
-      this._socket.on('gameStart', (game) => {
+      handlers['gameStart'] = (game) => {
         this._emit('gameStart', {user: this._user, game});
-      });
+      };
 
-      this._socket.on('gameOver', (board) => {
+      handlers['gameOver'] = (board) => {
         this._emit('gameOver', {user: this._user, board});
-      });
+      };
 
-      this._socket.on('boardUpdate', (board) => {
+      handlers['boardUpdate'] = (board) => {
         this._emit('boardUpdate', {user: this._user, board});
-      });
+      };
 
-      this._socket.on('err', err => {
-        console.error(`${this._gcn()}  socket error`);
+      handlers['err'] = err => {
+        console.error(`${this._gcn()} socket error`);
         console.error(err);
         this.emit('err', err);
-        if (err.type === 'auth') {
+        if (err.err.kind === 'auth') {
           this.destroy();
           this._connect();
         }
-      });
-      this._socket.on('ack', msg => {
-        const latency = Date.now() - msg.timestamp;
+      };
+      handlers['ack'] = msg => {
+        // Round-trip-time / 2 == end-to-end delay (AKA latency)
+        const latency = (Date.now() - msg.timestamp) / 2.0;
         this.emit('latency', latency);
         console.log(`bughouse.app latency: ${latency}ms`);
+      };
+      for (const k in handlers) {
+        handlers[k].bind(this);
+      }
+      const url = new URL(WS_URL);
+      url.searchParams.set('token', idToken);
+      this._sock = new PhoenixSocket(url);
+      this._sock.on('error', evt => {
+        console.error('Socket error: %o', evt);
       });
-      this._socket.connect();
+      this._sock.on('message', evt => {
+        console.debug(evt);
+        try {
+          const payload = evt.data[0] === '{' ? JSON.parse(evt.data) : evt.data;
+          const key = payload.kind || evt.data;
+          const handler = handlers[key];
+          if (!handler) {
+            console.error('Unrecognized event: %s', evt);
+            console.error('Unrecognized payload: %s', payload);
+            return;
+          }
+          handler(payload);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+
     }).catch(err => {
       console.error(err);
     });
@@ -170,10 +180,10 @@ class TelnetProxy extends EventEmitter {
   destroy() {
     console.log(`${this._gcn()} destroy`);
     this._logout();
-    this._socket.removeAllListeners();
+    this._sock.removeAllListeners();
     _ticker.off('tick', this.onTick);
-    this._socket.close();
-    this._socket = null;
+    this._sock.close();
+    this._sock = null;
     console.log(`${this._gcn()} socket = null`);
     delete _cache[this._user.uid];
     this._emit('destroy', {user: this._user});
@@ -181,12 +191,12 @@ class TelnetProxy extends EventEmitter {
   }
 
   send(rawCmd) {
-    this._socket.emit('cmd', rawCmd);
+    this._send('cmd', rawCmd);
   }
 
   sendEvent(name, data) {
     console.log(`${this._gcn()} sending '${name}' ${Date.now()}`);
-    this._socket.emit(name, data);
+    this._send(name, data);
   }
 
   login(creds) {
@@ -194,11 +204,11 @@ class TelnetProxy extends EventEmitter {
     this.emit('logging_in', {user: this._user});
     this._loggedOut = false;
     console.log(`${this._gcn()} creds: ${JSON.stringify(creds)}`);
-    this._socket.emit('fics_login', creds);
+    this._send('fics_login', creds);
     console.log(`Sent 'login' to socket`);
     return new Promise((resolve, reject) => {
-      this._socket.once('login', resolve);
-      this._socket.once('failedlogin', msg => {
+      this._sock.once('login', resolve);
+      this._sock.once('failedlogin', msg => {
         console.error('failedlogin', msg);
         this._loggedOut = true;
         reject(msg);
@@ -214,7 +224,7 @@ class TelnetProxy extends EventEmitter {
 
   logout() {
     console.log(`${this._gcn()}.logout`);
-    this._socket.emit('fics_logout');
+    this._sock.send('fics_logout');
     this._logout();
   }
 
@@ -228,10 +238,6 @@ class TelnetProxy extends EventEmitter {
 
   isInitialized() {
     return this._initialized;
-  }
-
-  getSocket() {
-    return this._socket;
   }
 
   getUid() {

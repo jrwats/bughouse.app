@@ -8,8 +8,8 @@ const WS_JS_PORT = process.env.REACT_APP_WS_JS_PORT || 8090;
 console.log(`WS_JS_PORT: ${WS_JS_PORT}`);
 
 const homepage = new URL(packageJson.homepage);
-const {hostname, pathname} = homepage;
-
+const {pathname} = homepage;
+const hostname = window.location.hostname;
 let wsJs = null;
 let wsRust = null;
 

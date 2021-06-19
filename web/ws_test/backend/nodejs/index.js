@@ -33,9 +33,11 @@ function enqAll() {
 setInterval(enqAll, 5000);
 
 // const sockets = new Set();
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   console.log('!!! connection !!!');
-  console.log(ws);
+  // console.log(ws);
+  // console.log('request: %o', req);
+  console.log(`request.url: ${req.url}`);
 
   // sockets[ws] = ws;
 
