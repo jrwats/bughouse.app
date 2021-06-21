@@ -71,10 +71,10 @@ class TelnetProxy extends EventEmitter {
         this._logout();
       };
 
-      handlers['data'] = msg => {
-        const summary = msg.substr(0,30).replace(/\s+/, ' ');
+      handlers['data'] = ({data})=> {
+        const summary = data.substr(0,30).replace(/\s+/, ' ');
         console.log(`${this._gcn()}.emit('data'): ${summary}`);
-        this.emit('data', msg);
+        this.emit('data', data);
       };
       handlers['bugwho'] = bug => { this._emit('bugwho', bug); };
       handlers['pending'] = pending => {
@@ -190,8 +190,8 @@ class TelnetProxy extends EventEmitter {
     this.removeAllListeners();
   }
 
-  send(rawCmd) {
-    this._send('cmd', rawCmd);
+  send(cmd) {
+    this._send('cmd', {cmd});
   }
 
   sendEvent(name, data) {

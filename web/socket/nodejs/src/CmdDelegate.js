@@ -2,6 +2,7 @@
  * Responsible for parsing FICS output relevant to playing a bughouse game
  * bugwho, partnering, challenges, game status, droppable pieces, messages, etc
  */
+const emit = require('./emit');
 const log = require('./log');
 const {rating: ratingRE} = require('./Regex');
 const Pending = require('./Pending');
@@ -28,41 +29,41 @@ const _handlers = [
     // \rfixerator offers to be your bughouse partner; type "partner fixerator" to accept.\n'
     // \rfics% ,
     re: /(\w+) offers to be your bughouse partner;.*$/m,
-    onMatch: (match, clientSocket) => {
+    onMatch: (match, ws) => {
       log(`CmdDelegate sock.emit('incomingOffer', ${match[1]})`);
-      clientSocket && clientSocket && clientSocket.emit('incomingOffer', match[1]);
+      emit(ws, 'incomingOffer', {handle: match[1]});
     },
   },
   {
     re: /(\w+) agrees to be your partner.*$/m,
-    onMatch: (match, clientSocket) => {
-      log(`CmdDelegate sock.emit('partnerAccepted')`);
-      clientSocket && clientSocket.emit('partnerAccepted', match[1]);
+    onMatch: (match, ws) => {
+      log(`CmdDelegate sock.send('partnerAccepted')`);
+      emit(ws, 'partnerAccepted', {handle: match[1]});
     }
   },
   {
     re: /Partnership offer to (\w+) withdrawn.*$/m,
-    onMatch: (match, clientSocket) => {
-      log(`CmdDelegate sock.emit('outgoingPartnerCancelled)'`);
-      clientSocket && clientSocket.emit('outgoingOfferCancelled', match[1]);
+    onMatch: (match, ws) => {
+      log(`CmdDelegate sock.send('outgoingPartnerCancelled)'`);
+      emit(ws, 'outgoingOfferCancelled', {handle: match[1]});
     },
   },
   {
     re: /You no longer have a bughouse partner.*$/m,
-    onMatch: (match, clientSocket) => {
-      log(`CmdDelegate sock.emit('unpartnered)'`);
-      clientSocket && clientSocket.emit('unpartnered');
+    onMatch: (match, ws) => {
+      log(`CmdDelegate sock.send('unpartnered)'`);
+      emit(ws, 'unpartnered');
     }
   },
   {
     re: new RegExp('^Challenge: ' + Pending.challengeGameRE().source, 'm'),
-    onMatch: (match, clientSocket) => {
+    onMatch: (match, ws) => {
       const challenge = Pending.matchToGame(match);
-      log(`CmdDelegate sock.emit('incomingChallenge', ${JSON.stringify(challenge)})`);
+      log(`CmdDelegate sock.send('incomingChallenge', ${JSON.stringify(challenge)})`);
       if (challenge.challenger.handle == null) {
         log(match);
       }
-      clientSocket && clientSocket.emit('incomingChallenge', challenge);
+      emit(ws, 'incomingChallenge', {challenge});
     },
   },
   {
@@ -73,10 +74,10 @@ const _handlers = [
        Pending.challengeGameRE().source,
       'm'
     ),
-    onMatch: (match, clientSocket) => {
+    onMatch: (match, ws) => {
       const game = Pending.matchToGame(match);
-      log(`CmdDelegate sock.emit('challenge', ${game})`);
-      clientSocket && clientSocket.emit('incomingPartnerChallenge', game);
+      log(`CmdDelegate sock.send('challenge', ${game})`);
+      emit(ws, 'incomingPartnerChallenge', {game});
     },
   },
   {
@@ -87,10 +88,10 @@ const _handlers = [
         Pending.challengeGameRE().source,
       'm'
     ),
-    onMatch: (match, clientSocket) => {
+    onMatch: (match, ws) => {
       const game = Pending.matchToGame(match);
-      log(`CmdDelegate sock.emit('challenge', ${game})`);
-      clientSocket && clientSocket.emit('outgoingPartnerChallenge', game);
+      log(`CmdDelegate sock.send('challenge', ${game})`);
+      emit(ws, 'outgoingPartnerChallenge', {game});
     },
   },
 ].map(({re, onMatch}) => {
@@ -99,17 +100,18 @@ const _handlers = [
 
 class CmdDelegate extends EventEmitter {
 
-  constructor(socket, fics) {
+  constructor(ws, fics) {
     super();
-    this._socket = socket;
+    this._ws = ws;
     this._fics = fics;
-    const dataListener = (data) => { this._onData(data); };
-    fics.on('data', dataListener);
+    this._dataListener = this._onData.bind(this);
+    fics.on('data', this._dataListener);
     this._handlers = [..._handlers];
-    socket.on('disconnect', () => {
-      this._socket = null;
-      fics.off('data', dataListener);
-    });
+  }
+
+  onClose() {
+    this._ws = null;
+    this._fics.off('data', this._dataListener);
   }
 
   _onData(data) {
@@ -117,8 +119,8 @@ class CmdDelegate extends EventEmitter {
       return;
     }
     log(`${Date.now()}: socket.emit('data', '${data.substr(0, 20)}...')`);
-    if (this._socket != null) {
-      this._socket.emit('data', data);
+    if (this._ws != null) {
+      emit(this._ws, 'data', {data});
     }
   }
 
@@ -142,7 +144,7 @@ class CmdDelegate extends EventEmitter {
         text.replace(/\s*fics%\s*/mg, '').length != 0) {
       log(`CmdDelegate emitting 'data' '${text.substr(20)}...' (len: ${text.length})`);
       if (this._socket != null) {
-        this._socket.emit('data', text);
+        emit(this._ws, 'data', {data});
       }
     }
     return handled;

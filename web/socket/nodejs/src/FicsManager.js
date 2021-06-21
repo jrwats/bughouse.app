@@ -104,7 +104,7 @@ class FicsManager extends EventEmitter {
   }
 
   /**
-   * Intended for queries for global "unvierse" state.  e.g. issuing calls to
+   * Intended for queries for global "universal" state.  e.g. issuing calls to
    * `bugwho`, the result of which can be shared across all clients.  Performs a
    * simple round robin (to share the burden) across all connections
    */

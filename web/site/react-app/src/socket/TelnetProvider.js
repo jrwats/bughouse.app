@@ -41,8 +41,8 @@ const TelnetProvider = (props) => {
       setHandle(null);
       setLoggedOut(true);
     };
-    const onData = (output) => {
-      log.current += normalize(output);
+    const onData = (data) => {
+      log.current += normalize(data);
       setOutputLog(log.current);
       console.log(`log length: ${log.current.length}`);
     }

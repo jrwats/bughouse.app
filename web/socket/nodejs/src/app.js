@@ -2,6 +2,7 @@
 
 // [START appengine_websockets_app]
 const app = require('express')();
+const emit = require('./emit');
 const fs = require('fs');
 const admin = require('firebase-admin');
 const log = require('./log');
@@ -75,11 +76,6 @@ const socketMgr = SocketManager.get(ficsMgr);
 const bughouseState = BughouseState.get();
 const gameObserver = GameObserver.get(socketMgr, ficsMgr);
 
-function emit(ws, kind, obj) {
-  obj = obj || {};
-  ws.send(JSON.stringify({kind,...obj}));
-}
-
 wss.on('connection', (ws, req) => {
   let uid = null;
   console.log(`url: ${req.url}`);
@@ -119,6 +115,7 @@ wss.on('connection', (ws, req) => {
         ws.removeAllListeners();
         pending.destroy();
         onlineTimestamp.remove();
+        cmdDelegate && cmdDelegate.onClose();
       };
       const fics = ficsMgr.get(uid);
       const pending = Pending.get(uid);
@@ -178,7 +175,7 @@ wss.on('connection', (ws, req) => {
       bughouseState.on('partners', partnerListener);
       bughouseState.on('games', gamesListener);
 
-      handlers['cmd'] = async cmd => {
+      handlers['cmd'] = async ({cmd}) => {
         const result = await ficsMgr.get(uid).send(cmd);
         log(`app 'cmd' '${cmd}': '${result.substr(0,30)}...'`);
       };
