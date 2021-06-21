@@ -14,7 +14,7 @@ const GamesStatusProvider = (props) => {
   const [handles, setHandles] = useState(getHandlesFromGames(games));
 
   useEffect(() => {
-    const onGames = games => {
+    const onGames = ({games}) => {
       setGames(games);
       setHandles(getHandlesFromGames(games));
     };
