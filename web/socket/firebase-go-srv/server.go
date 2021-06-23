@@ -4,7 +4,8 @@ import (
 	"bufio"
 	"context"
 	"firebase.google.com/go/v4"
-	"firebase.google.com/go/v4/auth"
+	"fmt"
+	// "firebase.google.com/go/v4/auth"
 	"log"
 	"net"
 	"os"
@@ -19,17 +20,23 @@ const (
 
 const SockAddr = "/tmp/firebase.sock"
 
-func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Context) *auth.Token {
+func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Context) {
 	client, err := app.Auth(ctx)
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
+		log.Printf("error getting Auth client: %v\n", err)
 	}
-	token, err := client.VerifyIDToken(ctx, idTok)
-	log.Printf("Verified ID token: %v\n", token)
 	writer := bufio.NewWriter(conn)
-	writer.WriteString(token.UID + "\n")
-	// conn.WriteS(token.UID)
-	return token
+	token, err := client.VerifyIDToken(ctx, idTok)
+	if err != nil {
+		log.Print(err)
+		writer.WriteString(fmt.Sprintf("err:%v\n", err))
+	} else {
+		log.Printf("Verified ID token: %v\n", token)
+		writer.WriteString("uid:" + token.UID + "\n")
+	}
+	if werr := writer.Flush(); werr != nil {
+		log.Fatal(werr)
+	}
 }
 
 func firebaseServer(conn net.Conn, app *firebase.App, ctx context.Context) {
