@@ -182,7 +182,7 @@ class TelnetProxy extends EventEmitter {
     this._logout();
     this._sock.removeAllListeners();
     _ticker.off('tick', this.onTick);
-    this._sock.close();
+    this._sock.destroy();
     this._sock = null;
     console.log(`${this._gcn()} socket = null`);
     delete _cache[this._user.uid];
