@@ -1,10 +1,13 @@
-use std::time::{Duration, Instant};
-use std::os::unix::net::UnixStream;
 use std::io::prelude::*;
+use std::os::unix::net::UnixStream;
+use std::time::{Duration, Instant};
 
 use actix::prelude::*;
 use actix_files as fs;
-use actix_web::{middleware, web, App, Error as ActixError, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{
+    middleware, web, App, Error as ActixError, HttpRequest, HttpResponse,
+    HttpServer,
+};
 use actix_web_actors::ws;
 use chrono::prelude::*;
 // use serde::{Serialize, Deserialize};
@@ -13,7 +16,6 @@ use serde_json::{json, /*, Result as JsonResult */ Value};
 mod error; // Error
 use error::Error;
 
-
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const ENQ_INTERVAL: Duration = Duration::from_secs(2);
@@ -21,7 +23,10 @@ const ENQ_INTERVAL: Duration = Duration::from_secs(2);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// do websocket handshake and start `MyWebSocket` actor
-async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, ActixError> {
+async fn ws_index(
+    r: HttpRequest,
+    stream: web::Payload,
+) -> Result<HttpResponse, ActixError> {
     println!("{:?}", r);
     let res = ws::start(MyWebSocket::new(), &r, stream);
     println!("{:?}", res);
@@ -33,7 +38,9 @@ const FIRE_AUTH: u8 = 1;
 // const FIRE_HEARTBEAT: u8 = 2;
 // const FIRE_LOGOUT: u8 = 3;
 
-pub fn get_timestamp_ns() -> u64 { Utc::now().timestamp_nanos() as u64}
+pub fn get_timestamp_ns() -> u64 {
+    Utc::now().timestamp_nanos() as u64
+}
 
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
@@ -95,7 +102,9 @@ fn env_or(env_var: &str, alt: &str) -> String {
 
 impl MyWebSocket {
     fn new() -> Self {
-        Self { hb_instant: Instant::now() }
+        Self {
+            hb_instant: Instant::now(),
+        }
     }
 
     fn send_enq(ctx: &mut <Self as Actor>::Context) {
@@ -128,13 +137,19 @@ impl MyWebSocket {
         });
     }
 
-    fn msg_handler(&self, text: &String, ctx: &mut <Self as Actor>::Context) -> Result<(), Error> {
+    fn msg_handler(
+        &self,
+        text: &String,
+        ctx: &mut <Self as Actor>::Context,
+    ) -> Result<(), Error> {
         let val: Value = serde_json::from_str(text)?;
-        let kind = val["kind"].as_str().ok_or_else(
-            || Error::MalformedClientMsg {
-                reason: "Malformed 'kind'".to_string(),
-                msg: text.to_string(),
-            })?;
+        let kind =
+            val["kind"]
+                .as_str()
+                .ok_or_else(|| Error::MalformedClientMsg {
+                    reason: "Malformed 'kind'".to_string(),
+                    msg: text.to_string(),
+                })?;
         match kind {
             "enq" => {
                 let ack = json!({"kind": "ack", "timestamp": val["timestamp"]});
@@ -144,17 +159,17 @@ impl MyWebSocket {
                 let now = get_timestamp_ns();
                 if !val["timestamp"].is_u64() {
                     println!("Invalid `ack` message");
-                    return Ok(())
+                    return Ok(());
                 }
                 let then = val["timestamp"].as_u64().unwrap();
                 let delta = now - then;
                 let ms = delta as f64 / 500_000.0; // 1M / 2.0 = Round-trip time / 2
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
                 println!("latency: {}ms", ms);
-            },
+            }
             "auth" => {
-                let token = val["token"].as_str().ok_or(Error::Auth { 
-                    reason: "Malformed token".to_string()
+                let token = val["token"].as_str().ok_or(Error::Auth {
+                    reason: "Malformed token".to_string(),
                 })?;
                 let sock = env_or("SOCK", "/tmp/firebase.sock");
                 let mut stream = UnixStream::connect(sock)?;
@@ -165,22 +180,23 @@ impl MyWebSocket {
                 match kind {
                     "uid" => {
                         println!("uid: {}", payload);
-                    },
+                    }
                     "err" => {
-                        return Err(Error::AuthError { reason: payload.to_string() });
+                        return Err(Error::AuthError {
+                            reason: payload.to_string(),
+                        });
                     }
                     _ => {
                         let msg = format!("Unknown response: {}", resp);
-                        return Err(Error::AuthError { reason: payload.to_string() });
+                        return Err(Error::AuthError { reason: msg });
                     }
                 }
                 println!("response: {}", resp);
             }
-            _ => println!("Unknown message: {}", text)
+            _ => println!("Unknown message: {}", text),
         }
         Ok(())
     }
-
 }
 
 #[actix_web::main]

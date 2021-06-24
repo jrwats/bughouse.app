@@ -1,5 +1,5 @@
-use thiserror::Error;
 use serde_json;
+use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -17,7 +17,7 @@ pub enum Error {
     AuthError { reason: String },
 
     #[error("Wrapped Error: {}", msg)]
-    WrappedError{ msg: String },
+    WrappedError { msg: String },
 
     #[error("JSON Error: {0}")]
     Json(serde_json::Error),
@@ -39,7 +39,7 @@ impl From<std::io::Error> for Error {
 }
 
 // use crate::Error;
-// impl AuthError { 
+// impl AuthError {
 //     pub fn new(r: &str) -> Self {
 //         AuthError { reason: r.to_string() }
 //     }
