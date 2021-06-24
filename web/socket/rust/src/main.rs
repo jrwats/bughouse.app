@@ -1,15 +1,18 @@
-//! Simple echo websocket server.
-//! Open `http://localhost:8080/index.html` in browser
-
 use std::time::{Duration, Instant};
+use std::os::unix::net::UnixStream;
+use std::io::prelude::*;
 
 use actix::prelude::*;
 use actix_files as fs;
-use actix_web::{middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{middleware, web, App, Error as ActixError, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
 use chrono::prelude::*;
 // use serde::{Serialize, Deserialize};
-use serde_json::{json, Result as JsonResult, Value};
+use serde_json::{json, /*, Result as JsonResult */ Value};
+
+mod error; // Error
+use error::Error;
+
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
@@ -18,12 +21,17 @@ const ENQ_INTERVAL: Duration = Duration::from_secs(2);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// do websocket handshake and start `MyWebSocket` actor
-async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
+async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, ActixError> {
     println!("{:?}", r);
     let res = ws::start(MyWebSocket::new(), &r, stream);
     println!("{:?}", res);
     res
 }
+
+// firebase-go-srv
+const FIRE_AUTH: u8 = 1;
+// const FIRE_HEARTBEAT: u8 = 2;
+// const FIRE_LOGOUT: u8 = 3;
 
 pub fn get_timestamp_ns() -> u64 { Utc::now().timestamp_nanos() as u64}
 
@@ -61,7 +69,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWebSocket {
                 self.hb_instant = Instant::now();
             }
             Ok(ws::Message::Text(text)) => {
-                match self.ack_handler(&text, ctx) {
+                match self.msg_handler(&text, ctx) {
                     Ok(_) => {
                         return;
                     }
@@ -79,6 +87,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWebSocket {
             _ => ctx.stop(),
         }
     }
+}
+
+fn env_or(env_var: &str, alt: &str) -> String {
+    std::env::var(env_var).unwrap_or(alt.to_string())
 }
 
 impl MyWebSocket {
@@ -116,21 +128,41 @@ impl MyWebSocket {
         });
     }
 
-    fn ack_handler(&self, text: &String, ctx: &mut <Self as Actor>::Context) -> JsonResult<()> {
+    fn msg_handler(&self, text: &String, ctx: &mut <Self as Actor>::Context) -> Result<(), Error> {
         let val: Value = serde_json::from_str(text)?;
-        if val["kind"] == "enq" {
-            let ack = json!({ "kind": "ack", "timestamp": val["timestamp"]});
-            ctx.text(ack.to_string());
-        } else if val["kind"] == "ack" {
-            let now = get_timestamp_ns();
-            assert!(val["timestamp"].is_u64());
-            let then = val["timestamp"].as_u64().unwrap();
-            let delta = now - then;
-            let ms = delta as f64 / 1_000_000.0;
-            ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
-            println!("delta: {}ms", ms);
-        } else {
-            println!("Unknown message: {}", text);
+        let kind = val["kind"].as_str().ok_or_else(
+            || Error::MalformedClientMsg {
+                reason: "Malformed 'kind'".to_string(),
+                msg: text.to_string(),
+            })?;
+        match kind {
+            "enq" => {
+                let ack = json!({"kind": "ack", "timestamp": val["timestamp"]});
+                ctx.text(ack.to_string());
+            }
+            "ack" => {
+                let now = get_timestamp_ns();
+                if !val["timestamp"].is_u64() {
+                    println!("Invalid `ack` message");
+                    return Ok(())
+                }
+                let then = val["timestamp"].as_u64().unwrap();
+                let delta = now - then;
+                let ms = delta as f64 / 500_000.0; // 1M / 2.0 = Round-trip time / 2
+                ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
+                println!("latency: {}ms", ms);
+            },
+            "auth" => {
+                let token = val["token"].as_str().ok_or(Error::Auth { 
+                    reason: "Malformed token".to_string()
+                })?;
+                let sock = env_or("SOCK", "/tmp/firebase.sock");
+                let mut stream = UnixStream::connect(sock)?;
+                write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
+                let mut response = String::new();
+                stream.read_to_string(&mut response)?;
+            }
+            _ => println!("Unknown message: {}", text)
         }
         Ok(())
     }
@@ -140,7 +172,6 @@ impl MyWebSocket {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
-    let port = std::env::var("PORT").unwrap_or("8080".to_string());
     env_logger::init();
 
     HttpServer::new(|| {
@@ -148,12 +179,12 @@ async fn main() -> std::io::Result<()> {
             // enable logger
             .wrap(middleware::Logger::default())
             // websocket route
-            .service(web::resource("/ws_rust/").route(web::get().to(ws_index)))
+            .service(web::resource("/ws/").route(web::get().to(ws_index)))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })
     // start http server on 127.0.0.1:8080
-    .bind(format!("127.0.0.1:{}", port))?
+    .bind(format!("127.0.0.1:{}", env_or("PORT", "8080")))?
     .run()
     .await
 }
