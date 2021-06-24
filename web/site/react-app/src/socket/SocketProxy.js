@@ -22,10 +22,10 @@ setInterval(() => { _ticker.emit('tick'); }, 5000);
  * Proxy to our telnet connection that emits raw console output as well as
  * parsed game and environment data.
  */
-class TelnetProxy extends EventEmitter {
+class SocketProxy extends EventEmitter {
   constructor(user) {
     super();
-    console.log(`new TelnetProxy ${user.uid}`);
+    console.log(`new SocketProxy ${user.uid}`);
     this._user = user;
     this._initialized = false;
     this._loggedOut = true;
@@ -54,7 +54,7 @@ class TelnetProxy extends EventEmitter {
         this._initialized = true;
       };
 
-      handlers['login'] = (handle) => {
+      handlers['login'] = ({handle}) => {
         console.log(`${this._gcn()}  login`);
         this._handle = handle;
         if (handle == null) {
@@ -187,7 +187,7 @@ class TelnetProxy extends EventEmitter {
     });
   }
 
-  _gcn() { return `TelnetProxy`; }
+  _gcn() { return `SocketProxy`; }
 
   destroy() {
     console.log(`${this._gcn()} destroy`);
@@ -266,7 +266,7 @@ class TelnetProxy extends EventEmitter {
   }
 
   static get(user) {
-    return _cache[user.uid] || (_cache[user.uid] = new TelnetProxy(user));
+    return _cache[user.uid] || (_cache[user.uid] = new SocketProxy(user));
   }
 
   static singleton() {
@@ -275,4 +275,4 @@ class TelnetProxy extends EventEmitter {
 
 }
 
-export default TelnetProxy;
+export default SocketProxy;

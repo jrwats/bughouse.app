@@ -163,7 +163,8 @@ impl MyWebSocket {
                 }
                 let then = val["timestamp"].as_u64().unwrap();
                 let delta = now - then;
-                let ms = delta as f64 / 2_000_000.0; // 1M / 2.0 = Round-trip time / 2
+                // Round-trip-time in milliseconds / 2 = latency
+                let ms = delta as f64 / 1_000_000.0 / 2.0; 
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
                 println!("latency: {}ms", ms);
             }
@@ -182,6 +183,8 @@ impl MyWebSocket {
                         println!("auth.uid: {}", payload);
                         let msg = json!({"kind": "authenticated"});
                         ctx.text(msg.to_string());
+                        let msg = json!({"kind": "login", "handle": "fak3"});
+                        ctx.text(msg.to_string()); // emulate old auth
                     }
                     "err" => {
                         return Err(Error::AuthError {

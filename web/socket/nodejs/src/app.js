@@ -125,7 +125,7 @@ wss.on('connection', (ws, req) => {
       cmdDelegate.addHandler(new GameStartParser(uid, gameObserver));
       cmdDelegate.addHandler(new GameOverParser(gameObserver));
       if (fics.getHandle() != null) {
-        emit(ws, 'login', fics.getHandle());
+        emit(ws, 'login', {handle: fics.getHandle()});
       } else {
         emit(ws, 'logged_out');
       }

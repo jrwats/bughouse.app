@@ -1,5 +1,5 @@
 import React, {useEffect, createContext, useRef, useState} from 'react';
-import TelnetProxy from './TelnetProxy';
+import SocketProxy from './SocketProxy';
 
 /**
  * Provide authenticated firebase user as context to child components
@@ -15,7 +15,7 @@ const normalize = msg => msg.split('\n\r').join('\n')
 
 const TelnetProvider = (props) => {
   const {user} = props;
-  const proxy = TelnetProxy.get(user);
+  const proxy = SocketProxy.get(user);
 
   const [telnet, setTelnet] = useState(proxy);
   const [ficsHandle, setHandle] = useState(proxy.getHandle());
@@ -24,8 +24,8 @@ const TelnetProvider = (props) => {
   const log = useRef('');
 
   useEffect(() => {
-    console.log(`${Date.now()}: TelnetProvider creating TelnetProxy. ${user.uid}`);
-    const proxy = TelnetProxy.get(user);
+    console.log(`${Date.now()}: TelnetProvider creating SocketProxy. ${user.uid}`);
+    const proxy = SocketProxy.get(user);
     console.log(`TelnetProvider.setTelnet`);
     setTelnet(proxy);
     window.__telnet = proxy;

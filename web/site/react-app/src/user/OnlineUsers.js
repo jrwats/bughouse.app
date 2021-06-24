@@ -1,8 +1,8 @@
 import firebase from 'firebase/app';
 import {EventEmitter} from 'events';
-import TelnetProxy from '../socket/TelnetProxy';
+import SocketProxy from '../socket/SocketProxy';
 
-const proxy = TelnetProxy.singleton();
+const proxy = SocketProxy.singleton();
 
 /**
  * Listens to the firebase DB 'online' table, and then individual listens to

@@ -1,10 +1,10 @@
 import {EventEmitter} from 'events';
-import TelnetProxy from '../socket/TelnetProxy';
+import SocketProxy from '../socket/SocketProxy';
 // import OnlineUsers from '../user/OnlineUsers';
 // import invariant from 'invariant';
 
 // const onlineUsers = OnlineUsers.get();
-const proxy = TelnetProxy.singleton();
+const proxy = SocketProxy.singleton();
 
 /**
  * Listens to the game challenges send from the web socket / telnet proxy
@@ -16,7 +16,7 @@ class ChallengesSource extends EventEmitter {
     this._partnerChallenges = {};
 
     proxy.on('incomingChallenge', ({user, challenge}) => {
-      TelnetProxy.get(user).sendEvent('pending');
+      SocketProxy.get(user).sendEvent('pending');
       this._addChallenge(user.uid, challenge);
       console.log(`ChallengesSource 'incomingChallenge': ${JSON.stringify(this._challenges)}`);
       this.emit('challenges', this._challenges);
