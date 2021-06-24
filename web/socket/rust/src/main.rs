@@ -163,7 +163,7 @@ impl MyWebSocket {
                 }
                 let then = val["timestamp"].as_u64().unwrap();
                 let delta = now - then;
-                let ms = delta as f64 / 500_000.0; // 1M / 2.0 = Round-trip time / 2
+                let ms = delta as f64 / 2_000_000.0; // 1M / 2.0 = Round-trip time / 2
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
                 println!("latency: {}ms", ms);
             }
@@ -179,7 +179,9 @@ impl MyWebSocket {
                 let (kind, payload) = resp.split_once(':').unwrap();
                 match kind {
                     "uid" => {
-                        println!("uid: {}", payload);
+                        println!("auth.uid: {}", payload);
+                        let msg = json!({"kind": "authenticated"});
+                        ctx.text(msg.to_string());
                     }
                     "err" => {
                         return Err(Error::AuthError {

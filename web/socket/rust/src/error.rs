@@ -10,14 +10,8 @@ pub enum Error {
     #[error("Auth Error: {}", reason)]
     Auth { reason: String },
 
-    #[error("Invalid FEN string: {}", fen)]
-    InvalidFen { fen: String },
-
     #[error("Authentication Error: {}", reason)]
     AuthError { reason: String },
-
-    #[error("Wrapped Error: {}", msg)]
-    WrappedError { msg: String },
 
     #[error("JSON Error: {0}")]
     Json(serde_json::Error),

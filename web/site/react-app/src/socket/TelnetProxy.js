@@ -1,4 +1,3 @@
-// import { io } from "socket.io-client";
 import { EventEmitter } from 'events';
 import invariant from 'invariant';
 import GamesStatusSource from '../game/GameStatusSource';
@@ -39,7 +38,7 @@ class TelnetProxy extends EventEmitter {
   }
 
   _send(kind, data) {
-    this._sock && this._sock.send(JSON.stringify({kind, ...data}));
+    this._sock && this._sock.send(JSON.stringify({...data, kind}));
   }
 
   _connect() {
@@ -138,12 +137,22 @@ class TelnetProxy extends EventEmitter {
           this._connect();
         }
       };
+
+      // ping / pong latency handlers
+      handlers['latency'] = msg => {
+        this.emit('srv_latency', msg.ms);
+        console.log(`server latency: ${msg.ms}ms`);
+      };
+      handlers['enq'] = msg => {
+        this._send('ack', msg);
+      };
       handlers['ack'] = msg => {
         // Round-trip-time / 2 == end-to-end delay (AKA latency)
         const latency = (Date.now() - msg.timestamp) / 2.0;
         this.emit('latency', latency);
-        console.log(`bughouse.app latency: ${latency}ms`);
+        console.log(`client latency: ${latency}ms`);
       };
+
       for (const k in handlers) {
         handlers[k].bind(this);
       }
@@ -151,7 +160,6 @@ class TelnetProxy extends EventEmitter {
       // url.searchParams.set('token', idToken);
       this._sock = new PhoenixSocket(url);
       this._sock.on('open', evt => {
-        console.log(`sending auth: ${this._idToken}`);
         this._send('auth', {token: this._idToken});
       });
       this._sock.on('error', evt => {
@@ -163,7 +171,7 @@ class TelnetProxy extends EventEmitter {
           const payload = evt.data[0] === '{' ? JSON.parse(evt.data) : evt.data;
           const key = payload.kind || evt.data;
           const handler = handlers[key];
-          if (!handler) {
+          if (handler == null) {
             console.error('Unrecognized event: %s', evt);
             console.error('Unrecognized payload: %s', payload);
             return;
