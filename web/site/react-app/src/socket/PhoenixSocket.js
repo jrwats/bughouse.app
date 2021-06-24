@@ -70,7 +70,7 @@ class PhoenixSocket extends EventEmitter {
   }
 
   _onClose(evt) {
-    console.error('onclose: %o', evt);
+    console.warn('onclose: %o', evt);
     this.emit('close', evt);
     this._createSocket();
   }

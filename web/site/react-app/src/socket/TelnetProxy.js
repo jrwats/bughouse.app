@@ -8,8 +8,8 @@ console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
 const hostname = window.location.hostname;
-const PROD_URL = 'wss://ws.bughouse.app';
-const DEV_URL = `ws://${hostname}:7777`;
+const PROD_URL = 'wss://ws.bughouse.app/ws/';
+const DEV_URL = `ws://${hostname}:8080/ws/`;
 const WS_URL = process.env.REACT_APP_SOCKET_URL ||
   (process.env.NODE_ENV === 'production' ? PROD_URL : DEV_URL);
 
@@ -148,8 +148,12 @@ class TelnetProxy extends EventEmitter {
         handlers[k].bind(this);
       }
       const url = new URL(WS_URL);
-      url.searchParams.set('token', idToken);
+      // url.searchParams.set('token', idToken);
       this._sock = new PhoenixSocket(url);
+      this._sock.on('open', evt => {
+        console.log(`sending auth: ${this._idToken}`);
+        this._send('auth', {token: this._idToken});
+      });
       this._sock.on('error', evt => {
         console.error('Socket error: %o', evt);
       });

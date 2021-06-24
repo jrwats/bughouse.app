@@ -14,7 +14,7 @@ pub enum Error {
     InvalidFen { fen: String },
 
     #[error("Authentication Error: {}", reason)]
-    AuthError{ reason: String },
+    AuthError { reason: String },
 
     #[error("Wrapped Error: {}", msg)]
     WrappedError{ msg: String },
@@ -37,3 +37,10 @@ impl From<std::io::Error> for Error {
         Error::Io(err)
     }
 }
+
+// use crate::Error;
+// impl AuthError { 
+//     pub fn new(r: &str) -> Self {
+//         AuthError { reason: r.to_string() }
+//     }
+// }

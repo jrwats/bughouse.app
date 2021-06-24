@@ -159,8 +159,22 @@ impl MyWebSocket {
                 let sock = env_or("SOCK", "/tmp/firebase.sock");
                 let mut stream = UnixStream::connect(sock)?;
                 write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
-                let mut response = String::new();
-                stream.read_to_string(&mut response)?;
+                let mut resp = String::new();
+                stream.read_to_string(&mut resp)?;
+                let (kind, payload) = resp.split_once(':').unwrap();
+                match kind {
+                    "uid" => {
+                        println!("uid: {}", payload);
+                    },
+                    "err" => {
+                        return Err(Error::AuthError { reason: payload.to_string() });
+                    }
+                    _ => {
+                        let msg = format!("Unknown response: {}", resp);
+                        return Err(Error::AuthError { reason: payload.to_string() });
+                    }
+                }
+                println!("response: {}", resp);
             }
             _ => println!("Unknown message: {}", text)
         }
