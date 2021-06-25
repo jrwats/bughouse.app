@@ -10,11 +10,12 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const (
 	AUTH      = 1
-	HEARTBEAT = 2
+	USER_INFO = 2
 	LOGOUT    = 3
 )
 
@@ -33,6 +34,27 @@ func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Co
 	} else {
 		log.Printf("Verified ID token: %v\n", token)
 		writer.WriteString("uid:" + token.UID + "\n")
+	}
+	if werr := writer.Flush(); werr != nil {
+		log.Fatal(werr)
+	}
+}
+
+func user_info(uid string, conn net.Conn, app *firebase.App, ctx context.Context) {
+	client, err := app.Auth(ctx)
+	if err != nil {
+		log.Printf("error getting Auth client: %v\n", err)
+	}
+	writer := bufio.NewWriter(conn)
+	user, err := client.GetUser(ctx, uid)
+	if err != nil {
+		log.Print(err)
+		writer.WriteString(fmt.Sprintf("err:%v\n", err))
+	} else {
+		values := []string{user.DisplayName, user.Email, user.PhotoURL, user.ProviderID}
+		val_str:= strings.Join(values, "\x1e" /* record separator */)
+		log.Printf("Got user, sending: %s\n", val_str)
+		writer.WriteString("user:" + val_str + "\n")
 	}
 	if werr := writer.Flush(); werr != nil {
 		log.Fatal(werr)
@@ -60,7 +82,8 @@ func firebaseServer(conn net.Conn, app *firebase.App, ctx context.Context) {
 	switch cmd {
 	case AUTH:
 		authenticate(payload, conn, app, ctx)
-	case HEARTBEAT:
+	case USER_INFO:
+		user_info(payload, conn, app, ctx)
 
 	case LOGOUT:
 	default:

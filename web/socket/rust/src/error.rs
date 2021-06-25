@@ -18,6 +18,10 @@ pub enum Error {
 
     #[error("I/O Error: {0}")]
     Io(std::io::Error),
+
+    #[error("I/O Error: {0}")]
+    SendError(std::sync::mpsc::SendError<String>),
+
 }
 
 impl From<serde_json::Error> for Error {
@@ -29,6 +33,12 @@ impl From<serde_json::Error> for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Error::Io(err)
+    }
+}
+
+impl From<std::sync::mpsc::SendError<String>> for Error {
+    fn from(err: std::sync::mpsc::SendError<String>) -> Self {
+        Error::SendError(err)
     }
 }
 

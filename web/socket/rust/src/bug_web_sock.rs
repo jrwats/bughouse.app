@@ -7,21 +7,16 @@ use std::os::unix::net::UnixStream;
 use std::time::{Duration, Instant};
 
 use crate::error::Error;
+use crate::firebase::*;
 use crate::bughouse_server::BughouseServer;
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
 }
 
-// firebase-go-srv
-const FIRE_AUTH: u8 = 1;
-// const FIRE_HEARTBEAT: u8 = 2;
-// const FIRE_LOGOUT: u8 = 3;
-
-
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
-const ENQ_INTERVAL: Duration = Duration::from_secs(2);
+const ENQ_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -42,11 +37,6 @@ impl Actor for BugWebSock {
     fn started(&mut self, ctx: &mut Self::Context) {
         self.on_start(ctx);
     }
-}
-
-lazy_static! {
-    static ref UNIX_SOCK: String = 
-        std::env::var("SOCK").unwrap_or("/tmp/firebase.sock".to_string());
 }
 
 /// Handler for `ws::Message`
@@ -179,8 +169,7 @@ impl BugWebSock {
                         println!("state: {:?}", ctx.state());
                         println!("handle: {:?}", ctx.handle());
                         // println!("address: {:?}", ctx.address());
-                        let addr = ctx.address();
-                        BughouseServer::get().add_conn(&addr, payload);
+                        BughouseServer::get().add_conn(ctx, payload);
 
                         // TOOD - remove - just here emulating old auth
                         let msg = json!({"kind": "login", "handle": "fak3"});
@@ -200,7 +189,10 @@ impl BugWebSock {
                 }
                 println!("response: {}", resp);
             }
-            _ => println!("Unknown message: {}", text),
+            _ => {
+                println!("Unknown message: {}", text);
+                // BughouseServer.get().handle(ctx, text)
+            }
         }
         Ok(())
     }

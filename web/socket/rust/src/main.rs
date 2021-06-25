@@ -10,6 +10,7 @@ use actix_web_actors::ws;
 // use serde::{Serialize, Deserialize};
 
 mod error;
+mod firebase;
 mod bughouse_server;
 mod bug_web_sock;
 use bug_web_sock::BugWebSock;
