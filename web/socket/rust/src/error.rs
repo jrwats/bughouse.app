@@ -7,9 +7,6 @@ pub enum Error {
     #[error("Invalid Client msg")]
     MalformedClientMsg { msg: String, reason: String },
 
-    #[error("Auth Error: {}", reason)]
-    Auth { reason: String },
-
     #[error("Authentication Error: {}", reason)]
     AuthError { reason: String },
 

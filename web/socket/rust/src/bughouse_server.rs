@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::DefaultHasher;
 use std::io::prelude::{Read, Write};
 use std::hash::{Hash, Hasher};
+use serde_json::json;
 use std::sync::Mutex;
 use std::sync::RwLock;
 use std::sync::mpsc::{Sender, Receiver};
@@ -16,7 +17,7 @@ use std::thread;
 
 use crate::error::Error;
 use crate::firebase::*;
-use crate::bug_web_sock::BugWebSock;
+use crate::bug_web_sock::{TextPassthru, BugWebSock};
 
 #[derive(Debug)]
 pub struct UserConn {
@@ -62,7 +63,7 @@ impl BughouseServer {
         let (tx, rx): (Sender<String>, Receiver<String>) = mpsc::channel();
         let _receiver = thread::spawn(move || {
             for msg in rx {
-                println!("received: {}", msg);
+                println!("rx received: {}", msg);
             }
         });
 
@@ -109,6 +110,10 @@ impl BughouseServer {
         let hash = hash(&addr);
         println!("map[{:?}] = {:?}", hash, (addr, uid));
         conns.insert(hash, UserConn::new(addr.downgrade(), uid.to_string()));
+        let test = json!({"kind": "test", "payload": "hi"});
+        if addr.try_send(TextPassthru(test.to_string())).is_err() {
+            eprintln!("whoopsies!");
+        }
 
         let tx = self.tx.lock().unwrap().clone();
         let uid_str = uid.to_string();

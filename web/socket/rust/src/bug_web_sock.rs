@@ -39,6 +39,17 @@ impl Actor for BugWebSock {
     }
 }
 
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct TextPassthru(pub String);
+
+impl Handler<TextPassthru> for BugWebSock {
+    type Result = ();
+    fn handle(&mut self, msg: TextPassthru, ctx: &mut Self::Context) -> Self::Result {
+        ctx.text(msg.0);
+    }
+}
+
 /// Handler for `ws::Message`
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
     fn handle(
@@ -46,8 +57,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
         msg: Result<ws::Message, ws::ProtocolError>,
         ctx: &mut Self::Context,
     ) {
-        // process websocket messages
-        // println!("WS: {:?}", msg);
         match msg {
             Ok(ws::Message::Ping(msg)) => {
                 self.hb_instant = Instant::now();
@@ -152,7 +161,7 @@ impl BugWebSock {
                 println!("latency: {}ms", ms);
             }
             "auth" => {
-                let token = val["token"].as_str().ok_or(Error::Auth {
+                let token = val["token"].as_str().ok_or(Error::AuthError {
                     reason: "Malformed token".to_string(),
                 })?;
                 let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
