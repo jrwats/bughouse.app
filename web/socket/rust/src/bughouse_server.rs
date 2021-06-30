@@ -2,22 +2,24 @@ use actix::AsyncContext;
 use actix::WeakAddr;
 // use actix::prelude::Addr;
 use actix_web_actors::ws::WebsocketContext;
-// use futures::channel::mpsc::{Receiver, Sender};
-use std::collections::HashMap;
-use std::collections::hash_map::DefaultHasher;
-use std::io::prelude::{Read, Write};
-use std::hash::{Hash, Hasher};
+use futures::executor::block_on;
 use serde_json::json;
+use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
+use std::io::prelude::{Read, Write};
+use std::os::unix::net::UnixStream;
+use std::sync::mpsc;
+use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Mutex;
 use std::sync::RwLock;
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::mpsc;
-use std::os::unix::net::UnixStream;
 use std::thread;
+use uuid::Uuid;
 
+use crate::bug_web_sock::{BugWebSock, TextPassthru};
+use crate::db::Db;
 use crate::error::Error;
 use crate::firebase::*;
-use crate::bug_web_sock::{TextPassthru, BugWebSock};
 
 #[derive(Debug)]
 pub struct UserConn {
@@ -31,25 +33,26 @@ impl UserConn {
     pub fn new(
         // w: &WebsocketContext<BugWebSock>,
         a: WeakAddr<BugWebSock>,
-        uid: String
+        uid: String,
     ) -> Self {
-        UserConn { 
-            // ctx: Arc::new(w.to_owned()), 
+        UserConn {
+            // ctx: Arc::new(w.to_owned()),
             addr: a,
-            uid 
+            uid,
         }
     }
 }
 
-#[derive(Debug)]
 pub struct BughouseServer {
     // connections
     conns: RwLock<HashMap<u64, UserConn>>,
+    db: Db,
     tx: Mutex<Sender<String>>,
 }
 
 lazy_static! {
-    static ref SINGLETON: BughouseServer = BughouseServer::new();
+    static ref SINGLETON: BughouseServer = block_on(BughouseServer::new())
+        .expect("Couldn't create BughouseServer");
 }
 
 fn hash<T: Hash>(hashable: &T) -> u64 {
@@ -59,7 +62,7 @@ fn hash<T: Hash>(hashable: &T) -> u64 {
 }
 
 impl BughouseServer {
-    fn new() -> Self {
+    async fn new() -> Result<Self, Error> {
         let (tx, rx): (Sender<String>, Receiver<String>) = mpsc::channel();
         let _receiver = thread::spawn(move || {
             for msg in rx {
@@ -67,10 +70,12 @@ impl BughouseServer {
             }
         });
 
-        BughouseServer { 
+        let db = Db::new().await?;
+        Ok(BughouseServer {
             conns: RwLock::new(HashMap::new()),
+            db,
             tx: Mutex::new(tx),
-        }
+        })
     }
 
     pub fn get() -> &'static Self {
@@ -86,10 +91,12 @@ impl BughouseServer {
         let (kind, payload) = resp.split_once(':').unwrap();
         match kind {
             "user" => {
-                let parts: Vec<&str>  = payload.split('\x1e').collect();
+                let parts: Vec<&str> = payload.split('\x1e').collect();
                 if let [name, email, photo_url, provider_id] = parts[..] {
-                    println!("name: {}\temail: {}, photo: {}, provider: {}",
-                             name, email, photo_url, provider_id);
+                    println!(
+                        "name: {}\temail: {}, photo: {}, provider: {}",
+                        name, email, photo_url, provider_id
+                    );
                     tx.send(payload.to_string())?;
                 } else {
                     println!("Couldn't parse: {}", payload);
@@ -98,31 +105,41 @@ impl BughouseServer {
             "err" => {
                 eprintln!("err: {}", payload);
             }
-            _ => {
-            }
+            _ => {}
         }
         Ok(())
     }
 
-    pub fn add_conn(&self, ctx: &WebsocketContext<BugWebSock>, uid: &str) {
+    async fn get_uid_from_fid(&self, fid: &str) -> Result<Uuid, Error> {
+        let user = self.db.user_from_firebase_id(fid).await?;
+        Ok(user.get_uid())
+    }
+
+    pub async fn add_conn(
+        &self,
+        ctx: &WebsocketContext<BugWebSock>,
+        fid: &str,
+    ) -> Result<(), Error> {
         let mut conns = self.conns.write().unwrap();
         let addr = &ctx.address();
         let hash = hash(&addr);
-        println!("map[{:?}] = {:?}", hash, (addr, uid));
-        conns.insert(hash, UserConn::new(addr.downgrade(), uid.to_string()));
-        let test = json!({"kind": "test", "payload": "hi"});
-        if addr.try_send(TextPassthru(test.to_string())).is_err() {
+        let _uid = self.get_uid_from_fid(fid).await?;
+        println!("map[{:?}] = {:?}", hash, (addr, fid));
+        conns.insert(hash, UserConn::new(addr.downgrade(), fid.to_string()));
+        if addr
+            .try_send(TextPassthru("testng 123".to_string()))
+            .is_err()
+        {
             eprintln!("whoopsies!");
         }
 
         let tx = self.tx.lock().unwrap().clone();
-        let uid_str = uid.to_string();
+        let uid_str = fid.to_string();
         thread::spawn(move || {
             if BughouseServer::get_user_data(tx, uid_str).is_err() {
                 eprintln!("ruh oh");
             }
-
         });
+        Ok(())
     }
 }
-

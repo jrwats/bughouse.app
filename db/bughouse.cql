@@ -1,4 +1,4 @@
-CREATE KEYSPACE IF NOT EXISTS bughouse 
+CREATE KEYSPACE IF NOT EXISTS bughouse
   WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
 
 USE bughouse;
@@ -21,11 +21,11 @@ CREATE TYPE board (
 CREATE TABLE games (
   id timeuuid PRIMARY KEY,
   start_time timestamp,
-  result int,
-  time_ctrl time_control, 
+  result smallint,
+  time_ctrl time_control,
   board_a board,
   board_b board,
-  moves map<int, int>, // time,player => bitmap encoding
+  moves map<int, smallint>, // time,player => bitmap encoding
 );
 CREATE INDEX ON games(result);
 
@@ -50,15 +50,32 @@ CREATE TABLE rating_history(
 // SELECT rating FROM user_ratings WHERE uuid = '...' AND timestamp ...;
 CREATE INDEX ON rating_history((id), time);
 
+CREATE TABLE photos(
+  id uuid PRIMARY KEY,
+  photo blob,
+);
+
 CREATE TABLE users(
   id uuid,
   firebase_id text,
   name text,
-  handle text,
-  picture blob,
-  PRIMARY KEY (id, firebase_id)
+  handle_id timeuuid,
+  photo_id uuid,
+  PRIMARY KEY (id, firebase_id, handle_id)
 );
 
 CREATE INDEX ON users(firebase_id);
-CREATE INDEX ON users(handle);
+CREATE INDEX ON users(handle_id);
 
+CREATE TABLE handles(
+  id uuid,
+  handle text PRIMARY KEY,
+);
+
+CREATE TABLE firebase(
+  firebase_id text PRIMARY KEY,
+  display_name text,
+  email text,
+  photo_url text,
+  provider_id text,
+);

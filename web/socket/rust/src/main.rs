@@ -1,20 +1,21 @@
 #[macro_use]
 extern crate lazy_static;
 
+use actix_files as fs;
 use actix_web::{
     middleware, web, App, Error as ActixError, HttpRequest, HttpResponse,
-    HttpServer
+    HttpServer,
 };
-use actix_files as fs;
 use actix_web_actors::ws;
 // use serde::{Serialize, Deserialize};
 
+mod b73_encode;
+mod bug_web_sock;
+mod bughouse_server;
+mod db;
 mod error;
 mod firebase;
-mod bughouse_server;
-mod bug_web_sock;
 use bug_web_sock::BugWebSock;
-
 
 /// do websocket handshake and start `BugWebSock` actor
 async fn ws_index(

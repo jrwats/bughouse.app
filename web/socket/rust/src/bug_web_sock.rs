@@ -6,9 +6,9 @@ use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::time::{Duration, Instant};
 
+use crate::bughouse_server::BughouseServer;
 use crate::error::Error;
 use crate::firebase::*;
-use crate::bughouse_server::BughouseServer;
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
@@ -23,7 +23,7 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
 #[derive(Debug)]
-pub struct BugWebSock  {
+pub struct BugWebSock {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb_instant: Instant,
@@ -45,7 +45,11 @@ pub struct TextPassthru(pub String);
 
 impl Handler<TextPassthru> for BugWebSock {
     type Result = ();
-    fn handle(&mut self, msg: TextPassthru, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(
+        &mut self,
+        msg: TextPassthru,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
         ctx.text(msg.0);
     }
 }
@@ -131,9 +135,9 @@ impl BugWebSock {
     ) -> Result<(), Error> {
         if &text[0..1] != "{" {
             println!("cmd: {}", text);
-            return Ok(())
+            return Ok(());
         }
-       
+
         let val: Value = serde_json::from_str(text)?;
         let kind =
             val["kind"]
@@ -156,7 +160,7 @@ impl BugWebSock {
                 let then = val["timestamp"].as_u64().unwrap();
                 let delta = now - then;
                 // Round-trip-time in milliseconds / 2 = latency
-                let ms = delta as f64 / 1_000_000.0 / 2.0; 
+                let ms = delta as f64 / 1_000_000.0 / 2.0;
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
                 println!("latency: {}ms", ms);
             }
@@ -174,7 +178,7 @@ impl BugWebSock {
                         println!("auth.uid: {}", payload);
                         let msg = json!({"kind": "authenticated"});
                         ctx.text(msg.to_string());
-                        
+
                         println!("state: {:?}", ctx.state());
                         println!("handle: {:?}", ctx.handle());
                         // println!("address: {:?}", ctx.address());
@@ -206,5 +210,3 @@ impl BugWebSock {
         Ok(())
     }
 }
-
-
