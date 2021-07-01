@@ -1,14 +1,16 @@
 use actix::prelude::*;
+use actix::ResponseFuture;
+use actix_web::*;
 use actix_web_actors::ws;
 use chrono::prelude::*;
+use bytestring::ByteString;
 use serde_json::{json, Value};
-use std::io::prelude::{Read, Write};
-use std::os::unix::net::UnixStream;
 use std::time::{Duration, Instant};
+use std::sync::Arc;
 
-use crate::bughouse_server::BughouseServer;
+use crate::bughouse_server::{ConnID, BughouseServer};
 use crate::error::Error;
-use crate::firebase::*;
+use crate::messages::{Auth, WsMessage};
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
@@ -20,14 +22,34 @@ const ENQ_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// websocket connection is long running connection, it easier
-/// to handle with an actor
-#[derive(Debug)]
+pub struct BugContext {
+  pub srv_addr: Addr<BughouseServer>,
+}
+
+impl BugContext  {
+  pub fn create(
+    srv_addr: Addr<BughouseServer>,
+  ) -> Self {
+    BugContext { srv_addr }
+  }
+  pub fn get_srv_addr(&self) -> &Addr<BughouseServer> {
+    &self.srv_addr
+  }
+}
+
+impl Clone for BugContext {
+  fn clone(&self) -> Self {
+    BugContext { srv_addr: self.get_srv_addr().clone() }
+  }
+}
+
 pub struct BugWebSock {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb_instant: Instant,
-    // server: &'static BughouseServer,
+    srv_addr: Addr<BughouseServer>,
+    /// unique session id
+    id: ConnID,
 }
 
 impl Actor for BugWebSock {
@@ -36,6 +58,49 @@ impl Actor for BugWebSock {
     /// Method is called on actor start. We start the heartbeat process here.
     fn started(&mut self, ctx: &mut Self::Context) {
         self.on_start(ctx);
+    }
+}
+
+// #[derive(Message)]
+// #[rtype(result = "()")]
+// pub struct AuthedFirebaseID(pub String);
+//
+// impl Handler<AuthedFirebaseID> for BugWebSock {
+//     type Result = ResponseFuture<Result<(), Error>>;
+//
+//     fn handle(
+//         &mut self,
+//         msg: AuthedFirebaseID,
+//         ctx: &mut Self::Context,
+//     ) -> Self::Result {
+//         println!("Authed: {}", msg.0);
+//         let fut = self.do_add_conn(&msg.0, ctx);
+//         Box::pin(async move {
+//             match fut.await {
+//                 Ok(_) => {
+//                     println!("Awaited do_add_conn");
+//                     Ok(())
+//                 }
+//                 Err(e) => {
+//                     eprintln!("Error during message handling{}", e);
+//                     Ok(())
+//                 }
+//             }
+//         })
+//
+//     }
+// }
+
+/// BughouseSever sends these messages to Socket session
+impl Handler<WsMessage> for BugWebSock {
+    type Result = ();
+    fn handle(
+        &mut self,
+        msg: WsMessage,
+        ctx: &mut Self::Context,
+    ) -> Self::Result {
+        println!("WsMessage. Grabbing user data from server");
+        // ctx.text(msg.0);
     }
 }
 
@@ -50,6 +115,7 @@ impl Handler<TextPassthru> for BugWebSock {
         msg: TextPassthru,
         ctx: &mut Self::Context,
     ) -> Self::Result {
+        println!("TextPassThru. Grabbing user data from server");
         ctx.text(msg.0);
     }
 }
@@ -80,7 +146,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 }
                 ctx.text(text);
             }
-            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
+            Ok(ws::Message::Binary(bin)) => {
+                eprintln!("Got binary message? {:?}", bin);
+            }
             Ok(ws::Message::Close(reason)) => {
                 ctx.close(reason);
                 ctx.stop();
@@ -91,9 +159,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 }
 
 impl BugWebSock {
-    pub fn new() -> Self {
+    pub fn new(srv_addr: Addr<BughouseServer>) -> Self {
         Self {
             hb_instant: Instant::now(),
+            srv_addr,
+            id: 0
             // server: BughouseServer::get(),
         }
     }
@@ -130,7 +200,7 @@ impl BugWebSock {
 
     fn msg_handler(
         &self,
-        text: &String,
+        text: &ByteString,
         ctx: &mut <Self as Actor>::Context,
     ) -> Result<(), Error> {
         if &text[0..1] != "{" {
@@ -146,6 +216,7 @@ impl BugWebSock {
                     reason: "Malformed 'kind'".to_string(),
                     msg: text.to_string(),
                 })?;
+        println!("handling, {}", kind);
         match kind {
             "enq" => {
                 let ack = json!({"kind": "ack", "timestamp": val["timestamp"]});
@@ -168,44 +239,29 @@ impl BugWebSock {
                 let token = val["token"].as_str().ok_or(Error::AuthError {
                     reason: "Malformed token".to_string(),
                 })?;
-                let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
-                write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
-                let mut resp = String::new();
-                stream.read_to_string(&mut resp)?;
-                let (kind, payload) = resp.split_once(':').unwrap();
-                match kind {
-                    "uid" => {
-                        println!("auth.uid: {}", payload);
-                        let msg = json!({"kind": "authenticated"});
-                        ctx.text(msg.to_string());
-
-                        println!("state: {:?}", ctx.state());
-                        println!("handle: {:?}", ctx.handle());
-                        // println!("address: {:?}", ctx.address());
-                        BughouseServer::get().add_conn(ctx, payload);
-
-                        // TOOD - remove - just here emulating old auth
-                        let msg = json!({"kind": "login", "handle": "fak3"});
-                        ctx.text(msg.to_string());
-                    }
-                    "err" => {
-                        let msg = json!({"kind": "auth/err", "msg": payload});
-                        ctx.text(msg.to_string());
-                        return Err(Error::AuthError {
-                            reason: payload.to_string(),
-                        });
-                    }
-                    _ => {
-                        let msg = format!("Unknown response: {}", resp);
-                        return Err(Error::AuthError { reason: msg });
-                    }
-                }
-                println!("response: {}", resp);
+                // Authenticate self in server. 
+                self.srv_addr.send(Auth {
+                    token: token.to_string(),
+                    addr: ctx.address(),
+                })
+                .into_actor(self)
+                    .then(|res, act, ctx| {
+                        match res {
+                            Ok(Ok(connID)) => {
+                                act.id = connID;
+                                println!("Authed: {}", connID);
+                            },
+                            Ok(Err(e)) => {
+                                eprintln!("Auth errored: {}", e);
+                            },
+                            // something is wrong with chat server
+                            _ => ctx.stop(),
+                        }
+                        actix::fut::ready(())
+                    })
+                .wait(ctx);
             }
-            _ => {
-                println!("Unknown message: {}", text);
-                // BughouseServer.get().handle(ctx, text)
-            }
+            _ => eprintln!("TODO")
         }
         Ok(())
     }

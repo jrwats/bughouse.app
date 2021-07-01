@@ -13,7 +13,6 @@ use uuid::Uuid;
 use crate::b73_encode::b73_encode;
 use crate::error::Error;
 use crate::firebase::*;
-// use tokio::task;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
 
@@ -83,7 +82,7 @@ impl Db {
         let ns = utc_now.timestamp_subsec_nanos();
         let secs = utc_now.timestamp() as u64;
         let timestamp = Timestamp::from_unix(&self.ctx, secs, ns);
-        Uuid::new_v1(timestamp, &[1, 3, 3, 7, 9, 9])
+        Uuid::new_v1(timestamp, &[1, 3, 3, 7, 4, 2])
     }
 
     pub async fn mk_user_for_fid(
@@ -164,9 +163,10 @@ impl Db {
             format!("SELECT * FROM bughouse.users WHERE firebase_id = {}", fid);
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
-            for res in rows.into_typed::<UserRowData>() {
-                let user = res?;
-                return Ok(user);
+            // let urows = rows.into_typed::<UserRowData>();
+            // let user = urows.nth(0).unwrap();
+            for row in rows.into_typed::<UserRowData>() {
+                return Ok(row?);
             }
             return Err(Error::Unexpected("WTF no row?".to_string()));
         } else {

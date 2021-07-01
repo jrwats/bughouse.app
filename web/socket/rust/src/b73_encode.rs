@@ -6,8 +6,8 @@ pub fn b73_encode(num: u32) -> String {
     let len = alphabet.len() as usize;
     let mut n = num;
     while n > 0 {
-        let (_n, rem) = div_rem(n, len as u32);
-        n = _n;
+        let (quotient, rem) = div_rem(n, len as u32);
+        n = quotient;
         let ch = alphabet[rem as usize] as char;
         result.push(ch);
     }

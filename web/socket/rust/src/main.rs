@@ -1,13 +1,15 @@
 #[macro_use]
 extern crate lazy_static;
 
+use actix::prelude::*;
+use actix_web::*;
+use web::Data;
 use actix_files as fs;
 use actix_web::{
-    middleware, web, App, Error as ActixError, HttpRequest, HttpResponse,
-    HttpServer,
+    middleware, web, App, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web_actors::ws;
-// use serde::{Serialize, Deserialize};
+use std::io;
 
 mod b73_encode;
 mod bug_web_sock;
@@ -15,19 +17,22 @@ mod bughouse_server;
 mod db;
 mod error;
 mod firebase;
-use bug_web_sock::BugWebSock;
+mod messages;
+use db::Db;
+use bug_web_sock::{BugWebSock, BugContext};
+use bughouse_server::BughouseServer;
 
-/// do websocket handshake and start `BugWebSock` actor
-async fn ws_index(
-    r: HttpRequest,
-    stream: web::Payload,
-) -> Result<HttpResponse, ActixError> {
-    // println!("{:?}", r);
-    ws::start(BugWebSock::new(), &r, stream)
-    // println!("{:?}", res);
-    // res
+pub async fn ws_route(
+  req: HttpRequest,
+  stream: web::Payload,
+  context: web::Data<BugContext>,
+) -> Result<HttpResponse, actix_web::Error> {
+  ws::start(
+    BugWebSock::new(context.get_srv_addr().to_owned()),
+    &req,
+    stream,
+  )
 }
-
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
 
@@ -36,16 +41,28 @@ fn env_or(env_var: &str, alt: &str) -> String {
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() -> Result<(), io::Error> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
-    HttpServer::new(|| {
+    let res = Db::new().await;
+    let db = res.expect("Couldn't start DB");
+    println!("starting server...");
+    let bug_srv = BughouseServer::startup(db).start();
+    println!("started");
+
+    // let server = BughouseServer::startup().await.expect("Couldn't start server");
+    // let srv = Arc::new(server);
+    HttpServer::new(move || {
+        let context = BugContext::create(bug_srv.to_owned());
+        // let srv_cp = srv.clone();
         App::new()
+            .app_data(Data::new(context))
             // enable logger
             .wrap(middleware::Logger::default())
             // websocket route
-            .service(web::resource("/ws/").route(web::get().to(ws_index)))
+            .service(web::resource("/ws/").to(ws_route))
+            // route(web::get().to(move |r, s| { ws_index(r, s, srv_cp.clone()) })))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })
