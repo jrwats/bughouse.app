@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use actix::{Actor, AsyncContext, Context, Handler, ResponseFuture, WeakAddr};
+use actix::{Actor, Context, Handler, ResponseFuture};
 // use actix_web_actors::ws::WebsocketContext;
 use serde_json::json;
 use std::collections::hash_map::DefaultHasher;
@@ -7,26 +7,16 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
-use std::sync::mpsc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::Arc;
-use std::sync::{Mutex, RwLock};
-// use std::sync::atomic::AtomicUsize;
-use std::thread;
+use std::sync::{Arc, RwLock};
+// use std::thread;
 use uuid::Uuid;
 
-use futures::executor::block_on;
-use futures::future::Future;
-
-use once_cell::sync::Lazy; // 1.3.1
 use once_cell::sync::OnceCell;
-
-use crate::bug_web_sock::BugWebSock;
 use crate::db::Db;
 use crate::error::Error;
 use crate::firebase::*;
 use crate::messages::{
-    Auth, ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
+    ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
 
 pub struct SocketConn {
@@ -36,7 +26,6 @@ pub struct SocketConn {
 
 impl SocketConn {
     pub fn new(
-        // w: &WebsocketContext<BugWebSock>,
         recipient: Recipient<ClientMessage>,
         uid: String,
     ) -> Self {
@@ -44,7 +33,7 @@ impl SocketConn {
     }
 }
 
-pub type ChanMsg = (Recipient<ClientMessage>, String);
+// pub type ChanMsg = (Recipient<ClientMessage>, String);
 
 pub struct BughouseServer {
     conns: RwLock<HashMap<u64, SocketConn>>, // connections
@@ -52,20 +41,10 @@ pub struct BughouseServer {
     // tx: Mutex<Sender<ChanMsg>>,
 }
 
-// static SINGLETON: Lazy<BughouseServer> = Lazy::new(|| BughouseServer::startup());
-
 pub fn get_server(db: Arc<Db>) -> &'static BughouseServer {
     static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
     INSTANCE.get_or_init(move || BughouseServer::new(db))
 }
-
-// lazy_static! {
-//     static ref SINGLETON: Option<BughouseServer> = None;
-// block_on(BughouseServer::new())
-// .expect("Couldn't create BughouseServer");
-// }
-
-// let mut singleton: Option<BughouseServer> = None;
 
 fn hash<T: Hash>(hashable: &T) -> u64 {
     println!("hash!");
@@ -123,60 +102,6 @@ impl Handler<ServerMessage> for ServerActor {
         // })
     }
 }
-/*
-impl Handler<Auth> for BughouseServer {
-    type Result = ResponseFuture<Result<ConnID, Error>>;
-    // type Result = Result<ConnID, Error>;
-
-    // Authenticate uid
-    fn handle(&mut self, auth: Auth, ctx: &mut Context<Self>) -> Self::Result {
-        // let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
-        // write!(stream, "{}\n{}\n", FIRE_AUTH, auth.token)?;
-        // let mut resp = String::new();
-        // stream.read_to_string(&mut resp)?;
-        // let (label, payload) = resp.split_once(':').unwrap();
-        // match label {
-        //     "uid" => {
-        //         println!("auth.uid: {}", payload);
-        //         let raddr = auth.addr.downgrade();
-        //
-        //         // Send AddConn message to self to await
-        //             let conn_id = self.add_conn(auth.addr, payload).await?;
-        //
-        //         // TOOD - remove - just here emulating old auth
-        //         let msg = json!({"kind": "login", "handle": "fak3"});
-        //
-        //         addr.upgrade().unwrap().send(ClientMessage(msg.to_string()));
-        //
-        //         return Ok(conn_id);
-        //     },
-        //     "err" => {
-        //         return Err(Error::AuthError {
-        //             reason: payload.to_string(),
-        //         });
-        //     },
-        //     _ => {
-        //         let msg = format!("Unknown response: {}", resp);
-        //         return Err(Error::AuthError { reason: msg });
-        //     }
-        // }
-        // let fut = this.clone().authenticate(auth, ctx);
-        // Box::pin(async move {
-        //     match fut.await {
-        //         Ok(m) => {
-        //             println!("Handler<Auth>: SUCCESS");
-        //             // info!("Message Sent: {}", m);
-        //             Ok(m)
-        //         }
-        //         Err(e) => {
-        //             eprintln!("Handler<Auth>: FAIL");
-        //             Err(e)
-        //         }
-        //     }
-        // })
-    }
-}
-*/
 
 impl BughouseServer {
     pub fn get(db: Arc<Db>) -> &'static BughouseServer {
@@ -289,81 +214,9 @@ impl BughouseServer {
         }
     }
 
-    // pub fn handle(
-    //     &self,
-    //     ctx: &mut WebsocketContext<BugWebSock>,
-    //     kind: &str,
-    //     val: &Value,
-    //     ) -> Result<(), Error> {
-    //     match kind {
-    //         "auth" => {
-    //             let token = val["token"].as_str().ok_or(Error::AuthError {
-    //                 reason: "Malformed token".to_string(),
-    //             })?;
-    //             let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
-    //             write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
-    //             let mut resp = String::new();
-    //             stream.read_to_string(&mut resp)?;
-    //             let (label, payload) = resp.split_once(':').unwrap();
-    //             match label {
-    //                 "uid" => {
-    //                     println!("auth.uid: {}", payload);
-    //                     let msg = json!({"kind": "authenticated"});
-    //                     ctx.text(msg.to_string());
-    //                     // println!("address: {:?}", ctx.address());
-    //                     println!("sending auth result");
-    //                     ctx.address().try_send(AuthedFirebaseID(payload.to_string())).expect("try_send auth failed");
-    //                     println!("sent");
-    //                     // let me = Arc::new(self);
-    //                     // let pay = payload.to_string();
-    //                     // let addr = ctx.address();
-    //                     // let fut = async move {
-    //                     //     me.add_conn(&addr, payload).await.expect("Child add_conn failed");
-    //                     // };
-    //                     // let f = actix::fut::wrap_future::<_, BugWebSock>(fut);
-    //                     // ctx.spawn(f);
-    //                     // fut.into_actor(self).spawn(ctx);
-    //                     // spawn();
-    //                     // println!("spawned");
-    //                             // thread::spawn(|| {
-    //                         // if block_on(me.clone().add_conn(&addr, &pay)).is_err() {
-    //                         //     eprintln!("add_conn errored!");
-    //                         // }
-    //                     // });
-    //
-    //                     // TOOD - remove - just here emulating old auth
-    //                     let msg = json!({"kind": "login", "handle": "fak3"});
-    //                     ctx.text(msg.to_string());
-    //                 }
-    //                 "err" => {
-    //                     let msg = json!({"kind": "auth/err", "msg": payload});
-    //                     ctx.text(msg.to_string());
-    //                     return Err(Error::AuthError {
-    //                         reason: payload.to_string(),
-    //                     });
-    //                 }
-    //                 _ => {
-    //                     let msg = format!("Unknown response: {}", resp);
-    //                     return Err(Error::AuthError { reason: msg });
-    //                 }
-    //             }
-    //             println!("response: {}", resp);
-    //             Ok(())
-    //         }
-    //         _ => {
-    //             eprintln!("Unknown msg: {:?}", val);
-    //             Err(Error::MalformedClientMsg  {
-    //                 msg: format!("{:?}", val),
-    //                 reason: "unknown type".to_string(),
-    //             })
-    //         }
-    //     }
-    // }
-
     pub async fn add_conn(
         &'static self,
         recipient: Recipient<ClientMessage>,
-        // addr: Addr<BugWebSock>,
         fid: &str,
     ) -> Result<ConnID, Error> {
         println!("BS add_conn");

@@ -104,7 +104,7 @@ impl Db {
                     id,
                     &firebase_data.fid,
                     &firebase_data.display_name,
-                    handle,
+                    &handle,
                 ),
             )
             .await?;

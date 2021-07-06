@@ -1,5 +1,4 @@
-use crate::bug_web_sock::BugWebSock;
-use crate::bughouse_server::{BughouseServer, ConnID};
+use crate::bughouse_server::{ConnID};
 use crate::error::Error;
 use actix::{prelude::*, Recipient};
 

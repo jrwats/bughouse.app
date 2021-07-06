@@ -1,17 +1,15 @@
 use actix::prelude::*;
 // use actix::ResponseFuture;
-use crate::bughouse_server::{BughouseServer, ConnID, ServerActor};
+use crate::bughouse_server::{BughouseServer, ConnID};
 use crate::db::Db;
 use crate::error::Error;
-use crate::messages::{Auth, ClientMessage, ServerMessage, ServerMessageKind};
+use crate::messages::{ClientMessage, ServerMessage, ServerMessageKind};
 use actix_web::*;
 use actix_web_actors::ws;
 use bytestring::ByteString;
 use chrono::prelude::*;
-use futures::executor::block_on;
 use serde_json::{json, Value};
 use std::sync::Arc;
-use std::thread;
 use std::time::{Duration, Instant};
 
 pub fn get_timestamp_ns() -> u64 {
@@ -52,15 +50,6 @@ impl BugContext {
     }
 }
 
-// impl Clone for BugContext {
-//   fn clone(&self) -> Self {
-//     BugContext {
-//         srv_recipient: self.get_srv_recipient().clone()
-//         srv_recipient: self.get_srv_recipient().clone()
-//     }
-//   }
-// }
-
 pub struct BugWebSock {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
@@ -79,43 +68,13 @@ impl Actor for BugWebSock {
     }
 }
 
-// #[derive(Message)]
-// #[rtype(result = "()")]
-// pub struct AuthedFirebaseID(pub String);
-//
-// impl Handler<AuthedFirebaseID> for BugWebSock {
-//     type Result = ResponseFuture<Result<(), Error>>;
-//
-//     fn handle(
-//         &mut self,
-//         msg: AuthedFirebaseID,
-//         ctx: &mut Self::Context,
-//     ) -> Self::Result {
-//         println!("Authed: {}", msg.0);
-//         let fut = self.do_add_conn(&msg.0, ctx);
-//         Box::pin(async move {
-//             match fut.await {
-//                 Ok(_) => {
-//                     println!("Awaited do_add_conn");
-//                     Ok(())
-//                 }
-//                 Err(e) => {
-//                     eprintln!("Error during message handling{}", e);
-//                     Ok(())
-//                 }
-//             }
-//         })
-//
-//     }
-// }
-
 /// BughouseSever sends these messages to Socket session
 impl Handler<ClientMessage> for BugWebSock {
     type Result = ();
     fn handle(
         &mut self,
-        msg: ClientMessage,
-        ctx: &mut Self::Context,
+        _msg: ClientMessage,
+        _ctx: &mut Self::Context,
     ) -> Self::Result {
         println!("ClientMessage. Grabbing user data from server");
         // ctx.text(msg.0);
