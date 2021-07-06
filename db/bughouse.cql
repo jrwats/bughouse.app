@@ -1,5 +1,5 @@
 CREATE KEYSPACE IF NOT EXISTS bughouse
-  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 2};
+  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 USE bughouse;
 
@@ -30,18 +30,18 @@ CREATE TABLE games (
 CREATE INDEX ON games(result);
 
 CREATE TABLE user_games (
-  userid uuid,
-  gameid uuid,
+  userid timeuuid,
+  gameid timeuuid,
   PRIMARY KEY (userid, gameid)
 );
 
 CREATE TABLE current_rating(
-  id uuid PRIMARY KEY,
+  id timeuuid PRIMARY KEY,
   rating int,
 );
 
 CREATE TABLE rating_history(
-  id uuid PRIMARY KEY,
+  id timeuuid PRIMARY KEY,
   rating int,
   time timestamp,
 );
@@ -56,21 +56,23 @@ CREATE TABLE photos(
 );
 
 CREATE TABLE users(
-  id uuid,
+  id timeuuid,
   firebase_id text,
   name text,
-  handle_id timeuuid,
-  photo_id uuid,
-  PRIMARY KEY (id, firebase_id, handle_id)
+  handle text,
+  photo_url text,
+  photo blob,
+  PRIMARY KEY ((id), firebase_id, handle)
 );
 
 CREATE INDEX ON users(firebase_id);
 CREATE INDEX ON users(handle_id);
 
 CREATE TABLE handles(
-  id uuid,
+  id timeuuid,
   handle text PRIMARY KEY,
 );
+CREATE INDEX ON handles(id);
 
 CREATE TABLE firebase(
   firebase_id text PRIMARY KEY,

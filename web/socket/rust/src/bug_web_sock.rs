@@ -1,16 +1,18 @@
 use actix::prelude::*;
-use actix::ResponseFuture;
+// use actix::ResponseFuture;
+use crate::bughouse_server::{BughouseServer, ConnID, ServerActor};
+use crate::db::Db;
+use crate::error::Error;
+use crate::messages::{Auth, ClientMessage, ServerMessage, ServerMessageKind};
 use actix_web::*;
 use actix_web_actors::ws;
-use chrono::prelude::*;
 use bytestring::ByteString;
+use chrono::prelude::*;
+use futures::executor::block_on;
 use serde_json::{json, Value};
-use std::time::{Duration, Instant};
 use std::sync::Arc;
-
-use crate::bughouse_server::{ConnID, BughouseServer};
-use crate::error::Error;
-use crate::messages::{Auth, WsMessage};
+use std::thread;
+use std::time::{Duration, Instant};
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
@@ -23,31 +25,47 @@ const ENQ_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub struct BugContext {
-  pub srv_addr: Addr<BughouseServer>,
+    pub srv_recipient: Recipient<ServerMessage>,
+    pub server: &'static BughouseServer,
+    db: Arc<Db>,
 }
 
-impl BugContext  {
-  pub fn create(
-    srv_addr: Addr<BughouseServer>,
-  ) -> Self {
-    BugContext { srv_addr }
-  }
-  pub fn get_srv_addr(&self) -> &Addr<BughouseServer> {
-    &self.srv_addr
-  }
+impl BugContext {
+    pub fn create(
+        srv_recipient: Recipient<ServerMessage>,
+        server: &'static BughouseServer,
+        db: Arc<Db>,
+    ) -> Self {
+        BugContext {
+            srv_recipient,
+            server,
+            db,
+        }
+    }
+
+    pub fn get_srv_recipient(&self) -> &Recipient<ServerMessage> {
+        &self.srv_recipient
+    }
+
+    pub fn get_db(&self) -> Arc<Db> {
+        self.db.clone()
+    }
 }
 
-impl Clone for BugContext {
-  fn clone(&self) -> Self {
-    BugContext { srv_addr: self.get_srv_addr().clone() }
-  }
-}
+// impl Clone for BugContext {
+//   fn clone(&self) -> Self {
+//     BugContext {
+//         srv_recipient: self.get_srv_recipient().clone()
+//         srv_recipient: self.get_srv_recipient().clone()
+//     }
+//   }
+// }
 
 pub struct BugWebSock {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb_instant: Instant,
-    srv_addr: Addr<BughouseServer>,
+    srv_recipient: Recipient<ServerMessage>,
     /// unique session id
     id: ConnID,
 }
@@ -92,14 +110,14 @@ impl Actor for BugWebSock {
 // }
 
 /// BughouseSever sends these messages to Socket session
-impl Handler<WsMessage> for BugWebSock {
+impl Handler<ClientMessage> for BugWebSock {
     type Result = ();
     fn handle(
         &mut self,
-        msg: WsMessage,
+        msg: ClientMessage,
         ctx: &mut Self::Context,
     ) -> Self::Result {
-        println!("WsMessage. Grabbing user data from server");
+        println!("ClientMessage. Grabbing user data from server");
         // ctx.text(msg.0);
     }
 }
@@ -159,12 +177,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 }
 
 impl BugWebSock {
-    pub fn new(srv_addr: Addr<BughouseServer>) -> Self {
+    pub fn new(srv_recipient: Recipient<ServerMessage>) -> Self {
         Self {
             hb_instant: Instant::now(),
-            srv_addr,
-            id: 0
-            // server: BughouseServer::get(),
+            srv_recipient,
+            id: 0, // server: BughouseServer::get(),
         }
     }
 
@@ -239,29 +256,61 @@ impl BugWebSock {
                 let token = val["token"].as_str().ok_or(Error::AuthError {
                     reason: "Malformed token".to_string(),
                 })?;
-                // Authenticate self in server. 
-                self.srv_addr.send(Auth {
-                    token: token.to_string(),
-                    addr: ctx.address(),
-                })
-                .into_actor(self)
-                    .then(|res, act, ctx| {
-                        match res {
-                            Ok(Ok(connID)) => {
-                                act.id = connID;
-                                println!("Authed: {}", connID);
-                            },
-                            Ok(Err(e)) => {
-                                eprintln!("Auth errored: {}", e);
-                            },
-                            // something is wrong with chat server
-                            _ => ctx.stop(),
-                        }
-                        actix::fut::ready(())
-                    })
-                .wait(ctx);
+
+                self.srv_recipient
+                    .do_send(ServerMessage::new(ServerMessageKind::Auth(
+                        ctx.address().recipient(),
+                        token.to_string(),
+                    )))
+                    .expect("WTF");
+                // .expect("Couldn't send AUTH");
+                //     .into_actor(self)
+                //     .then(|res, _, _ctx| {
+                //         println!("future go there");
+                //         match res {
+                //             Ok(m) => { println!("auth success on websocket thread: {:?}", m) }
+                //             Err(e) => { eprintln!("Auth error on websocket thread: {:?}", e) }
+                //         }
+                //         actix::fut::ready(())
+                //     })
+                // .spawn(ctx);
+                println!("sent server AUTH...");
+                // BughouseServer::get_tx().send((recip, format!("auth:{}", token)));
+
+                // let _res = web::block(move || block_on(async {
+                //         BughouseServer::get().authenticate(Auth {
+                //             token: token.to_string(),
+                //             addr: addr,
+                //         }).await
+                // }));
+                // _res.await
+                // if (res.is_err()) {
+                //     eprintln!("Auth error");
+                // }
+
+                // Authenticate self in server.
+                // self.srv_addr.send(Auth {
+                //     token: token.to_string(),
+                //     addr: ctx.address(),
+                // });
+                // .into_actor(self)
+                //     .then(|res, act, ctx| {
+                //         match res {
+                //             Ok(Ok(connID)) => {
+                //                 act.id = connID;
+                //                 println!("Authed: {}", connID);
+                //             },
+                //             Ok(Err(e)) => {
+                //                 eprintln!("Auth errored: {}", e);
+                //             },
+                //             // something is wrong with chat server
+                //             _ => ctx.stop(),
+                //         }
+                //         actix::fut::ready(())
+                //     })
+                // .wait(ctx);
             }
-            _ => eprintln!("TODO")
+            _ => eprintln!("TODO"),
         }
         Ok(())
     }

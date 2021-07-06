@@ -1,7 +1,9 @@
 use chrono::prelude::*;
 use noneifempty::NoneIfEmpty;
-use scylla::cql_to_rust::FromRow;
-use scylla::macros::FromRow;
+use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::macros::{FromRow, FromUserType, IntoUserType};
+use scylla::query::Query;
+use scylla::statement::Consistency;
 use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
 use std::env;
@@ -30,18 +32,18 @@ pub struct FirebaseRowData {
     provider_id: Option<String>,
 }
 
-#[derive(Clone, Debug, FromRow)]
+#[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRowData {
-    uid: Uuid,
-    firebase_id: String,
+    id: Option<Uuid>,
+    firebase_id: Option<String>,
     name: Option<String>,
-    handle_id: Uuid,
+    handle: Option<String>,
     photo_id: Option<Uuid>,
 }
 
 impl UserRowData {
     pub fn get_uid(&self) -> Uuid {
-        self.uid
+        self.id.unwrap()
     }
 }
 
@@ -68,12 +70,15 @@ impl Db {
     //      False | Guest_XYZ | 8ac88980-d963-11eb-bb7e-000000000002
     //
     async fn new_guest_handle(&self) -> Result<(Uuid, String), Error> {
-        let uuid = Uuid::new_v4();
+        let uuid = self.now()?;
         let handle = format!("Guest_{}", b73_encode(uuid.as_fields().0));
-        let _res = self.session.query(
-           "INSERT INTO bughouse.handles (id, handle) VALUES(?) IF NOT EXISTS",
-           (uuid, &handle)
-           ).await?;
+
+        let mut query = Query::new(
+            "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
+            );
+        query.set_consistency(Consistency::One);
+        query.set_serial_consistency(Some(Consistency::Serial));
+        self.session.query(query, (&handle, uuid)).await?;
         Ok((uuid, handle))
     }
 
@@ -90,34 +95,30 @@ impl Db {
         fid: &str,
     ) -> Result<UserRowData, Error> {
         let firebase_data = Db::fetch_firebase_data(fid)?;
-        let (handle_id, _handle) = self.new_guest_handle().await?;
-        let uid = self.now()?;
-        let res = self
-            .session
+        let (id, handle) = self.new_guest_handle().await?;
+        self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, name, handle_id) VALUES(?)",
+               (id, firebase_id, name, handle) VALUES (?, ?, ?, ?)",
                 (
-                    uid,
+                    id,
                     &firebase_data.fid,
                     &firebase_data.display_name,
-                    handle_id,
+                    handle,
                 ),
             )
             .await?;
-        println!("mk_user_for_fid: {:?}", res);
-        let row = &res.rows.unwrap()[0];
-        println!("row: {:?}", row);
         Ok(UserRowData {
-            uid,
-            firebase_id: firebase_data.fid,
+            id: Some(id),
+            firebase_id: Some(firebase_data.fid),
             name: firebase_data.display_name,
-            handle_id,
+            handle: Some(handle),
             photo_id: None,
         })
     }
 
     pub fn fetch_firebase_data(fid: &str) -> Result<FirebaseRowData, Error> {
+        println!("Fetch firebase data...");
         let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
         write!(stream, "{}\n{}\n", FIRE_USER, fid)?;
         let mut resp = String::new();
@@ -159,18 +160,17 @@ impl Db {
         &self,
         fid: &str,
     ) -> Result<UserRowData, Error> {
-        let query_str =
-            format!("SELECT * FROM bughouse.users WHERE firebase_id = {}", fid);
+        let query_str = format!(
+            "SELECT id, firebase_id, name, handle_id, photo_id 
+             FROM bughouse.users WHERE firebase_id = '{}'",
+            fid
+        );
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
-            // let urows = rows.into_typed::<UserRowData>();
-            // let user = urows.nth(0).unwrap();
             for row in rows.into_typed::<UserRowData>() {
                 return Ok(row?);
             }
-            return Err(Error::Unexpected("WTF no row?".to_string()));
-        } else {
-            Ok(self.mk_user_for_fid(fid).await?)
         }
+        Ok(self.mk_user_for_fid(fid).await?)
     }
 }

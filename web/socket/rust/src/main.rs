@@ -2,14 +2,13 @@
 extern crate lazy_static;
 
 use actix::prelude::*;
-use actix_web::*;
-use web::Data;
 use actix_files as fs;
-use actix_web::{
-    middleware, web, App, HttpRequest, HttpResponse, HttpServer,
-};
+use actix_web::*;
+use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
 use std::io;
+use std::sync::Arc;
+use web::Data;
 
 mod b73_encode;
 mod bug_web_sock;
@@ -18,20 +17,20 @@ mod db;
 mod error;
 mod firebase;
 mod messages;
+use bug_web_sock::{BugContext, BugWebSock};
+use bughouse_server::{BughouseServer, ServerActor};
 use db::Db;
-use bug_web_sock::{BugWebSock, BugContext};
-use bughouse_server::BughouseServer;
 
 pub async fn ws_route(
-  req: HttpRequest,
-  stream: web::Payload,
-  context: web::Data<BugContext>,
+    req: HttpRequest,
+    stream: web::Payload,
+    context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
-  ws::start(
-    BugWebSock::new(context.get_srv_addr().to_owned()),
-    &req,
-    stream,
-  )
+    ws::start(
+        BugWebSock::new(context.get_srv_recipient().to_owned()),
+        &req,
+        stream,
+    )
 }
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
@@ -45,16 +44,24 @@ async fn main() -> Result<(), io::Error> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
-    let res = Db::new().await;
-    let db = res.expect("Couldn't start DB");
+    let db = Db::new().await.expect("Could not start DB");
+    // let _db = Db::new();
+    let adb = Arc::new(db);
+    let server = BughouseServer::get(adb.clone());
+    let bug_srv = ServerActor::new(server).start();
+
     println!("starting server...");
-    let bug_srv = BughouseServer::startup(db).start();
     println!("started");
+    eprintln!("testing STDERR");
 
     // let server = BughouseServer::startup().await.expect("Couldn't start server");
     // let srv = Arc::new(server);
     HttpServer::new(move || {
-        let context = BugContext::create(bug_srv.to_owned());
+        let context = BugContext::create(
+            bug_srv.to_owned().recipient(),
+            server,
+            adb.clone(),
+        );
         // let srv_cp = srv.clone();
         App::new()
             .app_data(Data::new(context))
