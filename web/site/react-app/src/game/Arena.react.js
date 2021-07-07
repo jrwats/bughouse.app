@@ -8,10 +8,10 @@ import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
 const Arena = ({gamePair}) => {
-  const {ficsHandle, telnet} = useContext(TelnetContext);
+  const {handle, telnet} = useContext(TelnetContext);
   const gamesSrc = GameStatusSource.get(telnet);
   let [id1, id2] = gamePair.split('~');
-  console.log(`Arena ${id1}/${id2} ${ficsHandle}`);
+  console.log(`Arena ${id1}/${id2} ${handle}`);
   if (id1 === id2) {
     id2 = null;
   }
@@ -20,13 +20,13 @@ const Arena = ({gamePair}) => {
   useEffect(() => { setBoard1(gamesSrc.getBoard(id1)); }, [gamesSrc, id1])
   useEffect(() => { setBoard2(gamesSrc.getBoard(id2)); }, [gamesSrc, id2])
   const [handleColor1, setHandleColor1] =
-    useState(board1.getHandleColor(ficsHandle));
+    useState(board1.getHandleColor(handle));
   const [handleColor2, setHandleColor2] =
-    useState(board2 != null ? board2.getHandleColor(ficsHandle) : null);
+    useState(board2 != null ? board2.getHandleColor(handle) : null);
   useEffect(() => {
     const onBoard1 = () => {
-      const newHC1 = board1.getHandleColor(ficsHandle);
-      console.log(`onBoard1 ${ficsHandle} ${newHC1} ${JSON.stringify(board1.getBoard())}`);
+      const newHC1 = board1.getHandleColor(handle);
+      console.log(`onBoard1 ${handle} ${newHC1} ${JSON.stringify(board1.getBoard())}`);
       setHandleColor1(newHC1);
     };
     onBoard1();
@@ -34,11 +34,11 @@ const Arena = ({gamePair}) => {
     return () => {
       board1.off('init', onBoard1);
     }
-  }, [ficsHandle, board1, gamesSrc]);
+  }, [handle, board1, gamesSrc]);
   useEffect(() => {
     const onBoard2 = () => {
-      const newHC2 = board2.getHandleColor(ficsHandle);
-      console.log(`onBoard2 ${ficsHandle} ${newHC2} ${JSON.stringify(board2.getBoard())}`);
+      const newHC2 = board2.getHandleColor(handle);
+      console.log(`onBoard2 ${handle} ${newHC2} ${JSON.stringify(board2.getBoard())}`);
       invariant(board2 != null, 'wtf');
       console.log(`setHandleColor2(${newHC2})`);
       setHandleColor2(newHC2);
@@ -48,7 +48,7 @@ const Arena = ({gamePair}) => {
     return () => {
       board2.off('init', onBoard2);
     };
-  }, [ficsHandle, board2, gamesSrc]);
+  }, [handle, board2, gamesSrc]);
 
   // Run only once on first load
   useEffect(() => {

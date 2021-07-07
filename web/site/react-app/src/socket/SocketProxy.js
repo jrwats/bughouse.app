@@ -61,7 +61,7 @@ class SocketProxy extends EventEmitter {
           this._logout();
           return;
         }
-        this._emit('login', {uid: this._user.uid, ficsHandle: handle});
+        this._emit('login', {uid: this._user.uid, handle: handle});
         this._sock.send('bugwho'); // request bughouse state from server
         this._sock.send('pending'); // request pending offers from server
       };

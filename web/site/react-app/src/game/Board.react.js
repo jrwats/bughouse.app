@@ -9,7 +9,7 @@ import GameOverMessage from './GameOverMessage.react';
 import invariant from 'invariant';
 
 const Board = ({chessboard, orientation, id}) => {
-  const {telnet, ficsHandle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(TelnetContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
@@ -23,7 +23,7 @@ const Board = ({chessboard, orientation, id}) => {
       setHoldings(holdings);
       setViewOnly(
         chessboard.isInitialized() &&
-        chessboard.getHandleColor(ficsHandle) == null
+        chessboard.getHandleColor(handle) == null
       );
     };
     const onGameOver = () => {
@@ -37,7 +37,7 @@ const Board = ({chessboard, orientation, id}) => {
       chessboard.off('update', onUpdate);
       chessboard.off('gameOver', onGameOver);
     };
-  }, [ficsHandle, chessboard]);
+  }, [handle, chessboard]);
 
   useEffect(() => {
     const onGameOver = ({board}) => {

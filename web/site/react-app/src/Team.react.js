@@ -48,15 +48,15 @@ const ChallengeUser = ({disabled, user}) => {
 }
 
 const Team = ({partnerMap, team}) => {
-  const {telnet, ficsHandle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(TelnetContext);
   const classes = useStyles();
 
   const [player1, player2] = team;
 
   const cancellable =
-    player1.handle === ficsHandle ||
-    player2.handle === ficsHandle;
-  const disabled = cancellable || !(ficsHandle in partnerMap);
+    player1.handle === handle ||
+    player2.handle === handle;
+  const disabled = cancellable || !(handle in partnerMap);
 
 
   let cancel = null;

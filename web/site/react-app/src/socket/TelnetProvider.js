@@ -7,7 +7,7 @@ import SocketProxy from './SocketProxy';
 export const TelnetContext = createContext({
   telnet: null,
   loggedOut: true,
-  ficsHandle: null,
+  handle: null,
   outputLog: '',
 });
 
@@ -18,7 +18,7 @@ const TelnetProvider = (props) => {
   const proxy = SocketProxy.get(user);
 
   const [telnet, setTelnet] = useState(proxy);
-  const [ficsHandle, setHandle] = useState(proxy.getHandle());
+  const [handle, setHandle] = useState(proxy.getHandle());
   const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState('');
   const log = useRef('');
@@ -30,12 +30,12 @@ const TelnetProvider = (props) => {
     setTelnet(proxy);
     window.__telnet = proxy;
     const onLoggingIn = () => { setLoggedOut(false); };
-    const onLogin = ({ficsHandle}) => {
-      console.log(`TelnetProvider.login(${ficsHandle})`);
-      setHandle(ficsHandle);
+    const onLogin = ({handle}) => {
+      console.log(`TelnetProvider.login(${handle})`);
+      setHandle(handle);
       setLoggedOut(false);
     };
-    // FICS logout
+    //  logout
     const onLogout = () => {
       console.log(`TelnetProvider.logout`);
       setHandle(null);
@@ -65,7 +65,7 @@ const TelnetProvider = (props) => {
   }, [user]);
 
   return (
-    <TelnetContext.Provider value={{telnet, loggedOut, ficsHandle, outputLog}}>
+    <TelnetContext.Provider value={{telnet, loggedOut, handle, outputLog}}>
       {props.children}
     </TelnetContext.Provider>
   );

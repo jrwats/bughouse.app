@@ -47,7 +47,7 @@ const StyledMenuItem = withStyles((theme) => ({
 
 const SideMenu = ({style}) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const {telnet, ficsHandle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(TelnetContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -104,7 +104,7 @@ const SideMenu = ({style}) => {
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={`Logout as ${ficsHandle}`} />
+          <ListItemText primary={`Logout as ${handle}`} />
         </StyledMenuItem>
         <StyledMenuItem onClick={(e) => { logout(telnet); }}>
           <ListItemIcon>

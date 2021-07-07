@@ -8,7 +8,7 @@ import Button from '@material-ui/core/Button';
 import { Link } from "@reach/router";
 
 const GameOverMessage = ({chessboard}) => {
-  const {ficsHandle} = useContext(TelnetContext);
+  const {handle} = useContext(TelnetContext);
   const board = chessboard.getBoard();
   const winnerColor = chessboard.getWinner();
   console.log(`GameOverMessage ${chessboard.id}`);
@@ -19,9 +19,9 @@ const GameOverMessage = ({chessboard}) => {
   const winnerHandle = board[winnerColor].handle;
   const loserHandle = board[opposite(winnerColor)].handle;
   let msg;
-  if (ficsHandle === winnerHandle) {
+  if (handle === winnerHandle) {
     msg = 'You won';
-  } else if (ficsHandle === loserHandle) {
+  } else if (handle === loserHandle) {
     msg = 'You lost';
   } else {
     msg = (

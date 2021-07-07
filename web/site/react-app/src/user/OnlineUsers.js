@@ -78,16 +78,16 @@ class OnlineUsers extends EventEmitter {
       if (!(user.uid in this._users)) {
         return;
       }
-      const ficsHandle = this._users[user.uid].ficsHandle;
+      const handle = this._users[user.uid].handle;
       for (let i = 0; i < this._partners.length; ++i) {
         const [p1, p2] = this._partners[i];
-        if (p1.handle === ficsHandle || p2.handle === ficsHandle) {
+        if (p1.handle === handle || p2.handle === handle) {
           this._partners.splice(i, 1);
           onPartners(this._partners);
           return;
         }
       }
-      console.error(`Unpartnered ${ficsHandle} not found?`);
+      console.error(`Unpartnered ${handle} not found?`);
     });
 
     onlineUsers.once('value', (snapshot) => {
@@ -153,7 +153,7 @@ class OnlineUsers extends EventEmitter {
       debugger;
     }
     const {uid} = user;
-    const viewerHandle = this._users[uid].ficsHandle;
+    const viewerHandle = this._users[uid].handle;
     if (handle in this._unpartnered && viewerHandle in this._unpartnered) {
       this._partners.push([
         this._unpartnered[handle],
@@ -188,7 +188,7 @@ class OnlineUsers extends EventEmitter {
         // console.log(`OnlineUsers user.child_added ${data.key}`);
         if (this._users[uid] != null) {
           this._users[uid][data.key] = data.val();
-          if (data.key === 'ficsHandle') {
+          if (data.key === 'handle') {
             this._handle2uid[data.val()] = uid;
             this._mergeUserHandles();
             this._mergePartnerHandles();
@@ -200,7 +200,7 @@ class OnlineUsers extends EventEmitter {
       this._listen(user, 'child_changed', (data) => {
         // console.log(`OnlineUsers user.child_changed ${data.key}`);
         if (this._users[uid] != null) {
-          if (data.key === 'ficsHandle') {
+          if (data.key === 'handle') {
             this._handle2uid[data.val()] = uid;
           }
           this._users[uid][data.key] = data.val();
@@ -213,10 +213,10 @@ class OnlineUsers extends EventEmitter {
           console.error(`${uid} already gone?`);
           return;
         }
-        if (data.key === 'ficsHandle') {
+        if (data.key === 'handle') {
           const oldHandle = this._users[uid][data.key];
           delete this._handle2uid[oldHandle];
-          this._users[uid].ficsHandle = null;
+          this._users[uid].handle = null;
         }
         this.emit('value', this._users);
       });
@@ -241,8 +241,8 @@ class OnlineUsers extends EventEmitter {
     for (const eventName in this._listeners[refKey]) {
       this._db.ref(refKey).off(this._listeners[refKey][eventName]);
     }
-    if (this._users[uid].ficsHandle != null) {
-      delete this._handle2uid[this._users[uid].ficsHandle];
+    if (this._users[uid].handle != null) {
+      delete this._handle2uid[this._users[uid].handle];
     }
     delete this._users[uid];
     delete this._subscriptions[uid];

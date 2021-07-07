@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => {
 
 const UnpartneredPlayer = ({player}) => {
   const {outgoingOffers, partnerMap} = useContext(UsersContext);
-  const {telnet, ficsHandle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(TelnetContext);
   const {user: viewer} = useContext(AuthContext);
   const {handles: playingHandles} = useContext(GamesListContext);
   const classes = useStyles();
@@ -37,11 +37,11 @@ const UnpartneredPlayer = ({player}) => {
   const {handle} = player;
 
   const disabled =
-    ficsHandle == null ||
-    ficsHandle === handle ||
-    partnerMap[ficsHandle] != null ||
+    handle == null ||
+    handle === handle ||
     partnerMap[handle] != null ||
-    playingHandles[ficsHandle] ||
+    partnerMap[handle] != null ||
+    playingHandles[handle] ||
     playingHandles[handle] ||
     handle in outgoingOffers;
 
