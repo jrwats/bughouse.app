@@ -66,7 +66,7 @@ CREATE TABLE users(
 );
 
 CREATE INDEX ON users(firebase_id);
-CREATE INDEX ON users(handle_id);
+CREATE INDEX ON users(handle);
 
 CREATE TABLE handles(
   id timeuuid,

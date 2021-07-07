@@ -1,4 +1,4 @@
-use crate::bughouse_server::{ConnID};
+use crate::connection_mgr::ConnID;
 use crate::error::Error;
 use actix::{prelude::*, Recipient};
 
@@ -11,7 +11,7 @@ pub enum ClientMessageKind {
 #[derive(Message, Debug)]
 #[rtype(result = "()")]
 pub struct ClientMessage {
-    kind: ClientMessageKind,
+    pub kind: ClientMessageKind,
 }
 
 impl ClientMessage {

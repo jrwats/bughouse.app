@@ -38,12 +38,16 @@ pub struct UserRowData {
     firebase_id: Option<String>,
     name: Option<String>,
     handle: Option<String>,
-    photo_id: Option<Uuid>,
+    photo_url: Option<String>,
 }
 
 impl UserRowData {
     pub fn get_uid(&self) -> Uuid {
         self.id.unwrap()
+    }
+
+    pub fn get_handle(&self) -> &str{
+        &self.handle.as_ref().unwrap()
     }
 }
 
@@ -113,7 +117,7 @@ impl Db {
             firebase_id: Some(firebase_data.fid),
             name: firebase_data.display_name,
             handle: Some(handle),
-            photo_id: None,
+            photo_url: firebase_data.photo_url,
         })
     }
 
@@ -161,7 +165,7 @@ impl Db {
         fid: &str,
     ) -> Result<UserRowData, Error> {
         let query_str = format!(
-            "SELECT id, firebase_id, name, handle_id, photo_id 
+            "SELECT id, firebase_id, name, handle, photo_url
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );

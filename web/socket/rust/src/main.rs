@@ -12,6 +12,10 @@ use web::Data;
 
 mod b73_encode;
 mod bug_web_sock;
+mod hash;
+mod time_control;
+mod seeks;
+mod connection_mgr;
 mod bughouse_server;
 mod db;
 mod error;
@@ -27,7 +31,10 @@ pub async fn ws_route(
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
     ws::start(
-        BugWebSock::new(context.get_srv_recipient().to_owned()),
+        BugWebSock::new(
+            context.get_srv_recipient().to_owned(),
+            context.server,
+            ),
         &req,
         stream,
     )

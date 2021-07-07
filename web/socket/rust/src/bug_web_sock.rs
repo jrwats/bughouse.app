@@ -1,9 +1,10 @@
 use actix::prelude::*;
 // use actix::ResponseFuture;
-use crate::bughouse_server::{BughouseServer, ConnID};
-use crate::db::Db;
+use crate::connection_mgr::ConnID;
+use crate::bughouse_server::BughouseServer;
+use crate::db::{Db, UserRowData};
 use crate::error::Error;
-use crate::messages::{ClientMessage, ServerMessage, ServerMessageKind};
+use crate::messages::{ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind};
 use actix_web::*;
 use actix_web_actors::ws;
 use bytestring::ByteString;
@@ -55,6 +56,7 @@ pub struct BugWebSock {
     /// otherwise we drop connection.
     hb_instant: Instant,
     srv_recipient: Recipient<ServerMessage>,
+    server: &'static BughouseServer,
     /// unique session id
     id: ConnID,
 }
@@ -73,11 +75,23 @@ impl Handler<ClientMessage> for BugWebSock {
     type Result = ();
     fn handle(
         &mut self,
-        _msg: ClientMessage,
-        _ctx: &mut Self::Context,
+        msg: ClientMessage,
+        ctx: &mut Self::Context,
     ) -> Self::Result {
-        println!("ClientMessage. Grabbing user data from server");
-        // ctx.text(msg.0);
+        match msg.kind {
+            ClientMessageKind::Auth(conn_id) => {
+                self.id = conn_id;
+                let user = self.server.user_from_conn(conn_id);
+
+                // TODO - remove - just here emulating old auth
+                let msg = json!({
+                    "kind": "login", 
+                    "handle": user.as_ref().unwrap().get_handle()
+                });
+                println!("Sending login, {}", user.unwrap().get_handle());
+                ctx.text(msg.to_string());
+            }
+        }
     }
 }
 
@@ -127,6 +141,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
+
                 ctx.close(reason);
                 ctx.stop();
             }
@@ -136,11 +151,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 }
 
 impl BugWebSock {
-    pub fn new(srv_recipient: Recipient<ServerMessage>) -> Self {
+    pub fn new(
+        srv_recipient: Recipient<ServerMessage>,
+        server: &'static BughouseServer,
+        ) -> Self {
         Self {
             hb_instant: Instant::now(),
             srv_recipient,
-            id: 0, // server: BughouseServer::get(),
+            server,
+            id: 0, 
         }
     }
 
@@ -222,52 +241,30 @@ impl BugWebSock {
                         token.to_string(),
                     )))
                     .expect("WTF");
-                // .expect("Couldn't send AUTH");
+                // self.srv_recipient
+                //     .send(ServerMessage::new(ServerMessageKind::Auth(
+                //         ctx.address().recipient(),
+                //         token.to_string(),
+                //     )))
                 //     .into_actor(self)
                 //     .then(|res, _, _ctx| {
                 //         println!("future go there");
                 //         match res {
-                //             Ok(m) => { println!("auth success on websocket thread: {:?}", m) }
+                //             Ok(m) => { 
+                //                 if let Ok(msg) = m {
+                //                     match msg.kind {
+                //                         ClientMessageKind::Auth(id) => {
+                //                             self.id = id;
+                //                         }
+                //                     }
+                //                 }
+                //                 println!("Auth success on websocket thread: {:?}", m) 
+                //             }
                 //             Err(e) => { eprintln!("Auth error on websocket thread: {:?}", e) }
                 //         }
                 //         actix::fut::ready(())
                 //     })
                 // .spawn(ctx);
-                println!("sent server AUTH...");
-                // BughouseServer::get_tx().send((recip, format!("auth:{}", token)));
-
-                // let _res = web::block(move || block_on(async {
-                //         BughouseServer::get().authenticate(Auth {
-                //             token: token.to_string(),
-                //             addr: addr,
-                //         }).await
-                // }));
-                // _res.await
-                // if (res.is_err()) {
-                //     eprintln!("Auth error");
-                // }
-
-                // Authenticate self in server.
-                // self.srv_addr.send(Auth {
-                //     token: token.to_string(),
-                //     addr: ctx.address(),
-                // });
-                // .into_actor(self)
-                //     .then(|res, act, ctx| {
-                //         match res {
-                //             Ok(Ok(connID)) => {
-                //                 act.id = connID;
-                //                 println!("Authed: {}", connID);
-                //             },
-                //             Ok(Err(e)) => {
-                //                 eprintln!("Auth errored: {}", e);
-                //             },
-                //             // something is wrong with chat server
-                //             _ => ctx.stop(),
-                //         }
-                //         actix::fut::ready(())
-                //     })
-                // .wait(ctx);
             }
             _ => eprintln!("TODO"),
         }
