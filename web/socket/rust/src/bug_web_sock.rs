@@ -82,13 +82,13 @@ impl Handler<ClientMessage> for BugWebSock {
             ClientMessageKind::Auth(conn_id) => {
                 self.id = conn_id;
                 let user = self.server.user_from_conn(conn_id);
+                ctx.text("authenticated".to_string());
 
-                // TODO - remove - just here emulating old auth
+                // TODO - rethink - emulating old FICS login auth
                 let msg = json!({
                     "kind": "login", 
-                    "handle": user.as_ref().unwrap().get_handle()
+                    "handle": user.unwrap().get_handle()
                 });
-                println!("Sending login, {}", user.unwrap().get_handle());
                 ctx.text(msg.to_string());
             }
         }
@@ -141,7 +141,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
-
+                self.server.on_close(ctx.address().recipient());
                 ctx.close(reason);
                 ctx.stop();
             }

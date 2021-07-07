@@ -28,14 +28,10 @@ pub struct BughouseServer {
     // tx: Mutex<Sender<ChanMsg>>,
 }
 
-pub fn get_server(db: Arc<Db>) -> &'static BughouseServer {
-    static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
-    INSTANCE.get_or_init(move || BughouseServer::new(db))
-}
-
 pub struct ServerActor {
     server: &'static BughouseServer,
 }
+
 impl ServerActor {
     pub fn new(server: &'static BughouseServer) -> Self {
         ServerActor { server }
@@ -49,9 +45,7 @@ impl Actor for ServerActor {
 
 impl Handler<ServerMessage> for ServerActor {
     type Result = ResponseFuture<Result<ClientMessage, Error>>;
-    // type Result = Result<ConnID, Error>;
 
-    // Authenticate uid
     fn handle(
         &mut self,
         msg: ServerMessage,
@@ -59,6 +53,7 @@ impl Handler<ServerMessage> for ServerActor {
     ) -> Self::Result {
         match msg.kind {
             ServerMessageKind::Auth(recipient, token) => {
+                // Authenticate token uid
                 let fut = self.server.authenticate(recipient, token);
                 Box::pin(async move { fut.await })
             }
@@ -68,7 +63,8 @@ impl Handler<ServerMessage> for ServerActor {
 
 impl BughouseServer {
     pub fn get(db: Arc<Db>) -> &'static BughouseServer {
-        get_server(db)
+        static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
+        INSTANCE.get_or_init(move || BughouseServer::new(db))
     }
 
     // pub fn get_tx() -> Sender<ChanMsg> {
@@ -118,15 +114,8 @@ impl BughouseServer {
         match label {
             "uid" => {
                 println!("auth.uid: {}", payload);
-                // let raddr = auth.addr.downgrade();
-
-                let rclone = recipient.clone();
-                println!("Cloned");
-                // let conn_id = block_on(BughouseServer::get().add_conn(rclone, payload))
-                //     .expect("Could not add connection");
-                let conn_id = self.add_conn(rclone, payload).await?;
+                let conn_id = self.add_conn(recipient.clone(), payload).await?;
                 println!("conn_id: {}", conn_id);
-
 
                 recipient
                     .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
@@ -155,11 +144,11 @@ impl BughouseServer {
        self.conns.get_user(conn_id) 
     }
 
-    pub async fn rm_conn(
+    pub fn on_close(
         &'static self,
         recipient: Recipient<ClientMessage>,
-        conn_id: ConnID,
     ) -> Result<(), Error> {
+        self.conns.on_close(recipient).expect("Couldn't remove conn");
         Ok(())
     }
 

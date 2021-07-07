@@ -45,6 +45,7 @@ impl ConnectionMgr {
         recipient: Recipient<ClientMessage>,
         user: UserRowData,
         ) -> Result<ConnID, Error> {
+        println!("ConnectionMgr.add_conn ...");
         let uid = user.get_uid();
         let conn_id = hash(&recipient);
         println!("inserting...");
@@ -70,8 +71,8 @@ impl ConnectionMgr {
                     }
                 }
             }
-            Ok(conn_id)
         }
+        Ok(conn_id)
     }
 
     pub fn get_user(
@@ -113,5 +114,18 @@ impl ConnectionMgr {
 
         Ok(())
     }
+
+    pub fn on_close(
+        &self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        let conn_id = hash(&recipient);
+        if !self.conns.read().unwrap().contains_key(&conn_id) {
+            return Ok(());
+        }
+        self.remove_conn(conn_id);
+        Ok(())
+    }
+
 }
 
