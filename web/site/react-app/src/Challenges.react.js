@@ -20,11 +20,11 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-class Ticker extends EventEmitter {
-  tick() { this.emit('tick'); }
-}
-const _ticker = new Ticker();
-setInterval(() => { _ticker.tick(); }, 5000);
+// class Ticker extends EventEmitter {
+//   tick() { this.emit('tick'); }
+// }
+// const _ticker = new Ticker();
+// setInterval(() => { _ticker.tick(); }, 5000);
 
 const Challenges = () => {
   const {socket} = useContext(SocketContext);
@@ -35,14 +35,17 @@ const Challenges = () => {
     socket.send(`accept ${id}`);
     e.preventDefault();
   };
-  useEffect(() => {
-    const onTick = () => {
-      console.log(`Challenges requesting 'pending'`);
-      socket.sendEvent('pending');
-    };
-    _ticker.on('tick', onTick);
-    return () => { _ticker.off('tick', onTick); };
-  }, [socket]);
+  // TODO delete?
+  // Only needed for FICS which relies on polling.
+  // bughouse.app can do a proper push over the socket
+  // useEffect(() => {
+  //   const onTick = () => {
+  //     console.log(`Challenges requesting 'pending'`);
+  //     socket.sendEvent('pending');
+  //   };
+  //   _ticker.on('tick', onTick);
+  //   return () => { _ticker.off('tick', onTick); };
+  // }, [socket]);
   const challengeComponents = [];
   for (const challengerHandle in challenges) {
     const challenge = challenges[challengerHandle];

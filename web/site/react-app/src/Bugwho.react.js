@@ -22,10 +22,10 @@ const Bugwho = (props) => {
     <GamesListProvider>
       <ChallengesProvider>
         <div>
-          <Challenges />
+          {/* <Challenges /> */}
           <GamesList />
-          <Teams {...{partners, onlineUsers, partnerMap}} />
-          <Offers {...{unpartnered, incomingOffers}} />
+          {/* <Teams {...{partners, onlineUsers, partnerMap}} /> */}
+          {/* <Offers {...{unpartnered, incomingOffers}} /> */}
           <Unpartnered unpartnered={unpartnered} />
         </div>
       </ChallengesProvider>
