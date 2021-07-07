@@ -100,18 +100,18 @@ impl ConnectionMgr {
         &self,
         conn_id: ConnID,
         ) -> Result<(), Error> {
-        let uid = self.uid_from_conn(conn_id)?;
+        let uid = self.uid_from_conn(conn_id).unwrap_or_default();
         {
             let mut conns = self.conns.write().unwrap();
             conns.remove(&conn_id);
         }
-        {
+        if uid != Uuid::nil() {
             let mut u2c = self.user_conns.write().unwrap();
             let conns = u2c.get_mut(&uid)
                 .ok_or(Error::Unexpected(format!("Couldn't find user: {}", &uid)))?;
             conns.remove(&conn_id);
         }
-
+        println!("Removed {}", conn_id);
         Ok(())
     }
 
@@ -123,8 +123,7 @@ impl ConnectionMgr {
         if !self.conns.read().unwrap().contains_key(&conn_id) {
             return Ok(());
         }
-        self.remove_conn(conn_id);
-        Ok(())
+        self.remove_conn(conn_id)
     }
 
 }
