@@ -10,7 +10,8 @@ CREATE TYPE time_control (
 
 CREATE TYPE user_snapshot (
   id uuid,
-  pregame_rating int,
+  pre_rating smallint,
+  pre_deviation smallint,
 );
 
 CREATE TYPE board (
@@ -18,44 +19,46 @@ CREATE TYPE board (
   black frozen<user_snapshot>,
 );
 
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS games (
   id timeuuid PRIMARY KEY,
   start_time timestamp,
   result smallint,
   time_ctrl time_control,
-  board_a board,
-  board_b board,
+  boards tuple<board, board>,
   moves map<int, smallint>, // time,player => bitmap encoding
 );
 CREATE INDEX ON games(result);
 
-CREATE TABLE user_games (
+CREATE TABLE IF NOT EXISTS user_games (
   userid timeuuid,
   gameid timeuuid,
   PRIMARY KEY (userid, gameid)
 );
 
-CREATE TABLE current_rating(
-  id timeuuid PRIMARY KEY,
-  rating int,
+CREATE TABLE IF NOT EXISTS current_rating (
+  user_id timeuuid PRIMARY KEY,
+  rating smallint,
+  deviation smallint,
 );
 
-CREATE TABLE rating_history(
-  id timeuuid PRIMARY KEY,
-  rating int,
+CREATE TABLE IF NOT EXISTS rating_history (
+  user_id timeuuid,
   time timestamp,
+  rating smallint,
+  deviation smallint,
+  PRIMARY KEY ((user_id), time)
 );
 
 // Local secondary index optimized for
 // SELECT rating FROM user_ratings WHERE uuid = '...' AND timestamp ...;
-CREATE INDEX ON rating_history((id), time);
+// CREATE INDEX ON rating_history((id), time);
 
-CREATE TABLE photos(
+CREATE TABLE IF NOT EXISTS photos (
   id uuid PRIMARY KEY,
   photo blob,
 );
 
-CREATE TABLE users(
+CREATE TABLE IF NOT EXISTS users (
   id timeuuid,
   firebase_id text,
   name text,
@@ -68,13 +71,13 @@ CREATE TABLE users(
 CREATE INDEX ON users(firebase_id);
 CREATE INDEX ON users(handle);
 
-CREATE TABLE handles(
+CREATE TABLE IF NOT EXISTS handles(
   id timeuuid,
   handle text PRIMARY KEY,
 );
 CREATE INDEX ON handles(id);
 
-CREATE TABLE firebase(
+CREATE TABLE IF NOT EXISTS firebase(
   firebase_id text PRIMARY KEY,
   display_name text,
   email text,
