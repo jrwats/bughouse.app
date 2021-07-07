@@ -1,22 +1,22 @@
 import React, {useEffect, useRef, useContext} from 'react';
-import {TelnetContext} from './socket/TelnetProvider';
+import {SocketContext} from './socket/SocketProvider';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import TextField from '@material-ui/core/TextField';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
-const FicsTelnetOutput = (props) => {
+const FicsSocketOutput = (props) => {
   const [cmd, setCmd] = React.useState('');
-  const {outputLog, telnet} = useContext(TelnetContext);
+  const {outputLog, telnet} = useContext(SocketContext);
   const ref = useRef(null);
 
   useEffect(() => {
     if (ref.current != null) {
-      console.log('FicsTelnetOutput setting scrollTop')
+      console.log('FicsSocketOutput setting scrollTop')
       ref.current.scrollTop = Number.MAX_SAFE_INTEGER;
     } else {
-      console.log('FicsTelnetOutput ref.current is null');
+      console.log('FicsSocketOutput ref.current is null');
     }
   });
 
@@ -62,4 +62,4 @@ const FicsTelnetOutput = (props) => {
   );
 };
 
-export default FicsTelnetOutput;
+export default FicsSocketOutput;

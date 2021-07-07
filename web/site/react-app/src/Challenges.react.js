@@ -2,7 +2,7 @@ import React, {useEffect, useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ChallengeSummary from './ChallengeSummary.react';
 import Paper from '@material-ui/core/Paper';
-import { TelnetContext } from './socket/TelnetProvider';
+import { SocketContext } from './socket/SocketProvider';
 import { Link } from "@reach/router";
 import { EventEmitter } from 'events';
 import { ChallengesContext } from './game/ChallengesProvider';
@@ -27,7 +27,7 @@ const _ticker = new Ticker();
 setInterval(() => { _ticker.tick(); }, 5000);
 
 const Challenges = () => {
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   const {challenges} = useContext(ChallengesContext);
   const classes = useStyles();
 

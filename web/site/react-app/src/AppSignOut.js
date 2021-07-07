@@ -1,13 +1,13 @@
 import React, {useContext} from 'react'
 import Button from '@material-ui/core/Button';
 import {AuthContext} from './auth/AuthProvider';
-import {TelnetContext} from './socket/TelnetProvider';
+import {SocketContext} from './socket/SocketProvider';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import logout from './logout';
 
 const AppSignOut = () => {
   const {user} = useContext(AuthContext);
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   return (
     <Button
       disabled={user == null}

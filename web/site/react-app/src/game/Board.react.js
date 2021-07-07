@@ -3,13 +3,13 @@ import Chessground from 'react-chessground'
 import Holdings from './Holdings.react'
 import PlayerDisplay from './PlayerDisplay.react'
 import './chessground.css'
-import { TelnetContext } from '../socket/TelnetProvider';
+import { SocketContext } from '../socket/SocketProvider';
 import { opposite } from 'chessground/util';
 import GameOverMessage from './GameOverMessage.react';
 import invariant from 'invariant';
 
 const Board = ({chessboard, orientation, id}) => {
-  const {telnet, handle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());

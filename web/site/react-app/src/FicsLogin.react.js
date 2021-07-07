@@ -3,14 +3,14 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import React, {useContext, useRef} from 'react'
-import {TelnetContext} from './socket/TelnetProvider'
+import {SocketContext} from './socket/SocketProvider'
 import Typography from '@material-ui/core/Typography';
 import AppSignOut from './AppSignOut';
 import Profile from './user/Profile';
 import {AuthContext} from './auth/AuthProvider';
 
 const FicsLogin = () => {
-  const {telnet, loggedOut} = useContext(TelnetContext);
+  const {telnet, loggedOut} = useContext(SocketContext);
   const {user} = useContext(AuthContext);
   const usernameRef = useRef();
   const passwordRef = useRef();

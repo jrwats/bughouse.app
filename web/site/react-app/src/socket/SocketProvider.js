@@ -4,7 +4,7 @@ import SocketProxy from './SocketProxy';
 /**
  * Provide authenticated firebase user as context to child components
  */
-export const TelnetContext = createContext({
+export const SocketContext = createContext({
   telnet: null,
   loggedOut: true,
   handle: null,
@@ -13,31 +13,31 @@ export const TelnetContext = createContext({
 
 const normalize = msg => msg.split('\n\r').join('\n')
 
-const TelnetProvider = (props) => {
+const SocketProvider = (props) => {
   const {user} = props;
   const proxy = SocketProxy.get(user);
 
-  const [telnet, setTelnet] = useState(proxy);
+  const [telnet, setSocket] = useState(proxy);
   const [handle, setHandle] = useState(proxy.getHandle());
   const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState('');
   const log = useRef('');
 
   useEffect(() => {
-    console.log(`${Date.now()}: TelnetProvider creating SocketProxy. ${user.uid}`);
+    console.log(`${Date.now()}: SocketProvider creating SocketProxy. ${user.uid}`);
     const proxy = SocketProxy.get(user);
-    console.log(`TelnetProvider.setTelnet`);
-    setTelnet(proxy);
+    console.log(`SocketProvider.setTelnet`);
+    setSocket(proxy);
     window.__telnet = proxy;
     const onLoggingIn = () => { setLoggedOut(false); };
     const onLogin = ({handle}) => {
-      console.log(`TelnetProvider.login(${handle})`);
+      console.log(`SocketProvider.login(${handle})`);
       setHandle(handle);
       setLoggedOut(false);
     };
     //  logout
     const onLogout = () => {
-      console.log(`TelnetProvider.logout`);
+      console.log(`SocketProvider.logout`);
       setHandle(null);
       setLoggedOut(true);
     };
@@ -48,7 +48,7 @@ const TelnetProvider = (props) => {
     }
     // App sign out
     const onDestroy = () => {
-      setTelnet(null);
+      setSocket(null);
     };
     proxy.on('data', onData);
     proxy.on('logging_in', onLoggingIn);
@@ -65,10 +65,10 @@ const TelnetProvider = (props) => {
   }, [user]);
 
   return (
-    <TelnetContext.Provider value={{telnet, loggedOut, handle, outputLog}}>
+    <SocketContext.Provider value={{telnet, loggedOut, handle, outputLog}}>
       {props.children}
-    </TelnetContext.Provider>
+    </SocketContext.Provider>
   );
 };
 
-export default TelnetProvider;
+export default SocketProvider;

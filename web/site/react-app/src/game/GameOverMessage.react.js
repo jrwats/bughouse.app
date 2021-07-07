@@ -2,13 +2,13 @@ import React, {useContext} from 'react';
 import { opposite } from 'chessground/util';
 import Paper from '@material-ui/core/Paper';
 import HandleDisplay from './HandleDisplay.react';
-import { TelnetContext} from '../socket/TelnetProvider';
+import { SocketContext} from '../socket/SocketProvider';
 import PeopleIcon from '@material-ui/icons/People';
 import Button from '@material-ui/core/Button';
 import { Link } from "@reach/router";
 
 const GameOverMessage = ({chessboard}) => {
-  const {handle} = useContext(TelnetContext);
+  const {handle} = useContext(SocketContext);
   const board = chessboard.getBoard();
   const winnerColor = chessboard.getWinner();
   console.log(`GameOverMessage ${chessboard.id}`);

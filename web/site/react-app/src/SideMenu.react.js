@@ -11,7 +11,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import PeopleIcon from '@material-ui/icons/People';
 import { Link } from "@reach/router";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import {TelnetContext} from './socket/TelnetProvider';
+import {SocketContext} from './socket/SocketProvider';
 import logout from './logout';
 
 const StyledMenu = withStyles({
@@ -47,7 +47,7 @@ const StyledMenuItem = withStyles((theme) => ({
 
 const SideMenu = ({style}) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const {telnet, handle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(SocketContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);

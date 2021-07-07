@@ -3,13 +3,13 @@ import React, {useContext} from 'react'
 import FicsLogin from './FicsLogin.react';
 import Loading from './Loading.react';
 import Main from './Main.react';
-import TelnetProvider, {TelnetContext} from './socket/TelnetProvider';
+import SocketProvider, {SocketContext} from './socket/SocketProvider';
 import UsersProvider from './user/UsersProvider';
 import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';
 
 const HomeRouter = (props) => {
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   if (telnet == null || !telnet.isInitialized()) {
     console.log(`HomeRouter initializing telnet ${telnet}`);
     return <Loading path="loading" />;
@@ -34,11 +34,11 @@ const Home = (props) => {
   }
 
   return (
-    <TelnetProvider user={user}>
+    <SocketProvider user={user}>
       <UsersProvider>
         <HomeRouter />
       </UsersProvider>
-    </TelnetProvider>
+    </SocketProvider>
   );
 };
 

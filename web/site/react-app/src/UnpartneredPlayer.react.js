@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 import { Link } from "@reach/router";
 import Player from './Player.react';
-import { TelnetContext } from './socket/TelnetProvider';
+import { SocketContext } from './socket/SocketProvider';
 import { UsersContext } from './user/UsersProvider';
 import { AuthContext } from './auth/AuthProvider';
 import { GamesListContext } from './game/GamesListProvider';
@@ -27,23 +27,22 @@ const useStyles = makeStyles((theme) => {
 
 const UnpartneredPlayer = ({player}) => {
   const {outgoingOffers, partnerMap} = useContext(UsersContext);
-  const {telnet, handle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(SocketContext);
   const {user: viewer} = useContext(AuthContext);
   const {handles: playingHandles} = useContext(GamesListContext);
   const classes = useStyles();
   if (player == null) {
     debugger;
   }
-  const {handle} = player;
 
   const disabled =
-    handle == null ||
-    handle === handle ||
-    partnerMap[handle] != null ||
-    partnerMap[handle] != null ||
-    playingHandles[handle] ||
-    playingHandles[handle] ||
-    handle in outgoingOffers;
+    player.handle == null ||
+    player.handle === handle ||
+    partnerMap[player.handle] != null ||
+    partnerMap[player.handle] != null ||
+    playingHandles[player.handle] ||
+    playingHandles[player.handle] ||
+    player.handle in outgoingOffers;
 
   const userComponent = (
     <Paper elevation={8} className={`${disabled ? classes.disabled : ''} ${classes.paper}`}>

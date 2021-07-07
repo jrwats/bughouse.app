@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import GamesListSource from "./GamesListSource";
-import {TelnetContext} from '../socket/TelnetProvider';
+import {SocketContext} from '../socket/SocketProvider';
 
 export const GamesListContext = createContext({
   games: [],
@@ -20,7 +20,7 @@ const getHandlesFromGames = (games) => {
 }
 
 const GamesListProvider = (props) => {
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   const src = GamesListSource.get(telnet);
   const [games, setGames] = useState(src.getGames());
   const [handles, setHandles] = useState(getHandlesFromGames(games));

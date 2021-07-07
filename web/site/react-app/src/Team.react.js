@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Player from './Player.react';
-import { TelnetContext } from './socket/TelnetProvider';
+import { SocketContext } from './socket/SocketProvider';
 import { Link } from "@reach/router";
 import CancelIcon from '@material-ui/icons/Cancel';
 
@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => {
 });
 
 const ChallengeUser = ({disabled, user}) => {
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   const classes = useStyles();
   if (disabled) {
     return <Player className={classes.disabled} player={user} />
@@ -48,7 +48,7 @@ const ChallengeUser = ({disabled, user}) => {
 }
 
 const Team = ({partnerMap, team}) => {
-  const {telnet, handle} = useContext(TelnetContext);
+  const {telnet, handle} = useContext(SocketContext);
   const classes = useStyles();
 
   const [player1, player2] = team;

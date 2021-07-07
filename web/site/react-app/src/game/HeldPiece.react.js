@@ -1,7 +1,7 @@
 import React, {useContext, useState} from 'react';
 import Draggable from 'react-draggable';
 import { pos2key } from 'chessground/util';
-import { TelnetContext } from '../socket/TelnetProvider';
+import { SocketContext } from '../socket/SocketProvider';
 
 const roles = {
   P: 'pawn',
@@ -22,7 +22,7 @@ const HeldPiece = ({
 }) => {
   const disabled = viewOnly || count === 0;
   const pieceRef = React.useRef(null);
-  const {telnet} = useContext(TelnetContext);
+  const {telnet} = useContext(SocketContext);
   const [coords, setCoords] = useState({x: 0,y: 0});
   const relRef = React.useRef(null);
 

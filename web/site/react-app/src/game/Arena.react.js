@@ -1,14 +1,14 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Board from './Board.react';
 import GameStatusSource from './GameStatusSource';
-import {TelnetContext} from '../socket/TelnetProvider';
+import {SocketContext} from '../socket/SocketProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
 const Arena = ({gamePair}) => {
-  const {handle, telnet} = useContext(TelnetContext);
+  const {handle, telnet} = useContext(SocketContext);
   const gamesSrc = GameStatusSource.get(telnet);
   let [id1, id2] = gamePair.split('~');
   console.log(`Arena ${id1}/${id2} ${handle}`);
