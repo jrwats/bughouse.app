@@ -1,16 +1,19 @@
 use std::sync::Arc;
+use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color};
+use bughouse::error;
 
-use bughouse::{BoardID, BughouseBoard, BughouseGame, Color};
 use crate::db::Db;
 use crate::connection_mgr::UserID;
 
-// Ongoing games
-pub struct Games {
-    db: Arc<Db>,
-}
+
+//                       white   black
+pub type BoardPlayers = (UserID, UserID);
 
 pub struct Game {
     game: BughouseGame,
+    // board A: white, black
+    // board B: white, black
+    players: (BoardPlayers, BoardPlayers),
 }
 
 impl Game {
@@ -22,6 +25,15 @@ impl Game {
         self.game.get_board(board_id).side_to_move()
     }
 
+    pub fn make_move(&self, user_id: UserID, mv: BughouseMove) -> Result<(),  Error> {
+    }
+
+}
+
+
+// Ongoing games
+pub struct Games {
+    db: Arc<Db>,
 }
 
 impl Games {
