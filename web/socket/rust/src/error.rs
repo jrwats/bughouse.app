@@ -1,9 +1,12 @@
+use bughouse::Error as BugError;
 use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;
 use std::fmt;
 use thiserror::Error;
 use uuid::Error as UuidError;
+
+use crate::connection_mgr::UserID;
 
 #[derive(Debug)]
 pub struct TimeControlParseError {
@@ -30,6 +33,15 @@ pub enum Error {
 
     #[error("Authentication Error: {}", reason)]
     AuthError { reason: String },
+
+    #[error("BugError: {0}")]
+    BugError(BugError),
+
+    #[error("InvalidMove InvalidUser: {0}")]
+    InvalidMoveUser(UserID),
+
+    #[error("InvalidMove - not player's turn")]
+    InvalidMoveTurn,
 
     #[error("TimeControlParseError: {0}")]
     TimeControlParseError(TimeControlParseError),
@@ -113,6 +125,12 @@ impl From<UuidError> for Error {
     }
 }
 
+
+impl From<BugError> for Error {
+    fn from(err: BugError) -> Self {
+        Error::BugError(err)
+    }
+}
 // use crate::Error;
 // impl AuthError {
 //     pub fn new(r: &str) -> Self {
