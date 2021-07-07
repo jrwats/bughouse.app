@@ -27,22 +27,22 @@ const _ticker = new Ticker();
 setInterval(() => { _ticker.tick(); }, 5000);
 
 const Challenges = () => {
-  const {telnet} = useContext(SocketContext);
+  const {socket} = useContext(SocketContext);
   const {challenges} = useContext(ChallengesContext);
   const classes = useStyles();
 
   const onClick = (e, id) => {
-    telnet.send(`accept ${id}`);
+    socket.send(`accept ${id}`);
     e.preventDefault();
   };
   useEffect(() => {
     const onTick = () => {
       console.log(`Challenges requesting 'pending'`);
-      telnet.sendEvent('pending');
+      socket.sendEvent('pending');
     };
     _ticker.on('tick', onTick);
     return () => { _ticker.off('tick', onTick); };
-  }, [telnet]);
+  }, [socket]);
   const challengeComponents = [];
   for (const challengerHandle in challenges) {
     const challenge = challenges[challengerHandle];

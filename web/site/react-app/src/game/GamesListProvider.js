@@ -20,8 +20,8 @@ const getHandlesFromGames = (games) => {
 }
 
 const GamesListProvider = (props) => {
-  const {telnet} = useContext(SocketContext);
-  const src = GamesListSource.get(telnet);
+  const {socket} = useContext(SocketContext);
+  const src = GamesListSource.get(socket);
   const [games, setGames] = useState(src.getGames());
   const [handles, setHandles] = useState(getHandlesFromGames(games));
 

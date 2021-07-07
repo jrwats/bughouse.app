@@ -8,8 +8,8 @@ import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
 const Arena = ({gamePair}) => {
-  const {handle, telnet} = useContext(SocketContext);
-  const gamesSrc = GameStatusSource.get(telnet);
+  const {handle, socket} = useContext(SocketContext);
+  const gamesSrc = GameStatusSource.get(socket);
   let [id1, id2] = gamePair.split('~');
   console.log(`Arena ${id1}/${id2} ${handle}`);
   if (id1 === id2) {

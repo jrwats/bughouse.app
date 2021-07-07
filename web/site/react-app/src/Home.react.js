@@ -9,11 +9,11 @@ import { useNavigate } from "@reach/router";
 import {AuthContext} from './auth/AuthProvider';
 
 const HomeRouter = (props) => {
-  const {telnet} = useContext(SocketContext);
-  if (telnet == null || !telnet.isInitialized()) {
-    console.log(`HomeRouter initializing telnet ${telnet}`);
+  const {socket} = useContext(SocketContext);
+  if (socket == null || !socket.isInitialized()) {
+    console.log(`HomeRouter initializing socket ${socket}`);
     return <Loading path="loading" />;
-  } else if (telnet.isLoggedIn()) {
+  } else if (socket.isLoggedIn()) {
     console.log('HomeRouter isLogged in rendering main...');
     return <Main path="/" />;
   }

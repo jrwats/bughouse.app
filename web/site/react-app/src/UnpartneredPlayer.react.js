@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => {
 
 const UnpartneredPlayer = ({player}) => {
   const {outgoingOffers, partnerMap} = useContext(UsersContext);
-  const {telnet, handle} = useContext(SocketContext);
+  const {socket, handle} = useContext(SocketContext);
   const {user: viewer} = useContext(AuthContext);
   const {handles: playingHandles} = useContext(GamesListContext);
   const classes = useStyles();
@@ -54,7 +54,7 @@ const UnpartneredPlayer = ({player}) => {
     return userComponent
   }
   const onClick = (e) => {
-    telnet.send(`partner ${handle}`);
+    socket.send(`partner ${handle}`);
     OnlineUsers.get().offerTo({user: viewer, handle});
     e.preventDefault();
   };

@@ -7,13 +7,13 @@ import logout from './logout';
 
 const AppSignOut = () => {
   const {user} = useContext(AuthContext);
-  const {telnet} = useContext(SocketContext);
+  const {socket} = useContext(SocketContext);
   return (
     <Button
       disabled={user == null}
       variant="contained"
       color="primary"
-      onClick={(e) => {logout(telnet); }} >
+      onClick={(e) => {logout(socket); }} >
       <ExitToAppIcon style={{paddingRight: '10px'}}/>
       Sign out
     </Button>

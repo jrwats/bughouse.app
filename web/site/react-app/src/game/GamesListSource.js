@@ -5,9 +5,9 @@ import {EventEmitter} from 'events';
  * each user to get their FICS data, display info, etc.
  */
 class GamesListSource extends EventEmitter {
-  constructor(telnet) {
+  constructor(socket) {
     super();
-    this._telnet = telnet;
+    this._socket = socket;
     this._games = [];
     const onBugwho = bug => {
       if (bug.games == null) {
@@ -21,8 +21,8 @@ class GamesListSource extends EventEmitter {
       this.emit('games', games);
     };
 
-    telnet.on('bugwho', onBugwho);
-    telnet.on('games', onGames);
+    socket.on('bugwho', onBugwho);
+    socket.on('games', onGames);
   }
 
   getGames() {
@@ -32,9 +32,9 @@ class GamesListSource extends EventEmitter {
 
 const _cache = {};
 const GamesListSourceGetter = {
-  get(telnet) {
-    const uid = telnet.getUid();
-    return _cache[uid] || (_cache[uid] = new GamesListSource(telnet));
+  get(socket) {
+    const uid = socket.getUid();
+    return _cache[uid] || (_cache[uid] = new GamesListSource(socket));
   }
 };
 export default GamesListSourceGetter;

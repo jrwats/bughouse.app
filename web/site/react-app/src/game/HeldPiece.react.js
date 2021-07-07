@@ -22,7 +22,7 @@ const HeldPiece = ({
 }) => {
   const disabled = viewOnly || count === 0;
   const pieceRef = React.useRef(null);
-  const {telnet} = useContext(SocketContext);
+  const {socket} = useContext(SocketContext);
   const [coords, setCoords] = useState({x: 0,y: 0});
   const relRef = React.useRef(null);
 
@@ -53,7 +53,7 @@ const HeldPiece = ({
     }
     chessground.cg.newPiece({role: roles[piece], color: color}, key);
     chessboard.decrHolding({color, piece});
-    telnet.sendEvent('move', `${piece}@${key}`);
+    socket.sendEvent('move', `${piece}@${key}`);
   }
 
   const visibility = count === 0 ? 'hidden' : 'visible';

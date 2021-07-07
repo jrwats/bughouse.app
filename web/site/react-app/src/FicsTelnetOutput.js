@@ -8,7 +8,7 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 const FicsSocketOutput = (props) => {
   const [cmd, setCmd] = React.useState('');
-  const {outputLog, telnet} = useContext(SocketContext);
+  const {outputLog, socket} = useContext(SocketContext);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const FicsSocketOutput = (props) => {
           <form
             autoComplete="off"
             onSubmit={(event) => {
-              telnet.send(cmd);
+              socket.send(cmd);
               setCmd('');
               event.preventDefault();
             }} >
@@ -53,7 +53,7 @@ const FicsSocketOutput = (props) => {
                 value={cmd}
                 onChange={(e) => { setCmd(e.target.value); } }
                 label="Command"
-                autoComplete="telnet command"
+                autoComplete="socket command"
             />
           </form>
         </Grid>

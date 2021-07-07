@@ -10,7 +10,7 @@ import Profile from './user/Profile';
 import {AuthContext} from './auth/AuthProvider';
 
 const FicsLogin = () => {
-  const {telnet, loggedOut} = useContext(SocketContext);
+  const {socket, loggedOut} = useContext(SocketContext);
   const {user} = useContext(AuthContext);
   const usernameRef = useRef();
   const passwordRef = useRef();
@@ -56,7 +56,7 @@ const FicsLogin = () => {
                     onClick={() => {
                       const username = usernameRef.current.querySelector('input').value;
                       const password = passwordRef.current.querySelector('input').value;
-                      telnet.login({username, password});
+                      socket.login({username, password});
                     }} >
                     Login
                   </Button>
@@ -70,7 +70,7 @@ const FicsLogin = () => {
                     color="primary"
                     onClick={() => {
                       console.log('FicsLogin onClick');
-                      telnet.login({username: 'guest'});
+                      socket.login({username: 'guest'});
                     }} >
                   Login as guest
                 </Button>

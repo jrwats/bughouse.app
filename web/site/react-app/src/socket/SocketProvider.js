@@ -5,7 +5,7 @@ import SocketProxy from './SocketProxy';
  * Provide authenticated firebase user as context to child components
  */
 export const SocketContext = createContext({
-  telnet: null,
+  socket: null,
   loggedOut: true,
   handle: null,
   outputLog: '',
@@ -17,7 +17,7 @@ const SocketProvider = (props) => {
   const {user} = props;
   const proxy = SocketProxy.get(user);
 
-  const [telnet, setSocket] = useState(proxy);
+  const [socket, setSocket] = useState(proxy);
   const [handle, setHandle] = useState(proxy.getHandle());
   const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState('');
@@ -26,9 +26,9 @@ const SocketProvider = (props) => {
   useEffect(() => {
     console.log(`${Date.now()}: SocketProvider creating SocketProxy. ${user.uid}`);
     const proxy = SocketProxy.get(user);
-    console.log(`SocketProvider.setTelnet`);
+    console.log(`SocketProvider.setSocket`);
     setSocket(proxy);
-    window.__telnet = proxy;
+    window.__socket = proxy;
     const onLoggingIn = () => { setLoggedOut(false); };
     const onLogin = ({handle}) => {
       console.log(`SocketProvider.login(${handle})`);
@@ -65,7 +65,7 @@ const SocketProvider = (props) => {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{telnet, loggedOut, handle, outputLog}}>
+    <SocketContext.Provider value={{socket, loggedOut, handle, outputLog}}>
       {props.children}
     </SocketContext.Provider>
   );
