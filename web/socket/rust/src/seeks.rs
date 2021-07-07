@@ -5,17 +5,23 @@ use crate::connection_mgr::UserID;
 use crate::time_control::{TimeControl, TimeID};
 use crate::error::Error;
 
+pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
+
 pub struct Seeks {
-    seeks: RwLock<HashMap<TimeID, HashSet<UserID>>>,
+    seeks: RwLock<SeekMap>,
     user_seeks: RwLock<HashMap<UserID, HashSet<TimeID>>>,
 }
 
 impl Seeks {
     pub fn new() -> Self {
-        Seeks { 
+        Seeks {
             seeks: RwLock::new(HashMap::new()),
             user_seeks: RwLock::new(HashMap::new()),
         }
+    }
+
+    pub fn get_seeks(&self) -> SeekMap {
+        self.seeks.read().unwrap().to_owned()
     }
 
     pub fn add_seeker(&self, time_ctrl: TimeControl, uid: UserID) -> Result<(), Error> {

@@ -28,15 +28,15 @@ impl SocketConn {
 
 
 pub struct ConnectionMgr {
-    conns: RwLock<HashMap<u64, SocketConn>>, 
-    user_conns: RwLock<HashMap<UserID, HashSet<ConnID>>>, 
+    conns: RwLock<HashMap<u64, SocketConn>>,
+    user_conns: RwLock<HashMap<UserID, HashSet<ConnID>>>,
 }
 
 impl ConnectionMgr {
     pub fn new() -> Self {
-        ConnectionMgr { 
+        ConnectionMgr {
             conns: RwLock::new(HashMap::new()),
-            user_conns: RwLock::new(HashMap::new()), 
+            user_conns: RwLock::new(HashMap::new()),
         }
     }
 
@@ -86,6 +86,10 @@ impl ConnectionMgr {
         }
     }
 
+    pub fn get_conn_id(recipient: &Recipient<ClientMessage>) -> ConnID {
+        hash(recipient)
+    }
+
     fn uid_from_conn(
         &self,
         conn_id: ConnID,
@@ -119,7 +123,7 @@ impl ConnectionMgr {
         &self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        let conn_id = hash(&recipient);
+        let conn_id = Self::get_conn_id(&recipient);
         if !self.conns.read().unwrap().contains_key(&conn_id) {
             return Ok(());
         }

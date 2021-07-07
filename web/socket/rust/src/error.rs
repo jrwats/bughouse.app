@@ -1,8 +1,26 @@
 use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;
+use std::fmt;
 use thiserror::Error;
 use uuid::Error as UuidError;
+
+#[derive(Debug)]
+pub struct TimeControlParseError {
+    payload: String
+}
+
+impl TimeControlParseError {
+    pub fn new(payload: &str) -> Self {
+        TimeControlParseError { payload: payload.to_string() }
+    }
+}
+
+impl fmt::Display for TimeControlParseError  {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.payload)
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -12,6 +30,12 @@ pub enum Error {
 
     #[error("Authentication Error: {}", reason)]
     AuthError { reason: String },
+
+    #[error("TimeControlParseError: {0}")]
+    TimeControlParseError(TimeControlParseError),
+
+    #[error("User is in game already: {0}")]
+    InGame(String),
 
     #[error("Unexpected: {0}")]
     Unexpected(String),
@@ -62,6 +86,12 @@ impl From<std::sync::mpsc::SendError<String>> for Error {
 impl From<NewSessionError> for Error {
     fn from(err: NewSessionError) -> Self {
         Error::NewSessionError(err)
+    }
+}
+
+impl From<TimeControlParseError> for Error {
+    fn from(err: TimeControlParseError) -> Self {
+        Error::TimeControlParseError(err)
     }
 }
 

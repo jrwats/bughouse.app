@@ -1,19 +1,20 @@
 use actix::prelude::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 // use actix_web_actors::ws::WebsocketContext;
-use serde_json::json;
+use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
-use std::sync::{Arc};
+use std::sync::Arc;
 // use std::thread;
-use uuid::Uuid;
 
 use once_cell::sync::OnceCell;
 use crate::db::{Db, UserRowData};
-use crate::connection_mgr::{ConnID, ConnectionMgr};
+use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::error::Error;
+use crate::time_control::TimeControl;
 use crate::firebase::*;
-use crate::seeks::Seeks;
+use crate::seeks::{Seeks, SeekMap};
+use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -23,6 +24,8 @@ use crate::messages::{
 pub struct BughouseServer {
     conns: ConnectionMgr,
     seeks: Seeks,
+    games: Games,
+    partners: HashMap<UserID, UserID>,
     // conns: RwLock<HashMap<u64, SocketConn>>, // connections
     db: Arc<Db>,
     // tx: Mutex<Sender<ChanMsg>>,
@@ -88,6 +91,8 @@ impl BughouseServer {
         BughouseServer {
             conns: ConnectionMgr::new(),
             seeks: Seeks::new(),
+            games: Games::new(db.clone()),
+            partners: HashMap::new(),
             db,
             // tx: Mutex::new(tx),
         }
@@ -98,6 +103,25 @@ impl BughouseServer {
         let user = self.db.user_from_firebase_id(fid).await?;
         println!("got user");
         Ok(user)
+    }
+
+    pub fn get_seeks(&'static self) -> SeekMap {
+        self.seeks.get_seeks()
+    }
+
+    pub fn add_seek(
+        &'static self,
+        time_ctrl: TimeControl,
+        recipient: Recipient<ClientMessage>,
+        ) -> Result<(), Error> {
+        let conn_id = ConnectionMgr::get_conn_id(&recipient);
+        let user = self.user_from_conn(conn_id).ok_or(Error::AuthError {
+            reason: "User not yet authenticated".to_string()
+        })?;
+        if self.games.is_in_game(user.get_uid()) {
+            return Err(Error::InGame(user.get_handle().to_string()));
+        }
+        self.seeks.add_seeker(time_ctrl, user.get_uid())
     }
 
     pub async fn authenticate(
@@ -141,7 +165,7 @@ impl BughouseServer {
         &'static self,
         conn_id: ConnID,
         ) -> Option<Arc<UserRowData>> {
-       self.conns.get_user(conn_id) 
+       self.conns.get_user(conn_id)
     }
 
     pub fn on_close(
