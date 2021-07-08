@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use chrono::Duration;
 use noneifempty::NoneIfEmpty;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
@@ -15,8 +16,11 @@ use uuid::Uuid;
 use crate::b73_encode::b73_encode;
 use crate::error::Error;
 use crate::firebase::*;
+use crate::game::{GameID, GamePlayers};
+use crate::time_control::TimeControl;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
+const GAME_SECS_IN_FUTURE: i64 = 5;
 
 pub struct Db {
     session: Session,
@@ -86,12 +90,15 @@ impl Db {
         Ok((uuid, handle))
     }
 
-    pub fn now(&self) -> Result<uuid::Uuid, uuid::Error> {
-        let utc_now = Utc::now();
-        let ns = utc_now.timestamp_subsec_nanos();
-        let secs = utc_now.timestamp() as u64;
+    pub fn uuid_from_time(&self, time: DateTime<Utc>) -> Result<uuid::Uuid, uuid::Error> {
+        let ns = time.timestamp_subsec_nanos();
+        let secs = time.timestamp() as u64;
         let timestamp = Timestamp::from_unix(&self.ctx, secs, ns);
         Uuid::new_v1(timestamp, &[1, 3, 3, 7, 4, 2])
+    }
+
+    pub fn now(&self) -> Result<uuid::Uuid, uuid::Error> {
+        self.uuid_from_time(Utc::now())
     }
 
     pub async fn mk_user_for_fid(
@@ -177,4 +184,20 @@ impl Db {
         }
         Ok(self.mk_user_for_fid(fid).await?)
     }
+
+    pub async fn create_game(
+        &self,
+        time_ctrl: &TimeControl,
+        players: &GamePlayers
+        ) -> Result<(GameID, DateTime<Utc>), Error> {
+        let start = Utc::now() + Duration::seconds(GAME_SECS_IN_FUTURE);
+        let id: GameID = self.uuid_from_time(start)?;
+        let mut query = Query::new(
+            "INSERT INTO bughouse.games 
+             (id, start_time, time_ctrl, boards) VALUES (?, ?, ?, ?)".to_string()
+            );
+        self.session.query(query, (&id, start, time_ctrl, uuid)).await?;
+        Ok((game_id, start))
+    }
+
 }

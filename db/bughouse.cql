@@ -5,7 +5,7 @@ USE bughouse;
 
 CREATE TYPE time_control (
   base int,
-  increment int,
+  inc int,
 );
 
 CREATE TYPE user_snapshot (

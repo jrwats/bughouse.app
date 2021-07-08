@@ -1,28 +1,32 @@
-use std::sync::Arc;
-use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Error as BugError};
+use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color};
 
-use crate::db::Db;
 use crate::error::Error;
+use crate::time_control::TimeControl;
 use crate::connection_mgr::UserID;
 
-//                       white   black
-pub type BoardPlayers = (UserID, UserID);
+//                      White, Black
+pub type BoardPlayers = [UserID; 2];
 
-//                      board A       board B
-pub type GamePlayers = (BoardPlayers, BoardPlayers);
+//                      A,B
+pub type GamePlayers = [BoardPlayers; 2];
 
 pub type GameID = uuid::Uuid;
 
 pub struct Game {
     id: GameID,
     game: BughouseGame,
+    time_ctrl: TimeControl,
     //        board A       board B
     players: GamePlayers,
 }
 
 impl Game {
-    pub fn new(id: GameID, players: GamePlayers) -> Self {
-        Game { id, game: BughouseGame::default(), players }
+    pub fn new(
+        id: GameID,
+        time_ctrl: TimeControl,
+        players: GamePlayers
+        ) -> Self {
+        Game { id, time_ctrl, game: BughouseGame::default(), players }
     }
 
     pub fn get_board(&self, board_id: BoardID) -> &BughouseBoard {
@@ -37,13 +41,14 @@ impl Game {
         &self,
         user_id: UserID,
         ) -> Option<BoardID> {
-        let ((a_white, a_black), (b_white, b_black)) = self.players;
+        let [[a_white, a_black], [b_white, b_black]] = self.players;
         if a_white == user_id || a_black == user_id {
-            return Some(BoardID::A);
+            Some(BoardID::A)
         } else if b_white == user_id || b_black == user_id {
-            return Some(BoardID::B);
+            Some(BoardID::B)
+        } else {
+            None
         }
-        None
     }
 
     fn get_color(
@@ -51,8 +56,8 @@ impl Game {
         board_id: BoardID,
         user_id: UserID,
         ) -> Color {
-        let (a, b) = self.players;
-        let (white, black) = if board_id == BoardID::A { a } else { b };
+        let [a, b] = self.players;
+        let [white, black] = if board_id == BoardID::A { a } else { b };
         if white == user_id { Color::White } else { Color::Black }
     }
 

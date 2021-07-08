@@ -1,27 +1,30 @@
 use std::sync::Arc;
-use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Error as BugError};
+use std::collections::HashMap;
 
-use crate::db::Db;
-use crate::game::{Game, GamePlayers};
-use crate::error::Error;
 use crate::connection_mgr::UserID;
-
+use crate::db::Db;
+use crate::error::Error;
+use crate::game::{Game, GameID, GamePlayers};
+use crate::time_control::TimeControl;
 
 // Ongoing games
 pub struct Games {
     db: Arc<Db>,
+    games: HashMap<GameID, Game>,
 }
 
 impl Games {
     pub fn new(db: Arc<Db>) -> Self {
-        Games {
-            db,
-        }
+        Games { db, games: HashMap::new() }
     }
 
-    pub fn start_game(&self, players: GamePlayers) -> Result<(), Error> {
-        let id = self.db.now()?;
-        let game = Game::new(id, players);
+    pub async fn start_game(
+        &self,
+        time_ctrl: TimeControl,
+        players: GamePlayers
+        ) -> Result<(), Error> {
+        let game_id = self.db.create_game(&time_ctrl, &players).await?;
+        let game = Game::new(game_id, time_ctrl, players);
         Ok(())
     }
 
