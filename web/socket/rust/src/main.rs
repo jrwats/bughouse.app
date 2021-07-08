@@ -15,6 +15,7 @@ mod bug_web_sock;
 mod hash;
 mod time_control;
 mod seeks;
+mod game;
 mod games;
 mod connection_mgr;
 mod bughouse_server;
