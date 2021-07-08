@@ -23,8 +23,9 @@ impl Games {
         time_ctrl: TimeControl,
         players: GamePlayers
         ) -> Result<(), Error> {
-        let game_id = self.db.create_game(&time_ctrl, &players).await?;
-        let game = Game::new(game_id, time_ctrl, players);
+        let (id, start) = self.db.create_game(&time_ctrl, &players).await?;
+        let game = Game::new(id, time_ctrl, players);
+
         Ok(())
     }
 
