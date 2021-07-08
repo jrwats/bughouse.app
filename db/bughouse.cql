@@ -10,13 +10,12 @@ CREATE TYPE time_control (
 
 CREATE TYPE user_snapshot (
   id uuid,
-  pre_rating smallint,
-  pre_deviation smallint,
+  rating smallint,
+  deviation smallint,
 );
 
 CREATE TYPE board (
-  white frozen<user_snapshot>,
-  black frozen<user_snapshot>,
+  tuple<frozen<user_snapshot>, frozen<user_snapshot>>,
 );
 
 CREATE TABLE IF NOT EXISTS games (

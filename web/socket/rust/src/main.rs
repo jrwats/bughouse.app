@@ -14,6 +14,7 @@ mod b73_encode;
 mod bug_web_sock;
 mod hash;
 mod time_control;
+mod rating;
 mod seeks;
 mod game;
 mod games;

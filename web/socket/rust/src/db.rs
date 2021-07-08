@@ -2,6 +2,7 @@ use chrono::prelude::*;
 use chrono::Duration;
 use noneifempty::NoneIfEmpty;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
@@ -15,6 +16,8 @@ use uuid::Uuid;
 
 use crate::b73_encode::b73_encode;
 use crate::error::Error;
+use crate::connection_mgr::UserID;
+use crate::rating::Rating;
 use crate::firebase::*;
 use crate::game::{GameID, GamePlayers};
 use crate::time_control::TimeControl;
@@ -44,6 +47,15 @@ pub struct UserRowData {
     handle: Option<String>,
     photo_url: Option<String>,
 }
+
+// User's GLICKO rating snapshot before game start
+pub struct UserSnapshot {
+  id: UserID,
+  rating: i16,
+  deviation: i16,
+}
+
+pub type BoardSnapshot = [UserSnapshot; 2];
 
 impl UserRowData {
     pub fn get_uid(&self) -> Uuid {
@@ -99,6 +111,31 @@ impl Db {
 
     pub fn now(&self) -> Result<uuid::Uuid, uuid::Error> {
         self.uuid_from_time(Utc::now())
+    }
+
+    pub fn to_timestamp(time: DateTime<Utc>) -> ScyllaTimestamp {
+        ScyllaTimestamp(Duration::milliseconds(time.timestamp_millis()))
+    }
+
+    pub async fn add_rating(
+        &self,
+        id: UserID,
+        rating: Rating,
+        ) -> Result<(), Error> {
+        self.session
+            .query(
+                "INSERT INTO bughouse.rating_history
+                (user_id, time, rating, deviation) VALUES (?, ?, ?, ?)",
+                (
+                    id,
+                    Self::to_timestamp(Utc::now()),
+                    rating.get_rating(),
+                    rating.get_deviation(),
+                ),
+            )
+            .await?;
+
+        Ok(())
     }
 
     pub async fn mk_user_for_fid(
@@ -185,6 +222,13 @@ impl Db {
         Ok(self.mk_user_for_fid(fid).await?)
     }
 
+    pub async fn rating_snapshots(
+        &self,
+        players: &GamePlayers
+        ) -> Result<[BoardSnapshot; 2], Error> {
+        Err(Error::Unexpected("foo".to_string()))
+    }
+
     pub async fn create_game(
         &self,
         time_ctrl: &TimeControl,
@@ -196,8 +240,9 @@ impl Db {
             "INSERT INTO bughouse.games 
              (id, start_time, time_ctrl, boards) VALUES (?, ?, ?, ?)".to_string()
             );
-        self.session.query(query, (&id, start, time_ctrl, uuid)).await?;
-        Ok((game_id, start))
+        let rating_snapshots = self.rating_snapshots(players).await?;
+        self.session.query(query, (&id, start, time_ctrl, rating_snapshots)).await?;
+        Ok((id, start))
     }
 
 }
