@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 use chrono::Duration;
+use futures::try_join;
 use noneifempty::NoneIfEmpty;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
@@ -15,15 +16,14 @@ use uuid::v1::{Context, Timestamp};
 use uuid::Uuid;
 
 use crate::b73_encode::b73_encode;
-use crate::error::Error;
 use crate::connection_mgr::UserID;
-use crate::rating::Rating;
+use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{GameID, GamePlayers};
+use crate::rating::Rating;
 use crate::time_control::TimeControl;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
-const GAME_SECS_IN_FUTURE: i64 = 5;
 
 pub struct Db {
     session: Session,
@@ -45,24 +45,27 @@ pub struct UserRowData {
     firebase_id: Option<String>,
     name: Option<String>,
     handle: Option<String>,
+    rating: Option<i16>,
+    deviation: Option<i16>,
     photo_url: Option<String>,
 }
 
 // User's GLICKO rating snapshot before game start
-pub struct UserSnapshot {
-  id: UserID,
-  rating: i16,
-  deviation: i16,
+#[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
+pub struct UserRatingSnapshot {
+    user_id: UserID,
+    rating: i16,
+    deviation: i16,
 }
 
-pub type BoardSnapshot = [UserSnapshot; 2];
+pub type BoardSnapshot = (UserRatingSnapshot, UserRatingSnapshot);
 
 impl UserRowData {
     pub fn get_uid(&self) -> Uuid {
         self.id.unwrap()
     }
 
-    pub fn get_handle(&self) -> &str{
+    pub fn get_handle(&self) -> &str {
         &self.handle.as_ref().unwrap()
     }
 }
@@ -102,7 +105,10 @@ impl Db {
         Ok((uuid, handle))
     }
 
-    pub fn uuid_from_time(&self, time: DateTime<Utc>) -> Result<uuid::Uuid, uuid::Error> {
+    pub fn uuid_from_time(
+        &self,
+        time: DateTime<Utc>,
+    ) -> Result<uuid::Uuid, uuid::Error> {
         let ns = time.timestamp_subsec_nanos();
         let secs = time.timestamp() as u64;
         let timestamp = Timestamp::from_unix(&self.ctx, secs, ns);
@@ -120,9 +126,10 @@ impl Db {
     pub async fn add_rating(
         &self,
         id: UserID,
-        rating: Rating,
-        ) -> Result<(), Error> {
-        self.session
+        rating: &Rating,
+    ) -> Result<(), Error> {
+        let res = self
+            .session
             .query(
                 "INSERT INTO bughouse.rating_history
                 (user_id, time, rating, deviation) VALUES (?, ?, ?, ?)",
@@ -133,8 +140,11 @@ impl Db {
                     rating.get_deviation(),
                 ),
             )
-            .await?;
-
+            .await;
+        if res.is_err() {
+            eprintln!("Couldn't insert rating: {:?}", res);
+        }
+        res?;
         Ok(())
     }
 
@@ -144,23 +154,30 @@ impl Db {
     ) -> Result<UserRowData, Error> {
         let firebase_data = Db::fetch_firebase_data(fid)?;
         let (id, handle) = self.new_guest_handle().await?;
+        let rating = Rating::default();
         self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, name, handle) VALUES (?, ?, ?, ?)",
+               (id, firebase_id, name, handle, rating, deviation)
+               VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     id,
                     &firebase_data.fid,
                     &firebase_data.display_name,
                     &handle,
+                    rating.get_rating(),
+                    rating.get_deviation(),
                 ),
             )
             .await?;
+        self.add_rating(id, &rating).await?;
         Ok(UserRowData {
             id: Some(id),
             firebase_id: Some(firebase_data.fid),
             name: firebase_data.display_name,
             handle: Some(handle),
+            rating: Some(rating.get_rating()),
+            deviation: Some(rating.get_deviation()),
             photo_url: firebase_data.photo_url,
         })
     }
@@ -222,27 +239,60 @@ impl Db {
         Ok(self.mk_user_for_fid(fid).await?)
     }
 
-    pub async fn rating_snapshots(
+    async fn get_user_rating_snapshot(
         &self,
-        players: &GamePlayers
-        ) -> Result<[BoardSnapshot; 2], Error> {
-        Err(Error::Unexpected("foo".to_string()))
+        player: &UserID,
+    ) -> Result<UserRatingSnapshot, Error> {
+        let res = self
+            .session
+            .query(
+                "SELECT user_id, rating, deviation FROM bughouse.users 
+              WHERE id = '?'"
+                    .to_string(),
+                (&player,),
+            )
+            .await?;
+        if let Some(rows) = res.rows {
+            for rating in rows.into_typed::<UserRatingSnapshot>() {
+                return Ok(rating?);
+            }
+        }
+        Err(Error::Unexpected(
+            "Couldn't get user rating snapshot".to_string(),
+        ))
+    }
+
+    async fn rating_snapshots(
+        &self,
+        players: &GamePlayers,
+    ) -> Result<(BoardSnapshot, BoardSnapshot), Error> {
+        let [[a_white, a_black], [b_white, b_black]] = players;
+        let (aw, ab, bw, bb) = try_join!(
+            self.get_user_rating_snapshot(a_white),
+            self.get_user_rating_snapshot(a_black),
+            self.get_user_rating_snapshot(b_white),
+            self.get_user_rating_snapshot(b_black),
+        )?;
+        Ok(((aw, ab), (bw, bb)))
     }
 
     pub async fn create_game(
         &self,
+        start: DateTime<Utc>,
         time_ctrl: &TimeControl,
-        players: &GamePlayers
-        ) -> Result<(GameID, DateTime<Utc>), Error> {
-        let start = Utc::now() + Duration::seconds(GAME_SECS_IN_FUTURE);
+        players: &GamePlayers,
+    ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(start)?;
-        let mut query = Query::new(
-            "INSERT INTO bughouse.games 
-             (id, start_time, time_ctrl, boards) VALUES (?, ?, ?, ?)".to_string()
-            );
         let rating_snapshots = self.rating_snapshots(players).await?;
-        self.session.query(query, (&id, start, time_ctrl, rating_snapshots)).await?;
-        Ok((id, start))
+        self.session
+            .query(
+                "INSERT INTO bughouse.games 
+                  (id, start_time, time_ctrl, boards)
+                  VALUES (?, ?, ?, ?)"
+                    .to_string(),
+                (&id, Self::to_timestamp(start), time_ctrl, &rating_snapshots),
+            )
+            .await?;
+        Ok(id)
     }
-
 }

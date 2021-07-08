@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::sync::RwLock;
 
 use crate::connection_mgr::UserID;
-use crate::time_control::{TimeControl, TimeID};
 use crate::error::Error;
+use crate::time_control::{TimeControl, TimeID};
 
 pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
 
@@ -24,31 +24,47 @@ impl Seeks {
         self.seeks.read().unwrap().to_owned()
     }
 
-    pub fn add_seeker(&self, time_ctrl: TimeControl, uid: UserID) -> Result<(), Error> {
+    pub fn add_seeker(
+        &self,
+        time_ctrl: TimeControl,
+        uid: UserID,
+    ) -> Result<(), Error> {
         let time_id = time_ctrl.get_id();
         {
             let mut seeks = self.seeks.write().unwrap();
-            let users = seeks.get_mut(&time_id).ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
+            let users = seeks
+                .get_mut(&time_id)
+                .ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
             users.insert(uid);
         }
         {
             let mut user_seeks = self.user_seeks.write().unwrap();
-            let time_ctrls = user_seeks.get_mut(&uid).ok_or(Error::Unexpected("Couldn't get user seeks".to_string()))?;
+            let time_ctrls = user_seeks.get_mut(&uid).ok_or(
+                Error::Unexpected("Couldn't get user seeks".to_string()),
+            )?;
             time_ctrls.insert(time_id);
         }
         Ok(())
     }
 
-    pub fn rm_seeker(&self, time_ctrl: TimeControl, uid: UserID) -> Result<(), Error> {
+    pub fn rm_seeker(
+        &self,
+        time_ctrl: TimeControl,
+        uid: UserID,
+    ) -> Result<(), Error> {
         let time_id = time_ctrl.get_id();
         {
             let mut user_seek_times = self.user_seeks.write().unwrap();
-            let seeks = user_seek_times.get_mut(&uid).ok_or(Error::Unexpected("Can't get seeks?".to_string()))?;
+            let seeks = user_seek_times
+                .get_mut(&uid)
+                .ok_or(Error::Unexpected("Can't get seeks?".to_string()))?;
             seeks.remove(&time_id);
         }
         {
             let mut seeks = self.seeks.write().unwrap();
-            let users = seeks.get_mut(&time_id).ok_or(Error::Unexpected("Can't get seeks?".to_string()))?;
+            let users = seeks
+                .get_mut(&time_id)
+                .ok_or(Error::Unexpected("Can't get seeks?".to_string()))?;
             users.remove(&uid);
         }
         Ok(())
@@ -58,17 +74,20 @@ impl Seeks {
         {
             let user_seek_times = self.user_seeks.read().unwrap();
             let mut seeks = self.seeks.write().unwrap();
-            let user_seeks = user_seek_times.get(&uid).ok_or(Error::Unexpected("Couldn't get seek times".to_string()))?;
+            let user_seeks = user_seek_times.get(&uid).ok_or(
+                Error::Unexpected("Couldn't get seek times".to_string()),
+            )?;
             for time_id in user_seeks {
                 match seeks.get_mut(time_id) {
-                    Some(users) => { users.remove(&uid); },
+                    Some(users) => {
+                        users.remove(&uid);
+                    }
                     None => eprintln!("Couldn't get seeks for {}", uid),
                 }
             }
         }
-        let mut user_seek_times  = self.user_seeks.write().unwrap();
+        let mut user_seek_times = self.user_seeks.write().unwrap();
         user_seek_times.remove(&uid);
         Ok(())
     }
-
 }

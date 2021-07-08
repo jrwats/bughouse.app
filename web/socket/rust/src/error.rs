@@ -10,16 +10,18 @@ use crate::connection_mgr::UserID;
 
 #[derive(Debug)]
 pub struct TimeControlParseError {
-    payload: String
+    payload: String,
 }
 
 impl TimeControlParseError {
     pub fn new(payload: &str) -> Self {
-        TimeControlParseError { payload: payload.to_string() }
+        TimeControlParseError {
+            payload: payload.to_string(),
+        }
     }
 }
 
-impl fmt::Display for TimeControlParseError  {
+impl fmt::Display for TimeControlParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.payload)
     }
@@ -124,7 +126,6 @@ impl From<UuidError> for Error {
         Error::UuidError(err)
     }
 }
-
 
 impl From<BugError> for Error {
     fn from(err: BugError) -> Self {

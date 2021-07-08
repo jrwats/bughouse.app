@@ -1,8 +1,10 @@
 use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color};
+use chrono::prelude::*;
+use chrono::Duration;
 
+use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::time_control::TimeControl;
-use crate::connection_mgr::UserID;
 
 //                      White, Black
 pub type BoardPlayers = [UserID; 2];
@@ -11,6 +13,8 @@ pub type BoardPlayers = [UserID; 2];
 pub type GamePlayers = [BoardPlayers; 2];
 
 pub type GameID = uuid::Uuid;
+
+const GAME_SECS_IN_FUTURE: i64 = 5;
 
 pub struct Game {
     id: GameID,
@@ -24,9 +28,22 @@ impl Game {
     pub fn new(
         id: GameID,
         time_ctrl: TimeControl,
-        players: GamePlayers
-        ) -> Self {
-        Game { id, time_ctrl, game: BughouseGame::default(), players }
+        players: GamePlayers,
+    ) -> Self {
+        Game {
+            id,
+            time_ctrl,
+            game: BughouseGame::default(),
+            players,
+        }
+    }
+
+    pub fn new_start() -> DateTime<Utc> {
+        Utc::now() + Duration::seconds(GAME_SECS_IN_FUTURE)
+    }
+
+    pub fn get_players(&self) -> &GamePlayers {
+        &self.players
     }
 
     pub fn get_board(&self, board_id: BoardID) -> &BughouseBoard {
@@ -37,10 +54,7 @@ impl Game {
         self.game.get_board(board_id).side_to_move()
     }
 
-    pub fn get_board_id_for_user(
-        &self,
-        user_id: UserID,
-        ) -> Option<BoardID> {
+    pub fn get_board_id_for_user(&self, user_id: UserID) -> Option<BoardID> {
         let [[a_white, a_black], [b_white, b_black]] = self.players;
         if a_white == user_id || a_black == user_id {
             Some(BoardID::A)
@@ -51,22 +65,23 @@ impl Game {
         }
     }
 
-    fn get_color(
-        &mut self,
-        board_id: BoardID,
-        user_id: UserID,
-        ) -> Color {
+    fn get_color(&mut self, board_id: BoardID, user_id: UserID) -> Color {
         let [a, b] = self.players;
         let [white, black] = if board_id == BoardID::A { a } else { b };
-        if white == user_id { Color::White } else { Color::Black }
+        if white == user_id {
+            Color::White
+        } else {
+            Color::Black
+        }
     }
 
     pub fn make_move(
         &mut self,
         user_id: UserID,
         mv: &BughouseMove,
-        ) -> Result<(), Error> {
-        let board_id = self.get_board_id_for_user(user_id)
+    ) -> Result<(), Error> {
+        let board_id = self
+            .get_board_id_for_user(user_id)
             .ok_or(Error::InvalidMoveUser(user_id))?;
         let color = self.get_color(board_id, user_id);
         let board = self.game.get_board(board_id);
@@ -75,5 +90,4 @@ impl Game {
         }
         self.game.make_move(board_id, mv).map_err(|e| e.into())
     }
-
 }

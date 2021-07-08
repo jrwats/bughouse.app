@@ -34,12 +34,6 @@ CREATE TABLE IF NOT EXISTS user_games (
   PRIMARY KEY (userid, gameid)
 );
 
-CREATE TABLE IF NOT EXISTS current_rating (
-  user_id timeuuid PRIMARY KEY,
-  rating smallint,
-  deviation smallint,
-);
-
 CREATE TABLE IF NOT EXISTS rating_history (
   user_id timeuuid,
   time timestamp,
@@ -62,6 +56,8 @@ CREATE TABLE IF NOT EXISTS users (
   firebase_id text,
   name text,
   handle text,
+  rating smallint,
+  deviation smallint,
   photo_url text,
   photo blob,
   PRIMARY KEY ((id), firebase_id, handle)

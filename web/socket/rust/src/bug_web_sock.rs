@@ -1,10 +1,12 @@
 use actix::prelude::*;
 // use actix::ResponseFuture;
-use crate::connection_mgr::ConnID;
 use crate::bughouse_server::BughouseServer;
+use crate::connection_mgr::ConnID;
 use crate::db::{Db, UserRowData};
 use crate::error::Error;
-use crate::messages::{ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind};
+use crate::messages::{
+    ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
+};
 use actix_web::*;
 use actix_web_actors::ws;
 use bytestring::ByteString;
@@ -86,7 +88,7 @@ impl Handler<ClientMessage> for BugWebSock {
 
                 // TODO - rethink - emulating old FICS login auth
                 let msg = json!({
-                    "kind": "login", 
+                    "kind": "login",
                     "handle": user.unwrap().get_handle()
                 });
                 ctx.text(msg.to_string());
@@ -154,12 +156,12 @@ impl BugWebSock {
     pub fn new(
         srv_recipient: Recipient<ServerMessage>,
         server: &'static BughouseServer,
-        ) -> Self {
+    ) -> Self {
         Self {
             hb_instant: Instant::now(),
             srv_recipient,
             server,
-            id: 0, 
+            id: 0,
         }
     }
 
@@ -250,7 +252,7 @@ impl BugWebSock {
                 //     .then(|res, _, _ctx| {
                 //         println!("future go there");
                 //         match res {
-                //             Ok(m) => { 
+                //             Ok(m) => {
                 //                 if let Ok(msg) = m {
                 //                     match msg.kind {
                 //                         ClientMessageKind::Auth(id) => {
@@ -258,7 +260,7 @@ impl BugWebSock {
                 //                         }
                 //                     }
                 //                 }
-                //                 println!("Auth success on websocket thread: {:?}", m) 
+                //                 println!("Auth success on websocket thread: {:?}", m)
                 //             }
                 //             Err(e) => { eprintln!("Auth error on websocket thread: {:?}", e) }
                 //         }

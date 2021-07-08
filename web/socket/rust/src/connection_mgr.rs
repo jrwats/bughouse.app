@@ -1,6 +1,6 @@
-use actix::prelude::*;
-use crate::messages::ClientMessage;
 use crate::db::UserRowData;
+use crate::messages::ClientMessage;
+use actix::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
@@ -18,14 +18,13 @@ pub struct SocketConn {
 }
 
 impl SocketConn {
-    pub fn new(
-        recipient: Recipient<ClientMessage>,
-        user: UserRowData,
-    ) -> Self {
-        SocketConn { recipient, user: Arc::new(user) }
+    pub fn new(recipient: Recipient<ClientMessage>, user: UserRowData) -> Self {
+        SocketConn {
+            recipient,
+            user: Arc::new(user),
+        }
     }
 }
-
 
 pub struct ConnectionMgr {
     conns: RwLock<HashMap<u64, SocketConn>>,
@@ -44,7 +43,7 @@ impl ConnectionMgr {
         &self,
         recipient: Recipient<ClientMessage>,
         user: UserRowData,
-        ) -> Result<ConnID, Error> {
+    ) -> Result<ConnID, Error> {
         println!("ConnectionMgr.add_conn ...");
         let uid = user.get_uid();
         let conn_id = hash(&recipient);
@@ -61,10 +60,11 @@ impl ConnectionMgr {
             let mut u2c = self.user_conns.write().unwrap();
             let conns = u2c.get_mut(&uid);
             match conns {
-                None =>  {
-                    let set: HashSet<ConnID> = [conn_id].iter().cloned().collect();
+                None => {
+                    let set: HashSet<ConnID> =
+                        [conn_id].iter().cloned().collect();
                     u2c.insert(uid, set);
-                },
+                }
                 Some(v) => {
                     if !v.insert(conn_id) {
                         eprintln!("user_conn collision: {}", conn_id);
@@ -75,10 +75,7 @@ impl ConnectionMgr {
         Ok(conn_id)
     }
 
-    pub fn get_user(
-        &self,
-        conn_id: ConnID,
-        ) -> Option<Arc<UserRowData>> {
+    pub fn get_user(&self, conn_id: ConnID) -> Option<Arc<UserRowData>> {
         let conns = self.conns.read().unwrap();
         match conns.get(&conn_id) {
             None => None,
@@ -90,20 +87,15 @@ impl ConnectionMgr {
         hash(recipient)
     }
 
-    fn uid_from_conn(
-        &self,
-        conn_id: ConnID,
-        ) -> Result<UserID, Error> {
+    fn uid_from_conn(&self, conn_id: ConnID) -> Result<UserID, Error> {
         let conns = self.conns.read().unwrap();
-        let sock_conn = conns.get(&conn_id)
-            .ok_or(Error::Unexpected(format!("Couldn't find conn: {}", &conn_id)))?;
+        let sock_conn = conns.get(&conn_id).ok_or(Error::Unexpected(
+            format!("Couldn't find conn: {}", &conn_id),
+        ))?;
         Ok(sock_conn.user.get_uid())
     }
 
-    pub fn remove_conn(
-        &self,
-        conn_id: ConnID,
-        ) -> Result<(), Error> {
+    pub fn remove_conn(&self, conn_id: ConnID) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id).unwrap_or_default();
         {
             let mut conns = self.conns.write().unwrap();
@@ -111,8 +103,10 @@ impl ConnectionMgr {
         }
         if uid != Uuid::nil() {
             let mut u2c = self.user_conns.write().unwrap();
-            let conns = u2c.get_mut(&uid)
-                .ok_or(Error::Unexpected(format!("Couldn't find user: {}", &uid)))?;
+            let conns = u2c.get_mut(&uid).ok_or(Error::Unexpected(format!(
+                "Couldn't find user: {}",
+                &uid
+            )))?;
             conns.remove(&conn_id);
         }
         println!("Removed {}", conn_id);
@@ -129,6 +123,4 @@ impl ConnectionMgr {
         }
         self.remove_conn(conn_id)
     }
-
 }
-

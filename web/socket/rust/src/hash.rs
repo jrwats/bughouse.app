@@ -6,4 +6,3 @@ pub fn hash<T: Hash>(hashable: &T) -> u64 {
     hashable.hash(&mut hasher);
     hasher.finish()
 }
-

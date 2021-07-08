@@ -12,18 +12,18 @@ use web::Data;
 
 mod b73_encode;
 mod bug_web_sock;
-mod hash;
-mod time_control;
-mod rating;
-mod seeks;
-mod game;
-mod games;
-mod connection_mgr;
 mod bughouse_server;
+mod connection_mgr;
 mod db;
 mod error;
 mod firebase;
+mod game;
+mod games;
+mod hash;
 mod messages;
+mod rating;
+mod seeks;
+mod time_control;
 use bug_web_sock::{BugContext, BugWebSock};
 use bughouse_server::{BughouseServer, ServerActor};
 use db::Db;
@@ -34,10 +34,7 @@ pub async fn ws_route(
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
     ws::start(
-        BugWebSock::new(
-            context.get_srv_recipient().to_owned(),
-            context.server,
-            ),
+        BugWebSock::new(context.get_srv_recipient().to_owned(), context.server),
         &req,
         stream,
     )

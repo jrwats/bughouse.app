@@ -7,17 +7,18 @@ use std::os::unix::net::UnixStream;
 use std::sync::Arc;
 // use std::thread;
 
-use once_cell::sync::OnceCell;
-use crate::db::{Db, UserRowData};
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
+use crate::db::{Db, UserRowData};
 use crate::error::Error;
-use crate::time_control::TimeControl;
 use crate::firebase::*;
-use crate::seeks::{Seeks, SeekMap};
+use crate::game::{Game, GamePlayers};
 use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
+use crate::seeks::{SeekMap, Seeks};
+use crate::time_control::TimeControl;
+use once_cell::sync::OnceCell;
 
 // pub type ChanMsg = (Recipient<ClientMessage>, String);
 
@@ -98,7 +99,10 @@ impl BughouseServer {
         }
     }
 
-    async fn get_user_from_fid(&'static self, fid: &str) -> Result<UserRowData, Error> {
+    async fn get_user_from_fid(
+        &'static self,
+        fid: &str,
+    ) -> Result<UserRowData, Error> {
         println!("get_uid_from_fid");
         let user = self.db.user_from_firebase_id(fid).await?;
         println!("got user");
@@ -113,10 +117,10 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         recipient: Recipient<ClientMessage>,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
         let user = self.user_from_conn(conn_id).ok_or(Error::AuthError {
-            reason: "User not yet authenticated".to_string()
+            reason: "User not yet authenticated".to_string(),
         })?;
         if self.games.is_in_game(user.get_uid()) {
             return Err(Error::InGame(user.get_handle().to_string()));
@@ -164,15 +168,28 @@ impl BughouseServer {
     pub fn user_from_conn(
         &'static self,
         conn_id: ConnID,
-        ) -> Option<Arc<UserRowData>> {
-       self.conns.get_user(conn_id)
+    ) -> Option<Arc<UserRowData>> {
+        self.conns.get_user(conn_id)
+    }
+
+    pub async fn create_game(
+        &'static self,
+        time_ctrl: TimeControl,
+        players: GamePlayers,
+        ) -> Result<(), Error> {
+        let start = Game::new_start();
+        let id = self.db.create_game(start, &time_ctrl, &players).await?;
+        self.games.start_game(id, time_ctrl, players)?;
+        Ok(())
     }
 
     pub fn on_close(
         &'static self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        self.conns.on_close(recipient).expect("Couldn't remove conn");
+        self.conns
+            .on_close(recipient)
+            .expect("Couldn't remove conn");
         Ok(())
     }
 
