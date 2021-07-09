@@ -18,8 +18,7 @@ pub struct Games {
 }
 
 impl Games {
-    pub fn new(
-        // db: Arc<Db>,
+    pub fn new(// db: Arc<Db>,
         // server: &'static BughouseServer,
     ) -> Self {
         Games {

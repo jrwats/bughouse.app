@@ -18,11 +18,11 @@ use uuid::Uuid;
 use crate::b73_encode::b73_encode;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::users::User;
 use crate::firebase::*;
 use crate::game::{Game, GameID};
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
+use crate::users::User;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
 
@@ -180,20 +180,22 @@ impl Db {
         Ok(())
     }
 
-    pub async fn get_user(
-        &self,
-        uid: &UserID,
-        ) -> Option<UserRowData> {
-        let res = self.session.query(
-            "SELECT (id, firebase_id, name, handle, rating, deviation)
+    pub async fn get_user(&self, uid: &UserID) -> Option<UserRowData> {
+        let res = self
+            .session
+            .query(
+                "SELECT (id, firebase_id, name, handle, rating, deviation)
             FROM bughouse.users
-            WHERE id = ?".to_string(),
-            ( uid,),
-            ).await.ok()?;
+            WHERE id = ?"
+                    .to_string(),
+                (uid,),
+            )
+            .await
+            .ok()?;
         if let Some(rows) = res.rows {
             for row in rows.into_typed::<UserRowData>() {
                 // return Some(row?);
-                return row.ok()
+                return row.ok();
             }
         }
         None
@@ -297,7 +299,7 @@ impl Db {
     //     let res = self
     //         .session
     //         .query(
-    //             "SELECT user_id, rating, deviation FROM bughouse.users 
+    //             "SELECT user_id, rating, deviation FROM bughouse.users
     //           WHERE id = '?'"
     //                 .to_string(),
     //             (&player,),
@@ -327,10 +329,7 @@ impl Db {
     //     Ok(((aw, ab), (bw, bb)))
     // }
 
-    pub fn to_move_key(
-        game: &Game,
-        board_id: BoardID,
-        ) -> i16 {
+    pub fn to_move_key(game: &Game, board_id: BoardID) -> i16 {
         let duration = Utc::now() - *game.get_start();
         let mut ms = duration.num_milliseconds() as i16;
         ms <<= 1;
@@ -347,7 +346,7 @@ impl Db {
     pub fn serialize_move(mv: &BughouseMove) -> i16 {
         let res = mv.get_dest().to_int() as i16;
         match mv.get_source() {
-            None  => -(res | (mv.get_piece().unwrap().to_index() as i16) << 6),
+            None => -(res | (mv.get_piece().unwrap().to_index() as i16) << 6),
             Some(src) => (src.to_index() as i16) << 6 | res,
         }
     }
@@ -357,13 +356,17 @@ impl Db {
         game: &Game,
         board_id: BoardID,
         mv: &BughouseMove,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         let move_key = Self::to_move_key(game, board_id);
         let move_val = Self::serialize_move(mv);
-        let _res = self.session.query(
-            "UPDATE bughouse.games SET moves[?] = ? WHERE id = ?".to_string(),
-            (move_key, move_val, game.get_id())
-            ).await?;
+        let _res = self
+            .session
+            .query(
+                "UPDATE bughouse.games SET moves[?] = ? WHERE id = ?"
+                    .to_string(),
+                (move_key, move_val, game.get_id()),
+            )
+            .await?;
         Ok(())
     }
 
@@ -375,12 +378,15 @@ impl Db {
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(start)?;
         // let rating_snapshots = self.rating_snapshots(players).await?;
-        self.session.query(
-            "INSERT INTO bughouse.games 
+        self.session
+            .query(
+                "INSERT INTO bughouse.games 
              (id, start_time, time_ctrl, boards)
-              VALUES (?, ?, ?, ?)".to_string(),
-              (&id, Self::to_timestamp(start), time_ctrl, rating_snapshots),
-            ).await?;
+              VALUES (?, ?, ?, ?)"
+                    .to_string(),
+                (&id, Self::to_timestamp(start), time_ctrl, rating_snapshots),
+            )
+            .await?;
         Ok(id)
     }
 }

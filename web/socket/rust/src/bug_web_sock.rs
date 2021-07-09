@@ -2,7 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::ConnID;
-use crate::db::{Db};
+use crate::db::Db;
 use crate::error::Error;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,

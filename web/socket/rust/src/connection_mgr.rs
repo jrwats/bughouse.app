@@ -1,4 +1,4 @@
-use crate::db::{Db};
+use crate::db::Db;
 use crate::messages::ClientMessage;
 use actix::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -62,11 +62,11 @@ impl ConnectionMgr {
     pub async fn user_from_fid(
         &self,
         fid: &str, // firebase ID
-        ) -> Result<Arc<RwLock<User>>, Error> {
+    ) -> Result<Arc<RwLock<User>>, Error> {
         {
             let f2u = self.fid_users.read().unwrap();
             if let Some(uid) = f2u.get(fid) {
-                if let Some(user) = self.users.get(uid) { 
+                if let Some(user) = self.users.get(uid) {
                     //self.user_from_uid(uid) {
                     return Ok(user);
                 }

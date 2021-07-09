@@ -1,8 +1,8 @@
+use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::collections::HashMap;
 use std::convert::From;
 use std::sync::{Arc, RwLock};
-use scylla::cql_to_rust::{FromCqlVal, FromRow};
-use scylla::macros::{FromRow, FromUserType, IntoUserType};
 
 use crate::connection_mgr::UserID;
 use crate::db::{Db, UserRowData};
@@ -69,9 +69,7 @@ pub struct Users {
 }
 
 impl Users {
-    pub fn new(
-        db: Arc<Db>,
-        ) -> Self {
+    pub fn new(db: Arc<Db>) -> Self {
         Users {
             db,
             users: RwLock::new(HashMap::new()),

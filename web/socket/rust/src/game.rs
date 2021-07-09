@@ -65,7 +65,10 @@ impl Game {
         self.game.get_board(board_id).side_to_move()
     }
 
-    pub fn get_board_id_for_user(&self, user_id: UserID) -> Option<(BoardID, Color)> {
+    pub fn get_board_id_for_user(
+        &self,
+        user_id: UserID,
+    ) -> Option<(BoardID, Color)> {
         let [[a_white, a_black], [b_white, b_black]] = self.players;
         if a_white == user_id {
             return Some((BoardID::A, Color::White));
