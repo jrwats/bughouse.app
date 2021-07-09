@@ -1,4 +1,4 @@
-use crate::db::{Db, UserRowData};
+use crate::db::{Db};
 use crate::messages::ClientMessage;
 use actix::prelude::*;
 use std::collections::{HashMap, HashSet};
@@ -20,10 +20,11 @@ struct SockConn {
 
 impl SockConn {
     pub fn new(recipient: Recipient<ClientMessage>, uid: UserID) -> Self {
-        SocketConn { recipient, uid }
+        SockConn { recipient, uid }
     }
+
     pub fn uid(&self) -> &UserID {
-        self.uid
+        &self.uid
     }
 }
 
@@ -76,7 +77,7 @@ impl ConnectionMgr {
             let mut f2u = self.fid_users.write().unwrap();
             f2u.insert(fid.to_string(), user.get_uid());
         }
-        Ok(self.users.add(&user.into()))
+        Ok(self.users.add(user.into()))
     }
 
     pub async fn add_conn(

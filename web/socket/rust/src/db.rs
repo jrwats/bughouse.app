@@ -1,7 +1,6 @@
 use bughouse::{BoardID, BughouseMove};
 use chrono::prelude::*;
 use chrono::Duration;
-use futures::try_join;
 use noneifempty::NoneIfEmpty;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
@@ -19,8 +18,9 @@ use uuid::Uuid;
 use crate::b73_encode::b73_encode;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
+use crate::users::User;
 use crate::firebase::*;
-use crate::game::{Game, GameID, GamePlayers};
+use crate::game::{Game, GameID};
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 
@@ -59,12 +59,12 @@ pub struct UserRatingSnapshot {
     deviation: i16,
 }
 
-impl Into<UserRatingSnapshot> for &UserRowData {
-    fn into(self) -> UserRatingSnapshot {
+impl From<User> for UserRatingSnapshot {
+    fn from(user: User) -> Self {
         UserRatingSnapshot {
-            user_id: self.id.unwrap(),
-            rating: self.rating.unwrap(),
-            deviation: self.deviation.unwrap(),
+            user_id: user.get_uid(),
+            rating: user.get_rating(),
+            deviation: user.get_deviation(),
         }
     }
 }
@@ -178,6 +178,25 @@ impl Db {
         }
         res?;
         Ok(())
+    }
+
+    pub async fn get_user(
+        &self,
+        uid: &UserID,
+        ) -> Option<UserRowData> {
+        let res = self.session.query(
+            "SELECT (id, firebase_id, name, handle, rating, deviation)
+            FROM bughouse.users
+            WHERE id = ?".to_string(),
+            ( uid,),
+            ).await.ok()?;
+        if let Some(rows) = res.rows {
+            for row in rows.into_typed::<UserRowData>() {
+                // return Some(row?);
+                return row.ok()
+            }
+        }
+        None
     }
 
     pub async fn mk_user_for_fid(

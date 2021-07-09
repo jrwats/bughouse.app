@@ -16,8 +16,8 @@ impl Rating {
     }
 }
 
-const INIT_RATING: i16 = 1500;
-const INIT_DEVIATION: i16 = 350;
+pub const INIT_RATING: i16 = 1500;
+pub const INIT_DEVIATION: i16 = 350;
 
 impl Default for Rating {
     #[inline]

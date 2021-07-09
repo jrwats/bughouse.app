@@ -48,6 +48,9 @@ pub enum Error {
     #[error("InvalidMove - not player's turn")]
     InvalidMoveTurn,
 
+    #[error("Unknown UID (not in DB): {0}")]
+    UnknownUID(UserID),
+
     #[error("TimeControlParseError: {0}")]
     TimeControlParseError(TimeControlParseError),
 

@@ -2,7 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::ConnID;
-use crate::db::{Db, UserRowData};
+use crate::db::{Db};
 use crate::error::Error;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
@@ -89,7 +89,7 @@ impl Handler<ClientMessage> for BugWebSock {
                 // TODO - rethink - emulating old FICS login auth
                 let msg = json!({
                     "kind": "login",
-                    "handle": user.unwrap().get_handle()
+                    "handle": user.unwrap().read().unwrap().get_handle()
                 });
                 ctx.text(msg.to_string());
             }

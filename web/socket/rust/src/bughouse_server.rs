@@ -3,13 +3,14 @@ use actix::{Actor, Context, Handler, ResponseFuture};
 use bughouse::BughouseMove;
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
+use futures::try_join;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 // use std::thread;
 
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
-use crate::db::{Db, PregameRatingSnapshot, UserRowData};
+use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GamePlayers};
@@ -114,9 +115,10 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
-        let user = self.user_from_conn(conn_id).ok_or(Error::AuthError {
+        let user_lock = self.user_from_conn(conn_id).ok_or(Error::AuthError {
             reason: "User not yet authenticated".to_string(),
         })?;
+        let user = user_lock.read().unwrap();
         if self.games.is_in_game(user.get_uid()) {
             return Err(Error::InGame(user.get_handle().to_string()));
         }
@@ -160,34 +162,50 @@ impl BughouseServer {
         }
     }
 
-    pub fn user_from_conn(&self, conn_id: ConnID) -> Option<Arc<User>> {
+    pub fn user_from_conn(&self, conn_id: ConnID) -> Option<Arc<RwLock<User>>> {
         self.conns.user_from_conn(conn_id)
-    }
-
-    pub fn user_from_uid(
-        &'static self,
-        uid: &UserID,
-    ) -> Option<Arc<User>> {
-        if let Some(u) = self.users.get_user(uid) {
-            return u.read().unwrap()
-        }
-        None
     }
 
     // If, on the offchance, that a user disconnects right after game start (and is not present),
     // try fetching user from DB.
-    fn get_rating_snapshots(
+    pub async fn user_from_uid(
+        &'static self,
+        uid: &UserID,
+        ) -> Option<User> {
+        if let Some(u) = self.users.get(uid) {
+            // let lock = u.read();
+            // let user = lock.unwrap();
+            let user = u.read().unwrap();
+            return Some(user.clone());
+        } else if let Some(user_row) = self.db.get_user(uid).await {
+            return Some(User::from(user_row));
+        }
+        None
+    }
+
+
+    pub async fn rating_snapshot_from_uid(
+        &'static self,
+        uid: &UserID,
+    ) -> Result<UserRatingSnapshot, Error> {
+        if let Some(u) = self.user_from_uid(uid).await {
+            return Ok(UserRatingSnapshot::from(u));
+        }
+        Err(Error::UnknownUID(*uid))
+    }
+
+    async fn get_rating_snapshots(
         &'static self,
         players: &GamePlayers,
-        ) -> PregameRatingSnapshot {
+        ) -> Result<PregameRatingSnapshot, Error> {
         let [[aw, ab], [bw, bb]] = players;
-
-        // TODO
-        let awp = self.user_from_uid(&aw).unwrap();
-        let abp = self.user_from_uid(&ab).unwrap();
-        let bwp = self.user_from_uid(&bw).unwrap();
-        let bbp = self.user_from_uid(&bb).unwrap();
-        ((awp.as_ref().into(), abp.as_ref().into()), (bwp.as_ref().into(), bbp.as_ref().into()))
+        let (aws, abs, bws, bbs) = try_join!(
+            self.rating_snapshot_from_uid(&aw),
+            self.rating_snapshot_from_uid(&ab),
+            self.rating_snapshot_from_uid(&bw),
+            self.rating_snapshot_from_uid(&bb),
+            )?;
+        Ok(((aws, abs), (bws, bbs)))
     }
 
     pub async fn create_game(
@@ -196,7 +214,7 @@ impl BughouseServer {
         players: GamePlayers,
         ) -> Result<(), Error> {
         let start = Game::new_start();
-        let rating_snapshots = self.get_rating_snapshots(&players);
+        let rating_snapshots = self.get_rating_snapshots(&players).await?;
         let id = self.db.create_game(start, &time_ctrl, &rating_snapshots).await?;
         self.games.start_game(id, start, time_ctrl, players)?;
         Ok(())
