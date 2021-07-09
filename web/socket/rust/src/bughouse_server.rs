@@ -1,5 +1,6 @@
 use actix::prelude::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
+use bughouse::BughouseMove;
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
@@ -8,7 +9,7 @@ use std::sync::Arc;
 // use std::thread;
 
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
-use crate::db::{Db, UserRowData};
+use crate::db::{Db, PregameRatingSnapshot, UserRowData};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GamePlayers};
@@ -16,6 +17,7 @@ use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
+use crate::users::{User, Users};
 use crate::seeks::{SeekMap, Seeks};
 use crate::time_control::TimeControl;
 use once_cell::sync::OnceCell;
@@ -23,6 +25,7 @@ use once_cell::sync::OnceCell;
 // pub type ChanMsg = (Recipient<ClientMessage>, String);
 
 pub struct BughouseServer {
+    users: Arc<Users>,
     conns: ConnectionMgr,
     seeks: Seeks,
     games: Games,
@@ -89,24 +92,16 @@ impl BughouseServer {
         // });
         //
         // let db = Db::new().await?;
+        let users = Arc::new(Users::new(db.clone()));
         BughouseServer {
-            conns: ConnectionMgr::new(),
+            conns: ConnectionMgr::new(db.clone(), users.clone()),
+            users,
             seeks: Seeks::new(),
-            games: Games::new(db.clone()),
+            games: Games::new(), // db.clone()),
             partners: HashMap::new(),
             db,
             // tx: Mutex::new(tx),
         }
-    }
-
-    async fn get_user_from_fid(
-        &'static self,
-        fid: &str,
-    ) -> Result<UserRowData, Error> {
-        println!("get_uid_from_fid");
-        let user = self.db.user_from_firebase_id(fid).await?;
-        println!("got user");
-        Ok(user)
     }
 
     pub fn get_seeks(&'static self) -> SeekMap {
@@ -165,11 +160,34 @@ impl BughouseServer {
         }
     }
 
-    pub fn user_from_conn(
+    pub fn user_from_conn(&self, conn_id: ConnID) -> Option<Arc<User>> {
+        self.conns.user_from_conn(conn_id)
+    }
+
+    pub fn user_from_uid(
         &'static self,
-        conn_id: ConnID,
-    ) -> Option<Arc<UserRowData>> {
-        self.conns.get_user(conn_id)
+        uid: &UserID,
+    ) -> Option<Arc<User>> {
+        if let Some(u) = self.users.get_user(uid) {
+            return u.read().unwrap()
+        }
+        None
+    }
+
+    // If, on the offchance, that a user disconnects right after game start (and is not present),
+    // try fetching user from DB.
+    fn get_rating_snapshots(
+        &'static self,
+        players: &GamePlayers,
+        ) -> PregameRatingSnapshot {
+        let [[aw, ab], [bw, bb]] = players;
+
+        // TODO
+        let awp = self.user_from_uid(&aw).unwrap();
+        let abp = self.user_from_uid(&ab).unwrap();
+        let bwp = self.user_from_uid(&bw).unwrap();
+        let bbp = self.user_from_uid(&bb).unwrap();
+        ((awp.as_ref().into(), abp.as_ref().into()), (bwp.as_ref().into(), bbp.as_ref().into()))
     }
 
     pub async fn create_game(
@@ -178,8 +196,21 @@ impl BughouseServer {
         players: GamePlayers,
         ) -> Result<(), Error> {
         let start = Game::new_start();
-        let id = self.db.create_game(start, &time_ctrl, &players).await?;
-        self.games.start_game(id, time_ctrl, players)?;
+        let rating_snapshots = self.get_rating_snapshots(&players);
+        let id = self.db.create_game(start, &time_ctrl, &rating_snapshots).await?;
+        self.games.start_game(id, start, time_ctrl, players)?;
+        Ok(())
+    }
+
+    pub async fn make_move(
+        &'static self,
+        user_id: UserID,
+        mv: &BughouseMove,
+        ) -> Result<(), Error> {
+        let game = self.games.get_game(user_id)
+            .ok_or(Error::InvalidMoveNotPlaying(user_id))?;
+        let board_id = game.write().unwrap().make_move(user_id, mv)?;
+        self.db.make_move(&game.read().unwrap(), board_id, mv).await?;
         Ok(())
     }
 
@@ -201,8 +232,8 @@ impl BughouseServer {
         // println!("BS add_conn");
         // let conn_id = hash(&recipient);
         // println!("conn_id: {}", conn_id);
-        let user = self.get_user_from_fid(fid).await?;
-        let conn_id = self.conns.add_conn(recipient, user)?;
+        // let user = self.get_user_from_fid(fid).await?;
+        let conn_id = self.conns.add_conn(recipient, fid).await?;
         // println!("uid: {}", uid);
         // println!("map[{:?}] = {:?}", conn_id, (uid, fid));
         // {

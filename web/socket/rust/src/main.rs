@@ -17,6 +17,7 @@ mod connection_mgr;
 mod db;
 mod error;
 mod firebase;
+mod users;
 mod game;
 mod games;
 mod hash;
