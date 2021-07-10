@@ -58,8 +58,13 @@ class GameStatusSource extends EventEmitter {
   }
 
   _onGameStart({game}) {
-    const gamePair = `${game.viewer.id}~${game.partner.id}`;
-    navigate(`/home/arena/${gamePair}`);
+    if (game.path != null) {
+      navigate(`/home/game/${game.path}`);
+    } else {
+      // FICS logic
+      const gamePair = `${game.viewer.id}~${game.partner.id}`;
+      navigate(`/home/fics_arena/${gamePair}`);
+    }
   }
 
   _destroy(uid)  {

@@ -16,6 +16,7 @@ const Main = (props) => {
         width: '100%',
       }} >
       <Router>
+        <Arena path="/game/:gamePath" />
         <Arena path="/arena/:gamePair" />
         <Bugwho path="/" />
         <FicsTelnetOutput path="fics_console"/>

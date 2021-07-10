@@ -4,10 +4,11 @@ import Paper from '@material-ui/core/Paper';
 import { Link } from "@reach/router";
 
 const BughouseGameSummary = ({bughouseGame}) => {
+  // TODO add non-FICS logic
   const [board1, board2] = bughouseGame;
 
   return (
-    <Link to={`/home/arena/${board1.id}~${board2.id}`}
+    <Link to={`/home/fics_arena/${board1.id}~${board2.id}`}
       style={{textDecoration: 'none'}}>
       <span className="grid" style={{
         alignItems: 'center',

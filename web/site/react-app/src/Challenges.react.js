@@ -1,10 +1,9 @@
-import React, {useEffect, useContext} from 'react';
+import React, {useContext} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import ChallengeSummary from './ChallengeSummary.react';
 import Paper from '@material-ui/core/Paper';
 import { SocketContext } from './socket/SocketProvider';
 import { Link } from "@reach/router";
-import { EventEmitter } from 'events';
 import { ChallengesContext } from './game/ChallengesProvider';
 
 const useStyles = makeStyles((theme) => {
