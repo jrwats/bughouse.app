@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use actix_web::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 use bughouse::BughouseMove;
 // use actix_web_actors::ws::WebsocketContext;
@@ -9,6 +10,7 @@ use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
 // use std::thread;
 
+use crate::bug_web_sock::BugContext;
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
 use crate::error::Error;
@@ -30,7 +32,7 @@ pub struct BughouseServer {
     users: Arc<Users>,
     conns: ConnectionMgr,
     seeks: Seeks,
-    // recipient: Option<Recipient<ServerMessage>>,
+    loopback: Recipient<ServerMessage>,
     games: Games,
     partners: HashMap<UserID, UserID>,
     db: Arc<Db>,
@@ -38,12 +40,13 @@ pub struct BughouseServer {
 }
 
 pub struct ServerHandler {
-    server: &'static BughouseServer,
+    db: Arc<Db>,
+    // server: &'static BughouseServer,
 }
 
 impl ServerHandler {
-    pub fn new(server: &'static BughouseServer) -> Self {
-        ServerHandler { server }
+    pub fn new(db: Arc<Db>) -> Self {
+        ServerHandler { db }
     }
 }
 
@@ -52,22 +55,28 @@ impl Actor for ServerHandler {
     type Context = Context<Self>;
 }
 
+impl ServerHandler {
+    fn srv(&self, ctx: &mut Context<Self>) -> &'static BughouseServer {
+        BughouseServer::get(self.db.clone(), ctx.address().recipient())
+    }
+}
+
 impl Handler<ServerMessage> for ServerHandler {
     type Result = ResponseFuture<Result<ClientMessage, Error>>;
 
     fn handle(
         &mut self,
         msg: ServerMessage,
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Self::Result {
         match msg.kind {
             ServerMessageKind::Auth(recipient, token) => {
                 // Authenticate token uid
-                let fut = self.server.authenticate(recipient, token);
+                let fut = self.srv(ctx).authenticate(recipient, token);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::CreateGame(time_ctrl, players) => {
-                let fut = self.server.create_game(time_ctrl, players);
+                let fut = self.srv(ctx).create_game(time_ctrl, players);
                 Box::pin(async move { fut.await })
             }
         }
@@ -82,8 +91,8 @@ impl BughouseServer {
     //     &mut INSTANCE
     // }
 
-    pub fn get(db: Arc<Db>) -> &'static BughouseServer {
-        INSTANCE.get_or_init(move || BughouseServer::new(db))
+    pub fn get(db: Arc<Db>, loopback: Recipient<ServerMessage>) -> &'static BughouseServer {
+        INSTANCE.get_or_init(move || BughouseServer::new(db, loopback))
     }
 
     // pub fn get_mut() -> &'static mut BughouseServer {
@@ -94,7 +103,7 @@ impl BughouseServer {
     //     SINGLETON.tx.lock().unwrap().clone()
     // }
 
-    fn new(db: Arc<Db>) -> Self {
+    fn new(db: Arc<Db>, loopback: Recipient<ServerMessage>) -> Self {
         // let (tx, rx): (Sender<ChanMsg>, Receiver<ChanMsg>) = mpsc::channel();
         // let _receiver = thread::spawn(move || {
         //     for (recipient, msg) in rx {
@@ -112,7 +121,7 @@ impl BughouseServer {
         BughouseServer {
             conns: ConnectionMgr::new(db.clone(), users.clone()),
             users,
-            // recipient: None,
+            loopback,
             seeks: Seeks::new(),
             games: Games::new(), // db.clone()),
             partners: HashMap::new(),
@@ -140,7 +149,6 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         recipient: Recipient<ClientMessage>,
-        loopback: &Recipient<ServerMessage>,
     ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
         let user_lock =
@@ -153,13 +161,11 @@ impl BughouseServer {
         }
         self.seeks.add_seeker(&time_ctrl, user.get_uid())?;
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
-            // let addr: Addr<BughouseServer> = self.into();
+            // send message to self loopback and attempt async game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
                 time_ctrl, players,
             ));
-            // loopback.do_send(msg)?;
-            loopback.try_send(msg)?;
-            // self.create_game(time_ctrl, players).await?;
+            self.loopback.try_send(msg)?;
         }
         Ok(())
     }

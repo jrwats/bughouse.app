@@ -61,8 +61,9 @@ pub struct BugWebSock {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb_instant: Instant,
-    srv_recipient: Recipient<ServerMessage>,
-    server: &'static BughouseServer,
+    data: web::Data<BugContext>,
+    // srv_recipient: Recipient<ServerMessage>,
+    // server: &'static BughouseServer,
     /// unique session id
     id: ConnID,
 }
@@ -87,7 +88,7 @@ impl Handler<ClientMessage> for BugWebSock {
         match msg.kind {
             ClientMessageKind::Auth(conn_id) => {
                 self.id = conn_id;
-                let user = self.server.user_from_conn(conn_id);
+                let user = self.data.server.user_from_conn(conn_id);
                 ctx.text("authenticated".to_string());
 
                 // TODO - rethink - emulating old FICS login auth
@@ -155,7 +156,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
-                self.server.on_close(ctx.address().recipient());
+                self.data.server.on_close(ctx.address().recipient());
                 ctx.close(reason);
                 ctx.stop();
             }
@@ -166,13 +167,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 
 impl BugWebSock {
     pub fn new(
-        srv_recipient: Recipient<ServerMessage>,
-        server: &'static BughouseServer,
+        data: web::Data<BugContext>,
+        // server: &'static BughouseServer,
     ) -> Self {
         Self {
             hb_instant: Instant::now(),
-            srv_recipient,
-            server,
+            data,
+            // srv_recipient: data.get_srv_recipient().to_owned(),
+            // srv_recipient,
+            // server: data.server,
             id: 0,
         }
     }
@@ -208,7 +211,7 @@ impl BugWebSock {
     }
 
     fn ensure_authed(&self) -> Result<(), Error> {
-        if self.id == 0 || !self.server.is_authenticated(self.id) {
+        if self.id == 0 || !self.data.server.is_authenticated(self.id) {
             return Err(Error::AuthError {
                 reason: "Unauthenticated".to_string(),
             });
@@ -231,15 +234,14 @@ impl BugWebSock {
                         msg: val.to_string(),
                     })?;
                 let time_ctrl = TimeControl::from_str(time_str)?;
-                let me = ctx.address().recipient();
-                self.server.add_seek(time_ctrl, me, &self.srv_recipient)?;
+                self.data.server.add_seek(time_ctrl, ctx.address().recipient());
                 // self.srv_recipient
                 //     .do_send(ServerMessage::new(ServerMessageKind::Seek(
                 //         time_ctrl,
                 //         ctx.address().recipient(),
                 //         )))
                 //     .expect("WTF");
-                // self.server.add_seek(time_ctrl, ctx.address().recipient())?;
+                // self.data.server.add_seek(time_ctrl, ctx.address().recipient())?;
             }
             _ => {
                 eprintln!("Unkonwn kind: {}", kind);
@@ -294,7 +296,7 @@ impl BugWebSock {
                     reason: "Malformed token".to_string(),
                 })?;
 
-                self.srv_recipient
+                self.data.srv_recipient
                     .do_send(ServerMessage::new(ServerMessageKind::Auth(
                         ctx.address().recipient(),
                         token.to_string(),

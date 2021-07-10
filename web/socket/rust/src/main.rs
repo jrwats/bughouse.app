@@ -36,7 +36,8 @@ pub async fn ws_route(
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
     ws::start(
-        BugWebSock::new(context.get_srv_recipient().to_owned(), context.server),
+        BugWebSock::new(context),
+        // BugWebSock::new(context.get_srv_recipient().to_owned(), context.server),
         &req,
         stream,
     )
@@ -56,8 +57,8 @@ async fn main() -> Result<(), io::Error> {
     let db = Db::new().await.expect("Could not start DB");
     // let _db = Db::new();
     let adb = Arc::new(db);
-    let server = BughouseServer::get(adb.clone());
-    let addr = ServerHandler::new(server).start();
+    let addr = ServerHandler::new(adb.clone()).start();
+    let server = BughouseServer::get(adb.clone(), addr.clone().recipient());
 
     // server.start();
     // let addr = (&server).start();
@@ -72,7 +73,6 @@ async fn main() -> Result<(), io::Error> {
     // let srv = Arc::new(server);
     HttpServer::new(move || {
         let context = BugContext::create(
-            // addr.recipient(),
             addr.to_owned().recipient(),
             server,
             adb.clone(),
