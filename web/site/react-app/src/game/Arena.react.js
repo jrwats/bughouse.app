@@ -1,20 +1,21 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Board from './Board.react';
-import GameStatusSource from './GameStatusSource';
+import FicsGameStatusSource from './FicsGameStatusSource';
 import {SocketContext} from '../socket/SocketProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
-const Arena = ({gamePair}) => {
+const Arena = ({gameID}) => {
   const {handle, socket} = useContext(SocketContext);
-  const gamesSrc = GameStatusSource.get(socket);
-  let [id1, id2] = gamePair.split('~');
-  console.log(`Arena ${id1}/${id2} ${handle}`);
-  if (id1 === id2) {
-    id2 = null;
-  }
+  const gamesSrc = FicsGameStatusSource.get(socket);
+
+  // let [id1, id2] = gamePair.split('~');
+  // console.log(`Arena ${id1}/${id2} ${handle}`);
+  // if (id1 === id2) {
+  //   id2 = null;
+  // }
   const [board1, setBoard1] = useState(gamesSrc.getBoard(id1))
   const [board2, setBoard2] = useState(gamesSrc.getBoard(id2))
   useEffect(() => { setBoard1(gamesSrc.getBoard(id1)); }, [gamesSrc, id1])
