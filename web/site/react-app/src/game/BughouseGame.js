@@ -17,6 +17,14 @@ class BughouseGame extends EventEmitter {
     this._b.update(b);
   }
 
+  getBoardA() { 
+    return this._a;
+  }
+
+  getBoardB() { 
+    return this._b;
+  }
+
   static init(id) {
     this._id = id;
     this._a = ChessBoard.init(id);

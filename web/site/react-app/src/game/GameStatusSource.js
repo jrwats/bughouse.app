@@ -5,17 +5,17 @@ import { navigate } from "@reach/router";
 import GamesListSource from './GamesListSource';
 
 class GameStatusSource extends EventEmitter {
-  constructor(telnet) {
+  constructor(socket) {
     super();
-    this._telnet = telnet;
+    this._socket = socket;
     this._observing = {};
-    const uid = this._telnet.getUid();
-    this._telnet.on('logout', () => { this._destroy(uid); });
+    const uid = this._socket.getUid();
+    this._socket.on('logout', () => { this._destroy(uid); });
     this._games = {};
 
-    this._telnet.on('gameUpdate', data => this._onGameUpdate(data));
-    this._telnet.on('gameOver', data => this._onGameOver(data));
-    this._telnet.on('gameStart', data => this._onGameStart(data));
+    this._socket.on('gameUpdate', data => this._onGameUpdate(data));
+    this._socket.on('gameOver', data => this._onGameOver(data));
+    this._socket.on('gameStart', data => this._onGameStart(data));
   }
 
   _onGameUpdate({game}) {
@@ -59,25 +59,25 @@ class GameStatusSource extends EventEmitter {
   }
 
   unobserve(id) {
-    this._telnet.sendEvent('unobserve', {id});
+    this._socket.sendEvent('unobserve', {id});
     delete this._observing[id];
   }
 
   observe(id) {
     if (!(id in this._observing)) {
-      this._telnet.sendEvent('observe', {id});
+      this._socket.sendEvent('observe', {id});
       this._observing[id] = 1;
     } else {
-      this._telnet.sendEvent('refresh', {id});
+      this._socket.sendEvent('refresh', {id});
     }
   }
 }
 
 const _cache = {};
 const GameStatusSourceGetter = {
-  get(telnet) {
-    const uid = telnet.getUid();
-    return _cache[uid] || (_cache[uid] = new GameStatusSource(telnet));
+  get(socket) {
+    const uid = socket.getUid();
+    return _cache[uid] || (_cache[uid] = new GameStatusSource(socket));
   }
 };
 export default GameStatusSourceGetter;

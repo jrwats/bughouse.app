@@ -11,45 +11,37 @@ const Arena = ({gameID}) => {
   const {handle, socket} = useContext(SocketContext);
   const gamesSrc = GameStatusSource.get(socket);
 
-  // let [id1, id2] = gamePair.split('~');
-  // console.log(`Arena ${id1}/${id2} ${handle}`);
-  // if (id1 === id2) {
-  //   id2 = null;
-  // }
-  const [board1, setBoard1] = useState(gamesSrc.getBoard(id1))
-  const [board2, setBoard2] = useState(gamesSrc.getBoard(id2))
-  useEffect(() => { setBoard1(gamesSrc.getBoard(id1)); }, [gamesSrc, id1])
-  useEffect(() => { setBoard2(gamesSrc.getBoard(id2)); }, [gamesSrc, id2])
-  const [handleColor1, setHandleColor1] =
-    useState(board1.getHandleColor(handle));
-  const [handleColor2, setHandleColor2] =
-    useState(board2 != null ? board2.getHandleColor(handle) : null);
+  const game = gamesSrc.getGame(gameID);
+  const [handleColorA, setHandleColorA] =
+    useState(boardA.getHandleColor(handle));
+  const [handleColorB, setHandleColorB] =
+    useState(boardB != null ? boardB.getHandleColor(handle) : null);
   useEffect(() => {
-    const onBoard1 = () => {
-      const newHC1 = board1.getHandleColor(handle);
-      console.log(`onBoard1 ${handle} ${newHC1} ${JSON.stringify(board1.getBoard())}`);
-      setHandleColor1(newHC1);
+    const onboardA = () => {
+      const newHC1 = boardA.getHandleColor(handle);
+      console.log(`onboardA ${handle} ${newHC1} ${JSON.stringify(boardA.getBoard())}`);
+      setHandleColorA(newHC1);
     };
-    onBoard1();
-    board1.on('init', onBoard1);
+    onboardA();
+    boardA.on('init', onboardA);
     return () => {
-      board1.off('init', onBoard1);
+      boardA.off('init', onboardA);
     }
-  }, [handle, board1, gamesSrc]);
+  }, [handle, boardA, gamesSrc]);
   useEffect(() => {
-    const onBoard2 = () => {
-      const newHC2 = board2.getHandleColor(handle);
-      console.log(`onBoard2 ${handle} ${newHC2} ${JSON.stringify(board2.getBoard())}`);
-      invariant(board2 != null, 'wtf');
-      console.log(`setHandleColor2(${newHC2})`);
-      setHandleColor2(newHC2);
+    const onboardB = () => {
+      const newHC2 = boardB.getHandleColor(handle);
+      console.log(`onboardB ${handle} ${newHC2} ${JSON.stringify(boardB.getBoard())}`);
+      invariant(boardB != null, 'wtf');
+      console.log(`setHandleColorB(${newHC2})`);
+      setHandleColorB(newHC2);
     };
-    onBoard2();
-    board2.on('init', onBoard2);
+    onboardB();
+    boardB.on('init', onboardB);
     return () => {
-      board2.off('init', onBoard2);
+      boardB.off('init', onboardB);
     };
-  }, [handle, board2, gamesSrc]);
+  }, [handle, boardB, gamesSrc]);
 
   // Run only once on first load
   useEffect(() => {
@@ -61,22 +53,22 @@ const Arena = ({gameID}) => {
   }, [gamesSrc, id1, id2]);
   useEffect(() => { ScreenLock.attemptAcquire(); }, [id1, id2]);
 
-  let orientation1 = handleColor1 || 'white';
-  console.log(`Arena hc1: ${handleColor1} o1: ${orientation1}, hc2: ${handleColor2}`);
+  let orientation1 = handleColorA || 'white';
+  console.log(`Arena hc1: ${handleColorA} o1: ${orientation1}, hc2: ${handleColorB}`);
 
   let boardView2 = null;
   if (id2 != null) {
-    if (handleColor2 != null) {
-      invariant(handleColor1 == null, `Viewer can't be on both boards: ${handleColor1} ${handleColor2}`);
+    if (handleColorB != null) {
+      invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
       return <Redirect to={`/home/arena/${id2}~${id1}`} />;
     }
     boardView2 = (
       <Board
-        chessboard={board2}
+        chessboard={boardB}
         orientation={opposite(orientation1)}
       />
     );
-    console.log(`Arena hc2: ${handleColor2}`);
+    console.log(`Arena hc2: ${handleColorB}`);
   } else {
     console.log(`Arena only observing one game?`);
   }
@@ -84,8 +76,8 @@ const Arena = ({gameID}) => {
   return (
     <div style={{width: '100%'}}>
       <Board
-        id="board1"
-        chessboard={board1}
+        id="boardA"
+        chessboard={boardA}
         orientation={orientation1}
       />
       {boardView2}
