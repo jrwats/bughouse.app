@@ -1,14 +1,18 @@
-use crate::connection_mgr::ConnID;
-use crate::error::Error;
 use actix::{prelude::*, Recipient};
 
-#[derive(Debug)]
+use crate::connection_mgr::ConnID;
+use crate::error::Error;
+use crate::game::{GameID, GamePlayers};
+use crate::time_control::TimeControl;
+
+#[derive(Debug, Clone)]
 pub enum ClientMessageKind {
     Auth(ConnID),
+    GameStart(GameID),
 }
 
 /// BughouseSever sends these messages to Socket session
-#[derive(Message, Debug)]
+#[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub struct ClientMessage {
     pub kind: ClientMessageKind,
@@ -26,6 +30,7 @@ impl ClientMessage {
 
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
+    CreateGame(TimeControl, GamePlayers),
 }
 
 #[derive(Message)]

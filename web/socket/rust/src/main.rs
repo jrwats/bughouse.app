@@ -10,7 +10,7 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
-mod b73_encode;
+mod b73;
 mod bug_web_sock;
 mod bughouse_server;
 mod connection_mgr;
@@ -21,12 +21,13 @@ mod game;
 mod games;
 mod hash;
 mod messages;
+mod players;
 mod rating;
 mod seeks;
 mod time_control;
 mod users;
 use bug_web_sock::{BugContext, BugWebSock};
-use bughouse_server::{BughouseServer, ServerActor};
+use bughouse_server::{BughouseServer, ServerHandler};
 use db::Db;
 
 pub async fn ws_route(
@@ -56,7 +57,12 @@ async fn main() -> Result<(), io::Error> {
     // let _db = Db::new();
     let adb = Arc::new(db);
     let server = BughouseServer::get(adb.clone());
-    let bug_srv = ServerActor::new(server).start();
+    let addr = ServerHandler::new(server).start();
+
+    // server.start();
+    // let addr = (&server).start();
+    // let addr = server.get_addr();
+    // server.set_loopback(bug_srv.clone().recipient());
 
     println!("starting server...");
     println!("started");
@@ -66,7 +72,8 @@ async fn main() -> Result<(), io::Error> {
     // let srv = Arc::new(server);
     HttpServer::new(move || {
         let context = BugContext::create(
-            bug_srv.to_owned().recipient(),
+            // addr.recipient(),
+            addr.to_owned().recipient(),
             server,
             adb.clone(),
         );

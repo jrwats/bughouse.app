@@ -7,6 +7,7 @@ use thiserror::Error;
 use uuid::Error as UuidError;
 
 use crate::connection_mgr::UserID;
+use crate::messages::ServerMessage;
 
 #[derive(Debug)]
 pub struct TimeControlParseError {
@@ -72,6 +73,9 @@ pub enum Error {
     #[error("mpsc::SendError: {0}")]
     SendError(std::sync::mpsc::SendError<String>),
 
+    #[error("ServerSend: {0}")]
+    ServerSend(actix::prelude::SendError<ServerMessage>),
+
     #[error("NewSessionError: {0}")]
     NewSessionError(NewSessionError),
 
@@ -130,6 +134,12 @@ impl From<FromRowError> for Error {
 impl From<UuidError> for Error {
     fn from(err: UuidError) -> Self {
         Error::UuidError(err)
+    }
+}
+
+impl From<actix::prelude::SendError<ServerMessage>> for Error {
+    fn from(err: actix::prelude::SendError<ServerMessage>) -> Self {
+        Error::ServerSend(err)
     }
 }
 

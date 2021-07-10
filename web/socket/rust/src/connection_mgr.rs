@@ -23,6 +23,10 @@ impl SockConn {
         SockConn { recipient, uid }
     }
 
+    pub fn recipient(&self) -> &Recipient<ClientMessage> {
+        &self.recipient
+    }
+
     pub fn uid(&self) -> &UserID {
         &self.uid
     }
@@ -63,6 +67,7 @@ impl ConnectionMgr {
         &self,
         fid: &str, // firebase ID
     ) -> Result<Arc<RwLock<User>>, Error> {
+        println!("user_from_fid: {}", fid);
         {
             let f2u = self.fid_users.read().unwrap();
             if let Some(uid) = f2u.get(fid) {
@@ -114,6 +119,19 @@ impl ConnectionMgr {
             }
         }
         Ok(conn_id)
+    }
+
+    pub fn send_to_user(&self, uid: UserID, msg: ClientMessage) {
+        let conns = self.conns.read().unwrap();
+        if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
+            for conn_id in conn_ids.iter() {
+                let conn = conns.get(conn_id).unwrap();
+                let res = conn.recipient().do_send(msg.clone());
+                if let Err(e) = res {
+                    eprintln!("Failed sending msg: {}", e);
+                }
+            }
+        }
     }
 
     pub fn user_from_conn(&self, conn_id: ConnID) -> Option<Arc<RwLock<User>>> {

@@ -3,6 +3,7 @@ use std::sync::RwLock;
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
+use crate::game::GamePlayers;
 use crate::time_control::{TimeControl, TimeID};
 
 pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
@@ -24,14 +25,33 @@ impl Seeks {
         self.seeks.read().unwrap().to_owned()
     }
 
+    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<GamePlayers> {
+        let seeks = self.seeks.read().unwrap();
+        let time_id = time_ctrl.get_id();
+        if let Some(players) = seeks.get(&time_id) {
+            if players.len() < 4 {
+                return None;
+            }
+            let game_players: Vec<&UserID> =
+                players.iter().take(4).collect::<Vec<&UserID>>();
+            if let [aw, ab, bw, bb] = &game_players[0..4] {
+                return Some([[**aw, **ab], [**bw, **bb]]);
+            }
+        }
+        None
+    }
+
     pub fn add_seeker(
         &self,
-        time_ctrl: TimeControl,
+        time_ctrl: &TimeControl,
         uid: UserID,
     ) -> Result<(), Error> {
         let time_id = time_ctrl.get_id();
         {
             let mut seeks = self.seeks.write().unwrap();
+            if !seeks.contains_key(&time_id) {
+                seeks.insert(time_id.clone(), HashSet::new());
+            }
             let users = seeks
                 .get_mut(&time_id)
                 .ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
@@ -39,6 +59,9 @@ impl Seeks {
         }
         {
             let mut user_seeks = self.user_seeks.write().unwrap();
+            if !user_seeks.contains_key(&uid) {
+                user_seeks.insert(uid, HashSet::new());
+            }
             let time_ctrls = user_seeks.get_mut(&uid).ok_or(
                 Error::Unexpected("Couldn't get user seeks".to_string()),
             )?;
@@ -70,7 +93,18 @@ impl Seeks {
         Ok(())
     }
 
-    pub fn remove_all_user_seeks(&self, uid: UserID) -> Result<(), Error> {
+    pub fn remove_player_seeks(&self, players: GamePlayers) {
+        for board in players.iter() {
+            for uid in board.iter() {
+                let res = self.remove_all_user_seeks(uid);
+                if let Err(e) = res {
+                    eprintln!("{}: {}", e, uid);
+                }
+            }
+        }
+    }
+
+    pub fn remove_all_user_seeks(&self, uid: &UserID) -> Result<(), Error> {
         {
             let user_seek_times = self.user_seeks.read().unwrap();
             let mut seeks = self.seeks.write().unwrap();

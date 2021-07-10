@@ -8,23 +8,24 @@ CREATE TYPE time_control (
   inc int,
 );
 
-CREATE TYPE user_snapshot (
+CREATE TYPE rating_snapshot (
   id uuid,
   rating smallint,
   deviation smallint,
 );
 
-CREATE TYPE board (
-  tuple<frozen<user_snapshot>, frozen<user_snapshot>>,
-);
+// CREATE TYPE IF NOT EXISTS board tuple<rating_snapshot, rating_snapshot>;
 
 CREATE TABLE IF NOT EXISTS games (
   id timeuuid PRIMARY KEY,
   start_time timestamp,
   result smallint,
   time_ctrl time_control,
-  boards tuple<board, board>,
-  moves map<int, smallint>, // time,player => bitmap encoding
+  boards tuple<
+    tuple<rating_snapshot, rating_snapshot>, 
+    tuple<rating_snapshot, rating_snapshot>
+  >,
+  moves map<int, smallint>,
 );
 CREATE INDEX ON games(result);
 

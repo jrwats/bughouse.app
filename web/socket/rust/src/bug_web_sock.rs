@@ -1,5 +1,15 @@
 use actix::prelude::*;
 // use actix::ResponseFuture;
+use actix_web::*;
+use actix_web_actors::ws;
+use bytestring::ByteString;
+use chrono::prelude::*;
+use serde_json::{json, Value};
+use std::str::FromStr;
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+use crate::b73::B73;
 use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::ConnID;
 use crate::db::Db;
@@ -7,13 +17,7 @@ use crate::error::Error;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
-use actix_web::*;
-use actix_web_actors::ws;
-use bytestring::ByteString;
-use chrono::prelude::*;
-use serde_json::{json, Value};
-use std::sync::Arc;
-use std::time::{Duration, Instant};
+use crate::time_control::TimeControl;
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
@@ -90,6 +94,14 @@ impl Handler<ClientMessage> for BugWebSock {
                 let msg = json!({
                     "kind": "login",
                     "handle": user.unwrap().read().unwrap().get_handle()
+                });
+                ctx.text(msg.to_string());
+            }
+            ClientMessageKind::GameStart(game_id) => {
+                let msg = json!({
+                    "kind": "game_start",
+                    "id": game_id,
+                    "path": B73::encode_uuid(game_id),
                 });
                 ctx.text(msg.to_string());
             }
@@ -195,6 +207,52 @@ impl BugWebSock {
         });
     }
 
+    fn ensure_authed(&self) -> Result<(), Error> {
+        if self.id == 0 || !self.server.is_authenticated(self.id) {
+            return Err(Error::AuthError {
+                reason: "Unauthenticated".to_string(),
+            });
+        }
+        Ok(())
+    }
+
+    fn authed_handler(
+        &self,
+        kind: &str,
+        val: &Value,
+        ctx: &mut <Self as Actor>::Context,
+    ) -> Result<(), Error> {
+        self.ensure_authed()?;
+        match kind {
+            "seek" => {
+                let time_str =
+                    val["time"].as_str().ok_or(Error::MalformedClientMsg {
+                        reason: "Missing 'time' field for 'seek'".to_string(),
+                        msg: val.to_string(),
+                    })?;
+                let time_ctrl = TimeControl::from_str(time_str)?;
+                let me = ctx.address().recipient();
+                self.server.add_seek(time_ctrl, me, &self.srv_recipient)?;
+                // self.srv_recipient
+                //     .do_send(ServerMessage::new(ServerMessageKind::Seek(
+                //         time_ctrl,
+                //         ctx.address().recipient(),
+                //         )))
+                //     .expect("WTF");
+                // self.server.add_seek(time_ctrl, ctx.address().recipient())?;
+            }
+            _ => {
+                eprintln!("Unkonwn kind: {}", kind);
+                return Err(Error::MalformedClientMsg {
+                    reason: "Missing 'time' field for 'seek'".to_string(),
+                    msg: val.to_string(),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
     fn msg_handler(
         &self,
         text: &ByteString,
@@ -206,13 +264,12 @@ impl BugWebSock {
         }
 
         let val: Value = serde_json::from_str(text)?;
-        let kind =
-            val["kind"]
-                .as_str()
-                .ok_or_else(|| Error::MalformedClientMsg {
-                    reason: "Malformed 'kind'".to_string(),
-                    msg: text.to_string(),
-                })?;
+        let kind = (&val)["kind"].as_str().ok_or_else(|| {
+            Error::MalformedClientMsg {
+                reason: "Malformed 'kind'".to_string(),
+                msg: text.to_string(),
+            }
+        })?;
         println!("handling, {}", kind);
         match kind {
             "enq" => {
@@ -268,7 +325,9 @@ impl BugWebSock {
                 //     })
                 // .spawn(ctx);
             }
-            _ => eprintln!("TODO"),
+            _ => {
+                self.authed_handler(kind, &val, ctx)?;
+            }
         }
         Ok(())
     }

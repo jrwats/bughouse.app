@@ -18,6 +18,7 @@ use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
+use crate::players::Players;
 use crate::seeks::{SeekMap, Seeks};
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
@@ -29,29 +30,29 @@ pub struct BughouseServer {
     users: Arc<Users>,
     conns: ConnectionMgr,
     seeks: Seeks,
+    // recipient: Option<Recipient<ServerMessage>>,
     games: Games,
     partners: HashMap<UserID, UserID>,
-    // conns: RwLock<HashMap<u64, SocketConn>>, // connections
     db: Arc<Db>,
     // tx: Mutex<Sender<ChanMsg>>,
 }
 
-pub struct ServerActor {
+pub struct ServerHandler {
     server: &'static BughouseServer,
 }
 
-impl ServerActor {
+impl ServerHandler {
     pub fn new(server: &'static BughouseServer) -> Self {
-        ServerActor { server }
+        ServerHandler { server }
     }
 }
 
-impl Actor for ServerActor {
+impl Actor for ServerHandler {
     /// Just need ability to communicate with other actors.
     type Context = Context<Self>;
 }
 
-impl Handler<ServerMessage> for ServerActor {
+impl Handler<ServerMessage> for ServerHandler {
     type Result = ResponseFuture<Result<ClientMessage, Error>>;
 
     fn handle(
@@ -65,15 +66,29 @@ impl Handler<ServerMessage> for ServerActor {
                 let fut = self.server.authenticate(recipient, token);
                 Box::pin(async move { fut.await })
             }
+            ServerMessageKind::CreateGame(time_ctrl, players) => {
+                let fut = self.server.create_game(time_ctrl, players);
+                Box::pin(async move { fut.await })
+            }
         }
     }
 }
 
+static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
+
 impl BughouseServer {
+    // fn get_cell(db: Arc<Db>) -> &'static mut OnceCell<BughouseServer> {
+    //     INSTANCE.get_or_init(move || BughouseServer::new(db));
+    //     &mut INSTANCE
+    // }
+
     pub fn get(db: Arc<Db>) -> &'static BughouseServer {
-        static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
         INSTANCE.get_or_init(move || BughouseServer::new(db))
     }
+
+    // pub fn get_mut() -> &'static mut BughouseServer {
+    //     INSTANCE.get_mut().unwrap()
+    // }
 
     // pub fn get_tx() -> Sender<ChanMsg> {
     //     SINGLETON.tx.lock().unwrap().clone()
@@ -97,13 +112,25 @@ impl BughouseServer {
         BughouseServer {
             conns: ConnectionMgr::new(db.clone(), users.clone()),
             users,
+            // recipient: None,
             seeks: Seeks::new(),
             games: Games::new(), // db.clone()),
             partners: HashMap::new(),
             db,
             // tx: Mutex::new(tx),
         }
+        // let addr = ServerActor::new(&srv).start();
+        // srv.addr = Some(addr);
+        // srv
     }
+
+    // pub fn set_loopback(&'static mut self, recipient: Recipient<ServerMessage>) {
+    //     self.recipient = Some(recipient);
+    // }
+    //
+    // pub fn get_recipient(&'static self) -> Recipient<ServerMessage> {
+    //     self.recipient.unwrap()
+    // }
 
     pub fn get_seeks(&'static self) -> SeekMap {
         self.seeks.get_seeks()
@@ -113,6 +140,7 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         recipient: Recipient<ClientMessage>,
+        loopback: &Recipient<ServerMessage>,
     ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
         let user_lock =
@@ -123,7 +151,21 @@ impl BughouseServer {
         if self.games.is_in_game(user.get_uid()) {
             return Err(Error::InGame(user.get_handle().to_string()));
         }
-        self.seeks.add_seeker(time_ctrl, user.get_uid())
+        self.seeks.add_seeker(&time_ctrl, user.get_uid())?;
+        if let Some(players) = self.seeks.form_game(&time_ctrl) {
+            // let addr: Addr<BughouseServer> = self.into();
+            let msg = ServerMessage::new(ServerMessageKind::CreateGame(
+                time_ctrl, players,
+            ));
+            // loopback.do_send(msg)?;
+            loopback.try_send(msg)?;
+            // self.create_game(time_ctrl, players).await?;
+        }
+        Ok(())
+    }
+
+    pub fn is_authenticated(&'static self, conn_id: ConnID) -> bool {
+        self.conns.user_from_conn(conn_id).is_some()
     }
 
     pub async fn authenticate(
@@ -139,8 +181,9 @@ impl BughouseServer {
         let (label, payload) = resp.split_once(':').unwrap();
         match label {
             "uid" => {
-                println!("auth.uid: {}", payload);
-                let conn_id = self.add_conn(recipient.clone(), payload).await?;
+                let fid = payload.trim_end();
+                println!("auth.uid: {}", fid);
+                let conn_id = self.add_conn(recipient.clone(), fid).await?;
                 println!("conn_id: {}", conn_id);
 
                 recipient
@@ -209,7 +252,8 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         players: GamePlayers,
-    ) -> Result<(), Error> {
+    ) -> Result<ClientMessage, Error> {
+        self.seeks.remove_player_seeks(players);
         let start = Game::new_start();
         let rating_snapshots = self.get_rating_snapshots(&players).await?;
         let id = self
@@ -217,7 +261,12 @@ impl BughouseServer {
             .create_game(start, &time_ctrl, &rating_snapshots)
             .await?;
         self.games.start_game(id, start, time_ctrl, players)?;
-        Ok(())
+        let iplayers = Players::new(players);
+        let game_start = ClientMessage::new(ClientMessageKind::GameStart(id));
+        for player in iplayers.get_players().iter() {
+            self.conns.send_to_user(player.get_id(), game_start.clone());
+        }
+        Ok(ClientMessage::new(ClientMessageKind::GameStart(id)))
     }
 
     pub async fn make_move(
@@ -251,27 +300,8 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
         fid: &str,
     ) -> Result<ConnID, Error> {
-        // println!("BS add_conn");
-        // let conn_id = hash(&recipient);
-        // println!("conn_id: {}", conn_id);
-        // let user = self.get_user_from_fid(fid).await?;
+        println!("add_conn: {}", fid);
         let conn_id = self.conns.add_conn(recipient, fid).await?;
-        // println!("uid: {}", uid);
-        // println!("map[{:?}] = {:?}", conn_id, (uid, fid));
-        // {
-        //     println!("inserting...");
-        //     if self.conns.read().unwrap().contains_key(&conn_id) {
-        //         return Err(Error::Unexpected("Hash collision".to_string()));
-        //     }
-        //     let mut conns = self.conns.write().unwrap();
-        //     conns.insert(conn_id, SocketConn::new(recipient, uid.to_string()));
-        // }
-        //
-        // // let tx = self.tx.lock().unwrap().clone();
-        // let uid_str = fid.to_string();
-        // if BughouseServer::get_user_data(uid_str).is_err() {
-        //     eprintln!("ruh oh");
-        // }
         Ok(conn_id)
     }
 }

@@ -71,7 +71,7 @@ impl Games {
     }
 
     pub fn is_in_game(&self, uid: UserID) -> bool {
-        self.get_game(uid).is_none()
+        self.get_game(uid).is_some()
     }
 
     pub fn get_game(&self, uid: UserID) -> Option<Arc<RwLock<Game>>> {

@@ -15,7 +15,7 @@ use std::os::unix::net::UnixStream;
 use uuid::v1::{Context, Timestamp};
 use uuid::Uuid;
 
-use crate::b73_encode::b73_encode;
+use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
@@ -126,8 +126,8 @@ impl Db {
     //
     async fn new_guest_handle(&self) -> Result<(Uuid, String), Error> {
         let uuid = self.now()?;
-        let handle = format!("Guest_{}", b73_encode(uuid.as_fields().0));
-
+        let handle =
+            format!("Guest_{}", B73::encode_num(uuid.as_fields().0 as u128));
         let mut query = Query::new(
             "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
@@ -205,6 +205,7 @@ impl Db {
         &self,
         fid: &str,
     ) -> Result<UserRowData, Error> {
+        println!("mk_user_for_fid {}", fid);
         let firebase_data = Db::fetch_firebase_data(fid)?;
         let (id, handle) = self.new_guest_handle().await?;
         let rating = Rating::default();
@@ -278,17 +279,21 @@ impl Db {
         &self,
         fid: &str,
     ) -> Result<UserRowData, Error> {
+        println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
-            "SELECT id, firebase_id, name, handle, photo_url
+            "SELECT id, firebase_id, name, handle, rating, deviation, photo_url
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );
+        println!("Querying session...");
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
             for row in rows.into_typed::<UserRowData>() {
+                println!("got a row: {:?}", row);
                 return Ok(row?);
             }
         }
+        println!("no rows");
         Ok(self.mk_user_for_fid(fid).await?)
     }
 
