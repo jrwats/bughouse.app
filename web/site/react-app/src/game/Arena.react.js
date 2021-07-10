@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import Board from './Board.react';
-import FicsGameStatusSource from './FicsGameStatusSource';
+import GameStatusSource from './GameStatusSource';
 import {SocketContext} from '../socket/SocketProvider';
 import invariant from 'invariant';
 import { Redirect } from "@reach/router";
@@ -9,7 +9,7 @@ import ScreenLock from './ScreenLock';
 
 const Arena = ({gameID}) => {
   const {handle, socket} = useContext(SocketContext);
-  const gamesSrc = FicsGameStatusSource.get(socket);
+  const gamesSrc = GameStatusSource.get(socket);
 
   // let [id1, id2] = gamePair.split('~');
   // console.log(`Arena ${id1}/${id2} ${handle}`);
@@ -53,7 +53,7 @@ const Arena = ({gameID}) => {
 
   // Run only once on first load
   useEffect(() => {
-    console.log(`Arena subscribing ${id1} ${id2}`);
+    console.log(`Arena subscribing ${gameID}`);
     gamesSrc.observe(id1);
     if (id2 != null) {
       gamesSrc.observe(id2);
