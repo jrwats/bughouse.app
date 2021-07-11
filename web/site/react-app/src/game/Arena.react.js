@@ -7,7 +7,15 @@ import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
-const Arena = ({gameID}) => {
+const Orientation {
+  DEFAULT: 0,
+  FLIPPED: 1, // Board B on left
+  BLACK: 2, // Black's POV
+};
+
+
+const Arena = ({gamePath}) => {
+  const [gameID, orientation] = gamePath.split('/');
   const {handle, socket} = useContext(SocketContext);
   const gamesSrc = GameStatusSource.get(socket);
 
@@ -46,41 +54,37 @@ const Arena = ({gameID}) => {
   // Run only once on first load
   useEffect(() => {
     console.log(`Arena subscribing ${gameID}`);
-    gamesSrc.observe(id1);
-    if (id2 != null) {
-      gamesSrc.observe(id2);
-    }
-  }, [gamesSrc, id1, id2]);
+    gamesSrc.observe(gameID);
+  }, [gamesSrc, gameID]);
   useEffect(() => { ScreenLock.attemptAcquire(); }, [id1, id2]);
 
-  let orientation1 = handleColorA || 'white';
-  console.log(`Arena hc1: ${handleColorA} o1: ${orientation1}, hc2: ${handleColorB}`);
+  let orientationA = orientation != null 
+    ? (orientation & Orientation.BLACK)
+    : (handleColorA || 'white');
+  // console.log(`Arena hc1: ${handleColorA} o1: ${orientation1}, hc2: ${handleColorB}`);
 
-  let boardView2 = null;
-  if (id2 != null) {
-    if (handleColorB != null) {
-      invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
-      return <Redirect to={`/home/arena/${id2}~${id1}`} />;
-    }
-    boardView2 = (
-      <Board
-        chessboard={boardB}
-        orientation={opposite(orientation1)}
-      />
-    );
-    console.log(`Arena hc2: ${handleColorB}`);
-  } else {
-    console.log(`Arena only observing one game?`);
+  if (handleColorB != null) {
+    invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
+    return <Redirect to={`/home/arena/${gameID}/1`} />;
+  }
+  const boards = [
+    <Board
+      id="boardA"
+      chessboard={boardA}
+      orientation={orientationA}
+    />,
+    <Board
+      chessboard={boardB}
+      orientation={opposite(orientationA)}
+    />
+  ];
+  if (orientation & Orientation.FLIPPED) {
+    boards.reverse()
   }
 
   return (
     <div style={{width: '100%'}}>
-      <Board
-        id="boardA"
-        chessboard={boardA}
-        orientation={orientation1}
-      />
-      {boardView2}
+      {boards}
     </div>
   );
 };

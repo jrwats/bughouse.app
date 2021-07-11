@@ -334,8 +334,8 @@ impl Db {
     //     Ok(((aw, ab), (bw, bb)))
     // }
 
-    pub fn to_move_key(game: &Game, board_id: BoardID) -> i16 {
-        let duration = Utc::now() - *game.get_start();
+    pub fn to_move_key(duration: &Duration, board_id: BoardID) -> i16 {
+        // let duration = Utc::now() - *game.get_start();
         let mut ms = duration.num_milliseconds() as i16;
         ms <<= 1;
         if board_id == BoardID::B {
@@ -356,20 +356,21 @@ impl Db {
         }
     }
 
-    pub async fn make_move(
+    pub async fn record_move(
         &self,
-        game: &Game,
+        duration: &Duration,
+        game_id: &GameID,
         board_id: BoardID,
         mv: &BughouseMove,
     ) -> Result<(), Error> {
-        let move_key = Self::to_move_key(game, board_id);
+        let move_key = Self::to_move_key(duration, board_id);
         let move_val = Self::serialize_move(mv);
         let _res = self
             .session
             .query(
                 "UPDATE bughouse.games SET moves[?] = ? WHERE id = ?"
                     .to_string(),
-                (move_key, move_val, game.get_id()),
+                (move_key, move_val, game_id),
             )
             .await?;
         Ok(())

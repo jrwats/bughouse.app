@@ -1,14 +1,20 @@
 use actix::{prelude::*, Recipient};
+use bughouse::{BoardID, BughouseMove};
+use chrono::Duration;
+use std::sync::Arc;
 
 use crate::connection_mgr::ConnID;
 use crate::error::Error;
 use crate::game::{GameID, GamePlayers};
 use crate::time_control::TimeControl;
 
+// server => client => browser messages - i.e. client-side pushes
 #[derive(Debug, Clone)]
 pub enum ClientMessageKind {
     Auth(ConnID),
     GameStart(GameID),
+    GameUpdate(Arc<str>),
+    Empty,
 }
 
 /// BughouseSever sends these messages to Socket session
@@ -31,6 +37,7 @@ impl ClientMessage {
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
     CreateGame(TimeControl, GamePlayers),
+    RecordMove(Duration, GameID, BoardID, BughouseMove),
 }
 
 #[derive(Message)]

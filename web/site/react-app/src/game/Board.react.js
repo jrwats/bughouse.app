@@ -9,7 +9,7 @@ import GameOverMessage from './GameOverMessage.react';
 import invariant from 'invariant';
 
 const Board = ({chessboard, orientation, id}) => {
-  const {telnet, handle} = useContext(SocketContext);
+  const {socket, handle} = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
@@ -78,7 +78,8 @@ const Board = ({chessboard, orientation, id}) => {
           fen={fen}
           onMove={(from, to) => {
             console.log(`onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`);
-            telnet.sendEvent('move', `${from}-${to}`);
+            // Send UCI formatted move
+            socket.sendEvent('move', `${from}${to}`);
           }}
           animation={{enabled: true, duration: 150}}
           viewOnly={viewOnly}

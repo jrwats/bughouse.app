@@ -1,7 +1,9 @@
 use actix::prelude::*;
 use actix_web::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
-use bughouse::BughouseMove;
+use bughouse::{BoardID, BughouseMove};
+use chrono::prelude::*;
+use chrono::Duration;
 // use actix_web_actors::ws::WebsocketContext;
 use futures::try_join;
 use std::collections::HashMap;
@@ -15,7 +17,7 @@ use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
-use crate::game::{Game, GamePlayers};
+use crate::game::{Game, GameID, GamePlayers};
 use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
@@ -77,6 +79,10 @@ impl Handler<ServerMessage> for ServerHandler {
             }
             ServerMessageKind::CreateGame(time_ctrl, players) => {
                 let fut = self.srv(ctx).create_game(time_ctrl, players);
+                Box::pin(async move { fut.await })
+            }
+            ServerMessageKind::RecordMove(duration, game_id, board_id, mv) => {
+                let fut = self.srv(ctx).record_move(duration, game_id, board_id, mv);
                 Box::pin(async move { fut.await })
             }
         }
@@ -275,7 +281,18 @@ impl BughouseServer {
         Ok(ClientMessage::new(ClientMessageKind::GameStart(id)))
     }
 
-    pub async fn make_move(
+    pub async fn record_move(
+        &'static self,
+        duration: Duration,
+        game_id: GameID,
+        board_id: BoardID,
+        mv: BughouseMove,
+        ) -> Result<ClientMessage, Error> {
+        self.db.record_move(&duration, &game_id, board_id, &mv).await?;
+        Ok(ClientMessage::new(ClientMessageKind::Empty))
+    }
+
+    pub fn make_move(
         &'static self,
         user_id: UserID,
         mv: &BughouseMove,
@@ -285,10 +302,27 @@ impl BughouseServer {
             .get_game(user_id)
             .ok_or(Error::InvalidMoveNotPlaying(user_id))?;
         let board_id = game.write().unwrap().make_move(user_id, mv)?;
-        self.db
-            .make_move(&game.read().unwrap(), board_id, mv)
-            .await?;
+        {
+            let rgame = game.read().unwrap();
+            let duration = Utc::now() - *rgame.get_start();
+            let msg = ServerMessage::new(ServerMessageKind::RecordMove(
+                    duration, *rgame.get_id(), board_id, *mv
+                    ));
+            self.loopback.try_send(msg)?;
+        }
+        self.notify_game_observers(game);
         Ok(())
+    }
+
+    fn notify_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
+        let game = ar_game.read().unwrap();
+        // TODO iterate observers
+        let players = Players::new(*game.get_players());
+        let msg = 
+        for uid in players.get_players().iter() {
+            self.conns.send_to_user
+        }
+
     }
 
     pub fn on_close(
@@ -310,4 +344,13 @@ impl BughouseServer {
         let conn_id = self.conns.add_conn(recipient, fid).await?;
         Ok(conn_id)
     }
+
+    pub fn observe(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+        game_id: GameID,
+        ) {
+        // TODO enable non-players to observe
+    }
+
 }

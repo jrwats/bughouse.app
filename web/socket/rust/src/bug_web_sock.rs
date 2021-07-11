@@ -2,6 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use actix_web::*;
 use actix_web_actors::ws;
+use bughouse::BughouseMove;
 use bytestring::ByteString;
 use chrono::prelude::*;
 use serde_json::{json, Value};
@@ -14,6 +15,7 @@ use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::ConnID;
 use crate::db::Db;
 use crate::error::Error;
+use crate::game::GameID;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -105,6 +107,13 @@ impl Handler<ClientMessage> for BugWebSock {
                     "path": B73::encode_uuid(game_id),
                 });
                 ctx.text(msg.to_string());
+            }
+            ClientMessageKind::GameUpdate(json) => {
+                let bytestr: ByteString = &json;
+                ctx.text(json);
+            }
+            ClientMessageKind::Empty => {
+                eprintln!("We don't expect to receive EMPTY");
             }
         }
     }
@@ -219,6 +228,23 @@ impl BugWebSock {
         Ok(())
     }
 
+    fn get_field(val: &Value, field: &str, kind: &str) -> Result<String, Error> {
+        let str_res = val[field].as_str().ok_or(Error::MalformedClientMsg {
+            reason: format!("Missing '{}' field for time' field for '{}'", field, kind),
+            msg: val.to_string(),
+        })?;
+        Ok(str_res.to_string())
+    }
+
+    fn get_uuid(val: &Value, field: &str, kind: &str) -> Result<uuid::Uuid, Error> {
+        let id_str = Self::get_field(val, field, kind)?;
+        let game_id = B73::decode_uuid(&id_str).ok_or_else(|| Error::MalformedClientMsg {
+            reason: format!("Couldn't parse '{}' as uuid in '{}'", field, kind),
+            msg: val.to_string(),
+        })?;
+        Ok(game_id)
+    }
+
     fn authed_handler(
         &self,
         kind: &str,
@@ -228,20 +254,21 @@ impl BugWebSock {
         self.ensure_authed()?;
         match kind {
             "seek" => {
-                let time_str =
-                    val["time"].as_str().ok_or(Error::MalformedClientMsg {
-                        reason: "Missing 'time' field for 'seek'".to_string(),
-                        msg: val.to_string(),
-                    })?;
-                let time_ctrl = TimeControl::from_str(time_str)?;
+                let time_str = Self::get_field(val, "time", kind)?;
+                let time_ctrl = TimeControl::from_str(&time_str)?;
                 self.data.server.add_seek(time_ctrl, ctx.address().recipient());
-                // self.srv_recipient
-                //     .do_send(ServerMessage::new(ServerMessageKind::Seek(
-                //         time_ctrl,
-                //         ctx.address().recipient(),
-                //         )))
-                //     .expect("WTF");
-                // self.data.server.add_seek(time_ctrl, ctx.address().recipient())?;
+            }
+            "move" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                let mv_str = Self::get_field(val, "move", kind)?;
+                let bug_mv = BughouseMove::from_str(&mv_str)?;
+                self.data.server.make_move(game_id, &bug_mv);
+            }
+            "observe" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                self.data.server.observe(ctx.address().recipient(), game_id);
+            }
+            "refresh" => {
             }
             _ => {
                 eprintln!("Unkonwn kind: {}", kind);
