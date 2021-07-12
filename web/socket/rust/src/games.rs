@@ -5,6 +5,7 @@ use std::sync::{Arc, RwLock};
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::game::{Game, GameID, GamePlayers};
+use crate::players::Players;
 use crate::time_control::TimeControl;
 // use crate::db::Db;
 // use crate::bughouse_server::BughouseServer;
@@ -45,8 +46,8 @@ impl Games {
         {
             let mut user_games = self.user_games.write().unwrap();
             for board in players.iter() {
-                for uid in board.iter() {
-                    user_games.insert(*uid, id);
+                for user in board.iter() {
+                    user_games.insert(user.read().unwrap().get_uid(), id);
                 }
             }
         }
@@ -58,12 +59,10 @@ impl Games {
         let res = games.get(&game_id);
         if let Some(game) = res {
             let game = game.read().unwrap();
-            let players = game.get_players();
+            let players = Players::new(game.get_players());
             let mut user_games = self.user_games.write().unwrap();
-            for board in players.iter() {
-                for uid in board.iter() {
-                    user_games.remove(uid);
-                }
+            for player in players.get_players() {
+                user_games.remove(&player.get_uid());
             }
             let mut wgames = self.games.write().unwrap();
             wgames.remove(&game_id);

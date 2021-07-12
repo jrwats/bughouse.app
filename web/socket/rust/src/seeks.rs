@@ -1,21 +1,24 @@
 use std::collections::{HashMap, HashSet};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::game::GamePlayers;
+use crate::users::Users;
 use crate::time_control::{TimeControl, TimeID};
 
 pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
 
 pub struct Seeks {
+    users: Arc<Users>,
     seeks: RwLock<SeekMap>,
     user_seeks: RwLock<HashMap<UserID, HashSet<TimeID>>>,
 }
 
 impl Seeks {
-    pub fn new() -> Self {
+    pub fn new(users: Arc<Users>) -> Self {
         Seeks {
+            users,
             seeks: RwLock::new(HashMap::new()),
             user_seeks: RwLock::new(HashMap::new()),
         }
@@ -25,7 +28,7 @@ impl Seeks {
         self.seeks.read().unwrap().to_owned()
     }
 
-    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<GamePlayers> {
+    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<Arc<GamePlayers>> {
         let seeks = self.seeks.read().unwrap();
         let time_id = time_ctrl.get_id();
         if let Some(players) = seeks.get(&time_id) {
@@ -35,7 +38,11 @@ impl Seeks {
             let game_players: Vec<&UserID> =
                 players.iter().take(4).collect::<Vec<&UserID>>();
             if let [aw, ab, bw, bb] = &game_players[0..4] {
-                return Some([[**aw, **ab], [**bw, **bb]]);
+                let players = [
+                    [self.users.get(aw), self.users.get(ab)], 
+                    [self.users.get(bw), self.users.get(bb)]
+                ];
+                return Some(Arc::new(players));
             }
         }
         None
@@ -95,8 +102,9 @@ impl Seeks {
 
     pub fn remove_player_seeks(&self, players: GamePlayers) {
         for board in players.iter() {
-            for uid in board.iter() {
-                let res = self.remove_all_user_seeks(uid);
+            for user in board.iter() {
+                let uid = user.read().unwrap().get_uid();
+                let res = self.remove_all_user_seeks(&uid);
                 if let Err(e) = res {
                     eprintln!("{}: {}", e, uid);
                 }

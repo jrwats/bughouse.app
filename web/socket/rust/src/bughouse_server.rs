@@ -130,7 +130,7 @@ impl BughouseServer {
             conns: ConnectionMgr::new(db.clone(), users.clone()),
             users,
             loopback,
-            seeks: Seeks::new(),
+            seeks: Seeks::new(users.clone()),
             games: Games::new(), // db.clone()),
             partners: HashMap::new(),
             db,
@@ -171,7 +171,7 @@ impl BughouseServer {
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
-                time_ctrl, players,
+                time_ctrl, Arc::new(players),
             ));
             self.loopback.try_send(msg)?;
         }
@@ -240,9 +240,9 @@ impl BughouseServer {
         None
     }
 
-    pub async fn rating_snapshot_from_uid(
+    pub async fn rating_snapshot_from_user(
         &'static self,
-        uid: &UserID,
+        user: Arc<RwLock<User>>,
     ) -> Result<UserRatingSnapshot, Error> {
         if let Some(u) = self.user_from_uid(uid).await {
             return Ok(UserRatingSnapshot::from(u));
@@ -250,17 +250,22 @@ impl BughouseServer {
         Err(Error::UnknownUID(*uid))
     }
 
-    async fn get_rating_snapshots(
+    fn get_rating_snapshots(
         &'static self,
         players: &GamePlayers,
     ) -> Result<PregameRatingSnapshot, Error> {
         let [[aw, ab], [bw, bb]] = players;
-        let (aws, abs, bws, bbs) = try_join!(
-            self.rating_snapshot_from_uid(&aw),
-            self.rating_snapshot_from_uid(&ab),
-            self.rating_snapshot_from_uid(&bw),
-            self.rating_snapshot_from_uid(&bb),
-        )?;
+        let (aws, abs, bws, bbs) = (
+            UserRatingSnapshot::from(aw.read().as_ref()),
+
+            UserRatingSnapshot::from(ab.read().unwrap().into()),
+            UserRatingSnapshot::from(bw.read().unwrap().into()),
+            UserRatingSnapshot::from(bb.read().unwrap().into()),
+            // self.rating_snapshot_from_user(&aw),
+            // self.rating_snapshot_from_user(&ab),
+            // self.rating_snapshot_from_user(&bw),
+            // self.rating_snapshot_from_user(&bb),
+        );
         Ok(((aws, abs), (bws, bbs)))
     }
 
@@ -269,7 +274,7 @@ impl BughouseServer {
         time_ctrl: TimeControl,
         players: GamePlayers,
     ) -> Result<ClientMessage, Error> {
-        self.seeks.remove_player_seeks(players);
+        self.seeks.remove_player_seeks(players.clone());
         let start = Game::new_start();
         let rating_snapshots = self.get_rating_snapshots(&players).await?;
         let id = self
@@ -277,10 +282,10 @@ impl BughouseServer {
             .create_game(start, &time_ctrl, &rating_snapshots)
             .await?;
         self.games.start_game(id, start, time_ctrl, players)?;
-        let iplayers = Players::new(players);
+        let iplayers = Players::new(&players);
         let game_start = ClientMessage::new(ClientMessageKind::GameStart(id));
         for player in iplayers.get_players().iter() {
-            self.conns.send_to_user(player.get_id(), game_start.clone());
+            self.conns.send_to_user(player.get_uid(), game_start.clone());
         }
         Ok(ClientMessage::new(ClientMessageKind::GameStart(id)))
     }
@@ -327,8 +332,8 @@ impl BughouseServer {
         // });
         let msg_str = Arc::new(ByteString::from(json_str.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::GameUpdate(msg_str));
-        for player in Players::new(*game.get_players()).get_players().iter() {
-            self.conns.send_to_user(player.get_id(), msg.clone());
+        for player in Players::new(game.get_players()).get_players().iter() {
+            self.conns.send_to_user(player.get_uid(), msg.clone());
         }
         // TODO Also iterate observers
     }

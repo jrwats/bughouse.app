@@ -60,8 +60,8 @@ pub struct UserRatingSnapshot {
     deviation: i16,
 }
 
-impl From<User> for UserRatingSnapshot {
-    fn from(user: User) -> Self {
+impl From<&User> for UserRatingSnapshot {
+    fn from(user: &User) -> Self {
         UserRatingSnapshot {
             user_id: user.get_uid(),
             rating: user.get_rating(),

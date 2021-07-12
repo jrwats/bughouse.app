@@ -13,7 +13,7 @@ impl Player {
     pub fn new(id: UserID, board: BoardID, color: Color) -> Self {
         Player { id, board, color }
     }
-    pub fn get_id(&self) -> UserID {
+    pub fn get_uid(&self) -> UserID {
         self.id
     }
     pub fn get_color(&self) -> Color {
@@ -29,14 +29,14 @@ pub struct Players {
 }
 
 impl Players {
-    pub fn new(game_players: GamePlayers) -> Self {
+    pub fn new(game_players: &GamePlayers) -> Self {
         let [[a_white, a_black], [b_white, b_black]] = game_players;
         Players {
             players: [
-                Player::new(a_white, BoardID::A, Color::White),
-                Player::new(a_black, BoardID::A, Color::Black),
-                Player::new(b_white, BoardID::B, Color::White),
-                Player::new(b_black, BoardID::B, Color::Black),
+                Player::new(a_white.read().unwrap().get_uid(), BoardID::A, Color::White),
+                Player::new(a_black.read().unwrap().get_uid(), BoardID::A, Color::Black),
+                Player::new(b_white.read().unwrap().get_uid(), BoardID::B, Color::White),
+                Player::new(b_black.read().unwrap().get_uid(), BoardID::B, Color::Black),
             ],
         }
     }

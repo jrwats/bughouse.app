@@ -3,21 +3,21 @@ use chrono::prelude::*;
 use chrono::Duration;
 use serde_json::json;
 use serde_json::Value;
+use std::sync::{Arc, RwLock};
 
 use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
+use crate::users::User;
 use crate::time_control::TimeControl;
 
-pub struct BoardPlayer {
-    uid: UserID,
-    clock_ms: u32,
-}
 //                      White, Black
-pub type BoardPlayers = [UserID; 2];
+pub type BoardPlayers = [Arc<RwLock<User>>; 2];
 
 //                      A,B
 pub type GamePlayers = [BoardPlayers; 2];
+
+// pub type GameUserIDs = [BoardPlayers; 2];
 
 pub type GameID = uuid::Uuid;
 
@@ -32,8 +32,15 @@ pub struct Game {
     players: GamePlayers,
 }
 
+pub struct PlayerJson {
+    handle: String,
+    clock_ms: i32,
+}
+
 pub struct BoardFenJson {
     fen: String,
+    white: PlayerJson,
+    black: PlayerJson,
 }
 
 pub struct BoardJson {
@@ -111,6 +118,14 @@ impl Game {
             holdings: board.get_holdings().to_string(),
             board: BoardFenJson {
                 fen: board.get_board().to_string(),
+                white: PlayerJson  {
+                    handle: "".to_string(),
+                    clock_ms: 0,
+                },
+                black: PlayerJson  {
+                    handle: "".to_string(),
+                    clock_ms: 0,
+                },
             }
         }
     }
@@ -132,13 +147,13 @@ impl Game {
         user_id: UserID,
     ) -> Option<(BoardID, Color)> {
         let [[a_white, a_black], [b_white, b_black]] = self.players;
-        if a_white == user_id {
+        if a_white.read().unwrap().get_uid() == user_id {
             return Some((BoardID::A, Color::White));
-        } else if a_black == user_id {
+        } else if a_black.read().unwrap().get_uid() == user_id {
             return Some((BoardID::A, Color::Black));
-        } else if b_white == user_id {
+        } else if b_white.read().unwrap().get_uid() == user_id {
             return Some((BoardID::B, Color::White));
-        } else if b_black == user_id {
+        } else if b_black.read().unwrap().get_uid() == user_id {
             return Some((BoardID::B, Color::Black));
         }
         None
