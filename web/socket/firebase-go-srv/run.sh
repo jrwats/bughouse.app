@@ -12,7 +12,7 @@ fi
 # ```
 # Prod:
 # ```
-# ./run.sh
+# ./run.sh & disown
 # ```
 
 firebase="${DEV:+bughouse-secrets/.dev-firebase-adminsdk.json}"
