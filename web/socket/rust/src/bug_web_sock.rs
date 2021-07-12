@@ -109,8 +109,7 @@ impl Handler<ClientMessage> for BugWebSock {
                 ctx.text(msg.to_string());
             }
             ClientMessageKind::GameUpdate(json) => {
-                let bytestr: ByteString = &json;
-                ctx.text(json);
+                ctx.text(Arc::try_unwrap(json).unwrap());
             }
             ClientMessageKind::Empty => {
                 eprintln!("We don't expect to receive EMPTY");
@@ -252,6 +251,7 @@ impl BugWebSock {
         ctx: &mut <Self as Actor>::Context,
     ) -> Result<(), Error> {
         self.ensure_authed()?;
+        println!("handling, {}", kind);
         match kind {
             "seek" => {
                 let time_str = Self::get_field(val, "time", kind)?;
@@ -299,7 +299,7 @@ impl BugWebSock {
                 msg: text.to_string(),
             }
         })?;
-        println!("handling, {}", kind);
+        // println!("handling, {}", kind);
         match kind {
             "enq" => {
                 let ack = json!({"kind": "ack", "timestamp": val["timestamp"]});
@@ -316,7 +316,7 @@ impl BugWebSock {
                 // Round-trip-time in milliseconds / 2 = latency
                 let ms = delta as f64 / 1_000_000.0 / 2.0;
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
-                println!("latency: {}ms", ms);
+                // println!("latency: {}ms", ms);
             }
             "auth" => {
                 let token = val["token"].as_str().ok_or(Error::AuthError {

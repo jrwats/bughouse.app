@@ -8,8 +8,8 @@ class BughouseGame extends EventEmitter {
   constructor({id, a, b}) {
     super();
     this._id = id;
-    this._a = new ChessBoard(id, a);
-    this._b = new ChessBoard(id, b);
+    this._a = a;
+    this._b = b;
   }
 
   update({id, a, b}) {
@@ -26,8 +26,12 @@ class BughouseGame extends EventEmitter {
   }
 
   static init(id) {
-    this._id = id;
-    this._a = ChessBoard.init(id);
-    this._b = ChessBoard.init(id);
+    return new BughouseGame({
+      id, 
+      a: ChessBoard.init(id + '/a'),
+      b: ChessBoard.init(id + '/b')
+    });
   }
 }
+
+export default BughouseGame;

@@ -1,11 +1,18 @@
-use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color};
+use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings};
 use chrono::prelude::*;
 use chrono::Duration;
+use serde_json::json;
+use serde_json::Value;
 
+use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::time_control::TimeControl;
 
+pub struct BoardPlayer {
+    uid: UserID,
+    clock_ms: u32,
+}
 //                      White, Black
 pub type BoardPlayers = [UserID; 2];
 
@@ -23,6 +30,42 @@ pub struct Game {
     time_ctrl: TimeControl,
     //        board A       board B
     players: GamePlayers,
+}
+
+pub struct BoardFenJson {
+    fen: String,
+}
+
+pub struct BoardJson {
+    holdings: String,
+    board: BoardFenJson,
+}
+
+pub struct GameJson {
+    id: GameID,
+    a: BoardJson,
+    b: BoardJson,
+}
+
+impl GameJson {
+    pub fn to_string(&self, kind: &str) -> Value {
+        json!({
+            "kind": kind,
+            "id": B73::encode_uuid(self.id),
+            "a": {
+                "holdings": self.a.holdings,
+                "board": {
+                    "fen": self.a.board.fen,
+                }
+            },
+            "b": {
+                "holdings": self.b.holdings,
+                "board": {
+                    "fen": self.b.board.fen,
+                }
+            }
+        })
+    }
 }
 
 impl Game {
@@ -59,6 +102,25 @@ impl Game {
 
     pub fn get_board(&self, board_id: BoardID) -> &BughouseBoard {
         self.game.get_board(board_id)
+    }
+
+    pub fn get_board_json(
+        board: &BughouseBoard,
+        ) -> BoardJson {
+        BoardJson {
+            holdings: board.get_holdings().to_string(),
+            board: BoardFenJson {
+                fen: board.get_board().to_string(),
+            }
+        }
+    }
+
+    pub fn to_json(&self) -> GameJson {
+        GameJson {
+            id: (self.id),
+            a: Self::get_board_json(self.get_board(BoardID::A)),
+            b: Self::get_board_json(self.get_board(BoardID::B)),
+        }
     }
 
     pub fn side_to_move(&self, board_id: BoardID) -> Color {

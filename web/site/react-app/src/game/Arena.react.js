@@ -7,7 +7,7 @@ import { Redirect } from "@reach/router";
 import { opposite } from 'chessground/util';
 import ScreenLock from './ScreenLock';
 
-const Orientation {
+const Orientation = {
   DEFAULT: 0,
   FLIPPED: 1, // Board B on left
   BLACK: 2, // Black's POV
@@ -20,6 +20,8 @@ const Arena = ({gamePath}) => {
   const gamesSrc = GameStatusSource.get(socket);
 
   const game = gamesSrc.getGame(gameID);
+  const boardA = game.getBoardA();
+  const boardB = game.getBoardB();
   const [handleColorA, setHandleColorA] =
     useState(boardA.getHandleColor(handle));
   const [handleColorB, setHandleColorB] =
@@ -56,7 +58,7 @@ const Arena = ({gamePath}) => {
     console.log(`Arena subscribing ${gameID}`);
     gamesSrc.observe(gameID);
   }, [gamesSrc, gameID]);
-  useEffect(() => { ScreenLock.attemptAcquire(); }, [id1, id2]);
+  useEffect(() => { ScreenLock.attemptAcquire(); }, [orientation]);
 
   let orientationA = orientation != null 
     ? (orientation & Orientation.BLACK)
@@ -65,7 +67,7 @@ const Arena = ({gamePath}) => {
 
   if (handleColorB != null) {
     invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
-    return <Redirect to={`/home/arena/${gameID}/1`} />;
+    return <Redirect to={`/home/game/${gameID}/1`} />;
   }
   const boards = [
     <Board
@@ -74,6 +76,7 @@ const Arena = ({gamePath}) => {
       orientation={orientationA}
     />,
     <Board
+      id="boardB"
       chessboard={boardB}
       orientation={opposite(orientationA)}
     />

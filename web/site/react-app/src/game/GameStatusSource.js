@@ -18,10 +18,10 @@ class GameStatusSource extends EventEmitter {
     this._socket.on('gameStart', data => this._onGameStart(data));
   }
 
-  _onGameUpdate({game}) {
-    console.log(`GameStatusSource boardUpdate ${JSON.stringify(game)}`);
-    this.getGame(id).update(game);
-    this.emit('gameUpdate', this._games[game.id]);
+  _onGameUpdate(data) {
+    console.log(`GameStatusSource boardUpdate ${JSON.stringify(data)}`);
+    this.getGame(data.id).update(data);
+    this.emit('gameUpdate', this._games[data.id]);
   }
 
   _onGameOver({board}) {

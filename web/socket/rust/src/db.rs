@@ -19,7 +19,7 @@ use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
-use crate::game::{Game, GameID};
+use crate::game::GameID;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -44,11 +44,12 @@ pub struct FirebaseRowData {
 pub struct UserRowData {
     id: Option<Uuid>,
     firebase_id: Option<String>,
-    name: Option<String>,
     handle: Option<String>,
-    rating: Option<i16>,
     deviation: Option<i16>,
+    email: Option<String>,
+    name: Option<String>,
     photo_url: Option<String>,
+    rating: Option<i16>,
 }
 
 // User's GLICKO rating snapshot before game start
@@ -85,6 +86,10 @@ impl UserRowData {
         self.handle.as_ref().unwrap().clone()
     }
 
+    pub fn get_email(&self) -> Option<String> {
+        self.email.clone()
+    }
+
     pub fn get_name(&self) -> Option<String> {
         self.name.clone()
     }
@@ -100,6 +105,7 @@ impl UserRowData {
     pub fn get_photo_url(&self) -> Option<String> {
         self.photo_url.clone()
     }
+
 }
 
 impl Db {
@@ -184,7 +190,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT (id, firebase_id, name, handle, rating, deviation)
+                "SELECT (id, firebase_id, handle, deviation, email, name, photo_url, rating)
             FROM bughouse.users
             WHERE id = ?"
                     .to_string(),
@@ -212,15 +218,16 @@ impl Db {
         self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, name, handle, rating, deviation)
-               VALUES (?, ?, ?, ?, ?, ?)",
+               (id, firebase_id, handle, deviation, email, name, rating)
+               VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     id,
                     &firebase_data.fid,
-                    &firebase_data.display_name,
                     &handle,
-                    rating.get_rating(),
                     rating.get_deviation(),
+                    &firebase_data.email,
+                    &firebase_data.display_name,
+                    rating.get_rating(),
                 ),
             )
             .await?;
@@ -233,6 +240,7 @@ impl Db {
             rating: Some(rating.get_rating()),
             deviation: Some(rating.get_deviation()),
             photo_url: firebase_data.photo_url,
+            email: firebase_data.email,
         })
     }
 
@@ -281,7 +289,7 @@ impl Db {
     ) -> Result<UserRowData, Error> {
         println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
-            "SELECT id, firebase_id, name, handle, rating, deviation, photo_url
+            "SELECT id, firebase_id, handle, deviation, email, name, photo_url, rating
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );

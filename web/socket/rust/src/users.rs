@@ -11,11 +11,12 @@ use crate::db::{Db, UserRowData};
 pub struct User {
     id: UserID,
     firebase_id: String,
-    name: Option<String>,
     handle: String,
-    rating: i16,
     deviation: i16,
+    email: Option<String>,
+    name: Option<String>,
     photo_url: Option<String>,
+    rating: i16,
 }
 
 impl From<UserRowData> for User {
@@ -23,11 +24,12 @@ impl From<UserRowData> for User {
         User {
             id: row.get_uid(),
             firebase_id: row.get_firebase_id(),
-            name: row.get_name(),
             handle: row.get_handle(),
-            rating: row.get_rating(),
             deviation: row.get_deviation(),
+            email: row.get_email(),
+            name: row.get_name(),
             photo_url: row.get_photo_url(),
+            rating: row.get_rating(),
         }
     }
 }
@@ -43,6 +45,10 @@ impl User {
 
     pub fn get_handle(&self) -> String {
         self.handle.clone()
+    }
+
+    pub fn get_email(&self) -> Option<String> {
+        self.email.clone()
     }
 
     pub fn get_name(&self) -> Option<String> {

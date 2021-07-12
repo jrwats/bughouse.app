@@ -2,6 +2,7 @@ use actix::prelude::*;
 use actix_web::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 use bughouse::{BoardID, BughouseMove};
+use bytestring::ByteString;
 use chrono::prelude::*;
 use chrono::Duration;
 // use actix_web_actors::ws::WebsocketContext;
@@ -10,6 +11,7 @@ use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
+use serde_json::json;
 // use std::thread;
 
 use crate::bug_web_sock::BugContext;
@@ -167,7 +169,7 @@ impl BughouseServer {
         }
         self.seeks.add_seeker(&time_ctrl, user.get_uid())?;
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
-            // send message to self loopback and attempt async game creation
+            // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
                 time_ctrl, players,
             ));
@@ -198,10 +200,12 @@ impl BughouseServer {
                 let conn_id = self.add_conn(recipient.clone(), fid).await?;
                 println!("conn_id: {}", conn_id);
 
-                recipient
+                let send_res = recipient
                     .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
-                    .await
-                    .expect("sending auth message failed?");
+                    .await;
+                if let Err(e) = send_res {
+                    eprintln!("Couldn't send AUTH message: {}", e);
+                }
                 return Ok(ClientMessage::new(ClientMessageKind::Auth(
                     conn_id,
                 )));
@@ -316,13 +320,17 @@ impl BughouseServer {
 
     fn notify_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
         let game = ar_game.read().unwrap();
-        // TODO iterate observers
-        let players = Players::new(*game.get_players());
-        let msg = 
-        for uid in players.get_players().iter() {
-            self.conns.send_to_user
+        let json_str = game.to_json().to_string("game_update");
+        println!("Notifying game players {}", json_str);
+        //     "kind": "game_update",
+        //     "game": game.to_json(),
+        // });
+        let msg_str = Arc::new(ByteString::from(json_str.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::GameUpdate(msg_str));
+        for player in Players::new(*game.get_players()).get_players().iter() {
+            self.conns.send_to_user(player.get_id(), msg.clone());
         }
-
+        // TODO Also iterate observers
     }
 
     pub fn on_close(

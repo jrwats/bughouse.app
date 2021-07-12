@@ -1,5 +1,6 @@
 use actix::{prelude::*, Recipient};
 use bughouse::{BoardID, BughouseMove};
+use bytestring::ByteString;
 use chrono::Duration;
 use std::sync::Arc;
 
@@ -13,7 +14,7 @@ use crate::time_control::TimeControl;
 pub enum ClientMessageKind {
     Auth(ConnID),
     GameStart(GameID),
-    GameUpdate(Arc<str>),
+    GameUpdate(Arc<ByteString>),
     Empty,
 }
 

@@ -14,8 +14,8 @@ class ChessBoard extends EventEmitter {
     this._winner = null;
   }
 
-  update({id, board, holdings}) {
-    invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
+  update({board, holdings}) {
+    // invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     this._board = board;
     this._holdings = holdings;
     this.emit('update', this);
@@ -105,7 +105,11 @@ class ChessBoard extends EventEmitter {
     console.log(`ChessBoard.init() ${id}`);
     return new ChessBoard({
       id,
-      board: {fen: '/////// w KQkq - 0 1'},
+      board: {
+        fen: 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        white: {handle: '', time: 0},
+        black: {handle: '', time: 0},
+      },
       holdings: {},
     });
   }

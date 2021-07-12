@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS users (
   handle text,
   rating smallint,
   deviation smallint,
+  email text,
   photo_url text,
   photo blob,
   PRIMARY KEY ((id), firebase_id, handle)
