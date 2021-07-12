@@ -8,7 +8,7 @@ import { opposite } from 'chessground/util';
 import GameOverMessage from './GameOverMessage.react';
 import invariant from 'invariant';
 
-const Board = ({chessboard, orientation, id}) => {
+const Board = ({chessboard, orientation, gameID, id}) => {
   const {socket, handle} = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
@@ -79,7 +79,7 @@ const Board = ({chessboard, orientation, id}) => {
           onMove={(from, to) => {
             console.log(`onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`);
             // Send UCI formatted move
-            socket.sendEvent('move', `${from}${to}`);
+            socket.sendEvent('move', {id: gameID, move: `${from}${to}`});
           }}
           animation={{enabled: true, duration: 150}}
           viewOnly={viewOnly}

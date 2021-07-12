@@ -18,6 +18,7 @@ mod db;
 mod error;
 mod firebase;
 mod game;
+mod game_json;
 mod games;
 mod hash;
 mod messages;

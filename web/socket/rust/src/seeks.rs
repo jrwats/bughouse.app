@@ -28,7 +28,7 @@ impl Seeks {
         self.seeks.read().unwrap().to_owned()
     }
 
-    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<Arc<GamePlayers>> {
+    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<GamePlayers> {
         let seeks = self.seeks.read().unwrap();
         let time_id = time_ctrl.get_id();
         if let Some(players) = seeks.get(&time_id) {
@@ -38,11 +38,20 @@ impl Seeks {
             let game_players: Vec<&UserID> =
                 players.iter().take(4).collect::<Vec<&UserID>>();
             if let [aw, ab, bw, bb] = &game_players[0..4] {
-                let players = [
-                    [self.users.get(aw), self.users.get(ab)], 
-                    [self.users.get(bw), self.users.get(bb)]
+                let [awp, abp, bwp, bbp] = [
+                    self.users.get(aw), 
+                    self.users.get(ab), 
+                    self.users.get(bw), 
+                    self.users.get(bb),
                 ];
-                return Some(Arc::new(players));
+                if [&awp, &abp, &bwp, &bbp].iter().any(|b| b.is_none()) {
+                    return None;
+                }
+                let players = [
+                    [awp.unwrap(), abp.unwrap()], 
+                    [bwp.unwrap(), bbp.unwrap()], 
+                ];
+                return Some(players);
             }
         }
         None

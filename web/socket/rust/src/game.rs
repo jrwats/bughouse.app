@@ -8,6 +8,7 @@ use std::sync::{Arc, RwLock};
 use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
+use crate::game_json::GameJson;
 use crate::users::User;
 use crate::time_control::TimeControl;
 
@@ -30,49 +31,6 @@ pub struct Game {
     time_ctrl: TimeControl,
     //        board A       board B
     players: GamePlayers,
-}
-
-pub struct PlayerJson {
-    handle: String,
-    clock_ms: i32,
-}
-
-pub struct BoardFenJson {
-    fen: String,
-    white: PlayerJson,
-    black: PlayerJson,
-}
-
-pub struct BoardJson {
-    holdings: String,
-    board: BoardFenJson,
-}
-
-pub struct GameJson {
-    id: GameID,
-    a: BoardJson,
-    b: BoardJson,
-}
-
-impl GameJson {
-    pub fn to_string(&self, kind: &str) -> Value {
-        json!({
-            "kind": kind,
-            "id": B73::encode_uuid(self.id),
-            "a": {
-                "holdings": self.a.holdings,
-                "board": {
-                    "fen": self.a.board.fen,
-                }
-            },
-            "b": {
-                "holdings": self.b.holdings,
-                "board": {
-                    "fen": self.b.board.fen,
-                }
-            }
-        })
-    }
 }
 
 impl Game {
@@ -111,33 +69,33 @@ impl Game {
         self.game.get_board(board_id)
     }
 
-    pub fn get_board_json(
-        board: &BughouseBoard,
-        ) -> BoardJson {
-        BoardJson {
-            holdings: board.get_holdings().to_string(),
-            board: BoardFenJson {
-                fen: board.get_board().to_string(),
-                white: PlayerJson  {
-                    handle: "".to_string(),
-                    clock_ms: 0,
-                },
-                black: PlayerJson  {
-                    handle: "".to_string(),
-                    clock_ms: 0,
-                },
-            }
-        }
-    }
-
-    pub fn to_json(&self) -> GameJson {
-        GameJson {
-            id: (self.id),
-            a: Self::get_board_json(self.get_board(BoardID::A)),
-            b: Self::get_board_json(self.get_board(BoardID::B)),
-        }
-    }
-
+    // pub fn get_board_json(
+    //     board: &BughouseBoard,
+    //     ) -> BoardJson {
+    //     BoardJson {
+    //         holdings: board.get_holdings().to_string(),
+    //         board: BoardFenJson {
+    //             fen: board.get_board().to_string(),
+    //             white: PlayerJson  {
+    //                 handle: "".to_string(),
+    //                 clock_ms: 0,
+    //             },
+    //             black: PlayerJson  {
+    //                 handle: "".to_string(),
+    //                 clock_ms: 0,
+    //             },
+    //         }
+    //     }
+    // }
+    //
+    // pub fn to_json(&self) -> GameJson {
+    //     GameJson {
+    //         id: (self.id),
+    //         a: Self::get_board_json(self.get_board(BoardID::A)),
+    //         b: Self::get_board_json(self.get_board(BoardID::B)),
+    //     }
+    // }
+    //
     pub fn side_to_move(&self, board_id: BoardID) -> Color {
         self.game.get_board(board_id).side_to_move()
     }
@@ -146,7 +104,7 @@ impl Game {
         &self,
         user_id: UserID,
     ) -> Option<(BoardID, Color)> {
-        let [[a_white, a_black], [b_white, b_black]] = self.players;
+        let [[a_white, a_black], [b_white, b_black]] = &self.players;
         if a_white.read().unwrap().get_uid() == user_id {
             return Some((BoardID::A, Color::White));
         } else if a_black.read().unwrap().get_uid() == user_id {

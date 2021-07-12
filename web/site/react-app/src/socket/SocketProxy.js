@@ -145,7 +145,8 @@ class SocketProxy extends EventEmitter {
       // ping / pong latency handlers
       handlers['latency'] = msg => {
         this.emit('srv_latency', msg.ms);
-        console.log(`server latency: ${msg.ms}ms`);
+        window.__serverLatency = msg.ms;
+        // console.log(`server latency: ${msg.ms}ms`);
       };
       handlers['enq'] = msg => {
         this._send('ack', msg);

@@ -21,6 +21,7 @@ use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers};
 use crate::games::Games;
+use crate::game_json::GameJson;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -128,10 +129,10 @@ impl BughouseServer {
         let users = Arc::new(Users::new(db.clone()));
         BughouseServer {
             conns: ConnectionMgr::new(db.clone(), users.clone()),
-            users,
+            users: users.clone(),
             loopback,
-            seeks: Seeks::new(users.clone()),
-            games: Games::new(), // db.clone()),
+            seeks: Seeks::new(users),
+            games: Games::new(),
             partners: HashMap::new(),
             db,
             // tx: Mutex::new(tx),
@@ -171,7 +172,7 @@ impl BughouseServer {
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
-                time_ctrl, Arc::new(players),
+                time_ctrl, players,
             ));
             self.loopback.try_send(msg)?;
         }
@@ -228,39 +229,41 @@ impl BughouseServer {
 
     // If, on the offchance, that a user disconnects right after game start (and is not present),
     // try fetching user from DB.
-    pub async fn user_from_uid(&'static self, uid: &UserID) -> Option<User> {
+    pub async fn user_from_uid(&'static self, uid: &UserID) -> Option<Arc<RwLock<User>>> {
         if let Some(u) = self.users.get(uid) {
             // let lock = u.read();
             // let user = lock.unwrap();
-            let user = u.read().unwrap();
-            return Some(user.clone());
+            // let user = u.read().unwrap();
+            return Some(u);
         } else if let Some(user_row) = self.db.get_user(uid).await {
-            return Some(User::from(user_row));
+            return Some(self.users.add(User::from(user_row)));
         }
         None
     }
 
-    pub async fn rating_snapshot_from_user(
+    pub async fn rating_snapshot_from_uid(
         &'static self,
-        user: Arc<RwLock<User>>,
+        uid: &UserID,
+        // user: Arc<RwLock<User>>,
     ) -> Result<UserRatingSnapshot, Error> {
         if let Some(u) = self.user_from_uid(uid).await {
-            return Ok(UserRatingSnapshot::from(u));
+            let user = u.read().unwrap();
+            let user_ref: &User = &user.to_owned();
+            return Ok(UserRatingSnapshot::from(user_ref));
         }
         Err(Error::UnknownUID(*uid))
     }
 
     fn get_rating_snapshots(
         &'static self,
-        players: &GamePlayers,
+        players: GamePlayers,
     ) -> Result<PregameRatingSnapshot, Error> {
         let [[aw, ab], [bw, bb]] = players;
         let (aws, abs, bws, bbs) = (
-            UserRatingSnapshot::from(aw.read().as_ref()),
-
-            UserRatingSnapshot::from(ab.read().unwrap().into()),
-            UserRatingSnapshot::from(bw.read().unwrap().into()),
-            UserRatingSnapshot::from(bb.read().unwrap().into()),
+            UserRatingSnapshot::from(aw),
+            UserRatingSnapshot::from(ab),
+            UserRatingSnapshot::from(bw),
+            UserRatingSnapshot::from(bb),
             // self.rating_snapshot_from_user(&aw),
             // self.rating_snapshot_from_user(&ab),
             // self.rating_snapshot_from_user(&bw),
@@ -276,12 +279,12 @@ impl BughouseServer {
     ) -> Result<ClientMessage, Error> {
         self.seeks.remove_player_seeks(players.clone());
         let start = Game::new_start();
-        let rating_snapshots = self.get_rating_snapshots(&players).await?;
+        let rating_snapshots = self.get_rating_snapshots(players.clone())?;
         let id = self
             .db
             .create_game(start, &time_ctrl, &rating_snapshots)
             .await?;
-        self.games.start_game(id, start, time_ctrl, players)?;
+        self.games.start_game(id, start, time_ctrl, players.clone())?;
         let iplayers = Players::new(&players);
         let game_start = ClientMessage::new(ClientMessageKind::GameStart(id));
         for player in iplayers.get_players().iter() {
@@ -303,14 +306,25 @@ impl BughouseServer {
 
     pub fn make_move(
         &'static self,
-        user_id: UserID,
+        game_id: GameID,
         mv: &BughouseMove,
+        conn_id: ConnID,
     ) -> Result<(), Error> {
+        let uid = self.conns.uid_from_conn(conn_id)?;
         let game = self
             .games
-            .get_game(user_id)
-            .ok_or(Error::InvalidMoveNotPlaying(user_id))?;
-        let board_id = game.write().unwrap().make_move(user_id, mv)?;
+            .get_game(uid)
+            .ok_or(Error::InvalidMoveNotPlaying(uid))?;
+        {
+            let user_game = game.read().unwrap();
+            let user_game_id = user_game.get_id();
+            if *user_game_id != game_id {
+                return Err(Error::InvalidGameIDForUser(uid, game_id, (*user_game_id).clone()));
+            }
+            println!("Found game {}, for: {}", user_game_id, uid);
+        }
+        let board_id = game.write().unwrap().make_move(uid, mv)?;
+        println!("Made move. board: {}", board_id.to_index());
         {
             let rgame = game.read().unwrap();
             let duration = Utc::now() - *rgame.get_start();
@@ -324,14 +338,15 @@ impl BughouseServer {
     }
 
     fn notify_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
-        let game = ar_game.read().unwrap();
-        let json_str = game.to_json().to_string("game_update");
+        let game_json = GameJson::from(ar_game.clone());
+        let json_str = game_json.to_string("game_update");
         println!("Notifying game players {}", json_str);
         //     "kind": "game_update",
         //     "game": game.to_json(),
         // });
-        let msg_str = Arc::new(ByteString::from(json_str.to_string()));
+        let msg_str = ByteString::from(json_str.to_string());
         let msg = ClientMessage::new(ClientMessageKind::GameUpdate(msg_str));
+        let game = ar_game.read().unwrap();
         for player in Players::new(game.get_players()).get_players().iter() {
             self.conns.send_to_user(player.get_uid(), msg.clone());
         }

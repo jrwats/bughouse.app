@@ -14,8 +14,9 @@ const Orientation = {
 };
 
 
-const Arena = ({gamePath}) => {
-  const [gameID, orientation] = gamePath.split('/');
+const Arena = ({gamePath, children}) => {
+  const [gameID, orientation] = gamePath.split('~');
+  // const gameID = gamePath;
   const {handle, socket} = useContext(SocketContext);
   const gamesSrc = GameStatusSource.get(socket);
 
@@ -58,33 +59,37 @@ const Arena = ({gamePath}) => {
     console.log(`Arena subscribing ${gameID}`);
     gamesSrc.observe(gameID);
   }, [gamesSrc, gameID]);
-  useEffect(() => { ScreenLock.attemptAcquire(); }, [orientation]);
+  useEffect(() => { ScreenLock.attemptAcquire(); }, []);
 
+  // TODO make this user-controlled/editable (for observers etc)
+  if (handleColorB != null && !(orientation & Orientation.FLIPPED)) {
+    invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
+    return <Redirect to={`/home/game/${gameID}~1`} />;
+  }
+
+  // let orientation = null;
   let orientationA = orientation != null 
     ? (orientation & Orientation.BLACK)
     : (handleColorA || 'white');
-  // console.log(`Arena hc1: ${handleColorA} o1: ${orientation1}, hc2: ${handleColorB}`);
 
-  if (handleColorB != null) {
-    invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
-    return <Redirect to={`/home/game/${gameID}/1`} />;
-  }
   const boards = [
     <Board
       id="boardA"
+      gameID={gameID}
       chessboard={boardA}
       orientation={orientationA}
     />,
     <Board
       id="boardB"
+      gameID={gameID}
       chessboard={boardB}
       orientation={opposite(orientationA)}
     />
   ];
+
   if (orientation & Orientation.FLIPPED) {
     boards.reverse()
   }
-
   return (
     <div style={{width: '100%'}}>
       {boards}

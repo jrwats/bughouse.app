@@ -2,6 +2,7 @@ import React from 'react';
 import SideMenu from './SideMenu.react';
 import Bugwho from './Bugwho.react';
 import Arena from './game/Arena.react';
+// import ArenaOrientation from './game/ArenaOrientation.react';
 import FicsArena from './game/FicsArena.react';
 import { Router } from "@reach/router";
 import FicsTelnetOutput from './FicsTelnetOutput';
@@ -17,7 +18,9 @@ const Main = (props) => {
         width: '100%',
       }} >
       <Router>
-        <Arena path="/game/:gamePath" />
+        <Arena path="/game/:gamePath">
+          {/* <ArenaOrientation path=":orientation" /> */}
+        </Arena>
         <FicsArena path="/fics_arena/:gamePair" />
         <Bugwho path="/" />
         <FicsTelnetOutput path="fics_console"/>

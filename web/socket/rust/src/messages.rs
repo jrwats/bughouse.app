@@ -14,7 +14,7 @@ use crate::time_control::TimeControl;
 pub enum ClientMessageKind {
     Auth(ConnID),
     GameStart(GameID),
-    GameUpdate(Arc<ByteString>),
+    GameUpdate(ByteString),
     Empty,
 }
 

@@ -38,17 +38,16 @@ impl Games {
         players: GamePlayers,
     ) -> Result<(), Error> {
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
-        let game = Game::new(id, start, time_ctrl, players);
+        let game = Game::new(id, start, time_ctrl, players.clone());
         {
             let mut games = self.games.write().unwrap();
             games.insert(id, Arc::new(RwLock::new(game)));
         }
         {
             let mut user_games = self.user_games.write().unwrap();
-            for board in players.iter() {
-                for user in board.iter() {
-                    user_games.insert(user.read().unwrap().get_uid(), id);
-                }
+            let iplayers = Players::new(&players);
+            for player in iplayers.get_players().iter() {
+                user_games.insert(player.get_uid(), id);
             }
         }
         Ok(())

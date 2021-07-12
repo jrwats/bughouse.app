@@ -82,7 +82,7 @@ class PhoenixSocket extends EventEmitter {
 
   _onMessage(evt) {
     this.emit('message', evt);
-    console.debug('onmessage: %o', evt);
+    // console.debug('onmessage: %o', evt);
   }
 
 }

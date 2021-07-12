@@ -146,7 +146,7 @@ impl ConnectionMgr {
         hash(recipient)
     }
 
-    fn uid_from_conn(&self, conn_id: ConnID) -> Result<UserID, Error> {
+    pub fn uid_from_conn(&self, conn_id: ConnID) -> Result<UserID, Error> {
         let conns = self.conns.read().unwrap();
         let sock_conn = conns.get(&conn_id).ok_or(Error::Unexpected(
             format!("Couldn't find conn: {}", &conn_id),

@@ -1,19 +1,20 @@
 use bughouse::{BoardID, BughouseMove};
-use chrono::prelude::*;
 use chrono::Duration;
+use chrono::prelude::*;
 use noneifempty::NoneIfEmpty;
+use scylla::SessionBuilder;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
 use scylla::transport::session::{IntoTypedRows, Session};
-use scylla::SessionBuilder;
 use std::env;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
-use uuid::v1::{Context, Timestamp};
+use std::sync::{Arc, RwLock};
 use uuid::Uuid;
+use uuid::v1::{Context, Timestamp};
 
 use crate::b73::B73;
 use crate::connection_mgr::UserID;
@@ -58,6 +59,17 @@ pub struct UserRatingSnapshot {
     user_id: UserID,
     rating: i16,
     deviation: i16,
+}
+
+impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
+    fn from(user_lock: Arc<RwLock<User>>) -> Self {
+        let user = user_lock.read().unwrap();
+        UserRatingSnapshot {
+            user_id: user.get_uid(),
+            rating: user.get_rating(),
+            deviation: user.get_deviation(),
+        }
+    }
 }
 
 impl From<&User> for UserRatingSnapshot {

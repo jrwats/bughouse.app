@@ -6,6 +6,7 @@ use std::fmt;
 use thiserror::Error;
 use uuid::Error as UuidError;
 
+use crate::game::GameID;
 use crate::connection_mgr::UserID;
 use crate::messages::ServerMessage;
 
@@ -45,6 +46,9 @@ pub enum Error {
 
     #[error("InvalidMove InvalidUser: {0}")]
     InvalidMoveUser(UserID),
+
+    #[error("InvalidMove wrong gameID: {0}, {1} != {2}")]
+    InvalidGameIDForUser(UserID, GameID, GameID),
 
     #[error("InvalidMove - not player's turn")]
     InvalidMoveTurn,

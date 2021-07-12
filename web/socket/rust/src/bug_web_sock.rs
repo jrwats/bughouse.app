@@ -109,7 +109,7 @@ impl Handler<ClientMessage> for BugWebSock {
                 ctx.text(msg.to_string());
             }
             ClientMessageKind::GameUpdate(json) => {
-                ctx.text(Arc::try_unwrap(json).unwrap());
+                ctx.text(json);
             }
             ClientMessageKind::Empty => {
                 eprintln!("We don't expect to receive EMPTY");
@@ -252,17 +252,19 @@ impl BugWebSock {
     ) -> Result<(), Error> {
         self.ensure_authed()?;
         println!("handling, {}", kind);
+        let recipient = ctx.address().recipient();
         match kind {
             "seek" => {
                 let time_str = Self::get_field(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
-                self.data.server.add_seek(time_ctrl, ctx.address().recipient());
+                self.data.server.add_seek(time_ctrl, recipient);
             }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field(val, "move", kind)?;
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
-                self.data.server.make_move(game_id, &bug_mv);
+                println!("bug_mv: {:?}", bug_mv);
+                self.data.server.make_move(game_id, &bug_mv, self.id);
             }
             "observe" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
