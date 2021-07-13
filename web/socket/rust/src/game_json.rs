@@ -1,4 +1,4 @@
-use bughouse::BoardID;
+use bughouse::{BoardID, Color};
 use serde_json::json;
 use serde_json::Value;
 use std::sync::{Arc, RwLock};
@@ -8,7 +8,7 @@ use crate::game::{Game, GameID};
 
 pub struct PlayerJson {
     handle: String,
-    clock_ms: i32,
+    ms: i32,
 }
 
 pub struct BoardFenJson {
@@ -33,19 +33,17 @@ impl GameJson {
         json!({
             "kind": kind,
             "id": B73::encode_uuid(self.id),
-            // "a": self.a,
-            // "b": self.b,
             "a": {
                 "holdings": self.a.holdings,
                 "board": {
                     "fen": self.a.board.fen,
                     "white": {
                       "handle": self.a.board.white.handle,
-                      "clock_ms": self.a.board.white.clock_ms,
+                      "ms": self.a.board.white.ms,
                     },
                     "black": {
                       "handle": self.a.board.black.handle,
-                      "clock_ms": self.a.board.black.clock_ms,
+                      "ms": self.a.board.black.ms,
                     },
                 }
             },
@@ -55,11 +53,11 @@ impl GameJson {
                     "fen": self.b.board.fen,
                     "white": {
                       "handle": self.b.board.white.handle,
-                      "clock_ms": self.b.board.white.clock_ms,
+                      "ms": self.b.board.white.ms,
                     },
                     "black": {
                       "handle": self.b.board.black.handle,
-                      "clock_ms": self.b.board.black.clock_ms,
+                      "ms": self.b.board.black.ms,
                     },
                 }
             },
@@ -76,17 +74,18 @@ fn get_board_json(
     let [white_lock, black_lock] = &players[board_id.to_index()];
     let white = white_lock.read().unwrap();
     let black = black_lock.read().unwrap();
+    let clocks = game.get_clocks()[board_id.to_index()];
     BoardJson {
         holdings: board.get_holdings().to_string(),
         board: BoardFenJson {
             fen: board.get_board().to_string(),
             white: PlayerJson  {
                 handle: white.get_handle(),
-                clock_ms: 0,
+                ms: clocks[Color::White.to_index()],
             },
             black: PlayerJson  {
                 handle: black.get_handle(),
-                clock_ms: 0,
+                ms: clocks[Color::Black.to_index()]
             },
         }
     }

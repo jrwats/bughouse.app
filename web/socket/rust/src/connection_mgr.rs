@@ -121,7 +121,7 @@ impl ConnectionMgr {
         Ok(conn_id)
     }
 
-    pub fn send_to_user(&self, uid: UserID, msg: ClientMessage) {
+    pub fn send_to_user(&self, uid: UserID, msg: &ClientMessage) {
         let conns = self.conns.read().unwrap();
         if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
             for conn_id in conn_ids.iter() {
@@ -146,15 +146,13 @@ impl ConnectionMgr {
         hash(recipient)
     }
 
-    pub fn uid_from_conn(&self, conn_id: ConnID) -> Result<UserID, Error> {
+    pub fn uid_from_conn(&self, conn_id: &ConnID) -> Option<UserID> {
         let conns = self.conns.read().unwrap();
-        let sock_conn = conns.get(&conn_id).ok_or(Error::Unexpected(
-            format!("Couldn't find conn: {}", &conn_id),
-        ))?;
-        Ok(*sock_conn.uid())
+        let sock_conn = conns.get(conn_id)?;
+        Some(*sock_conn.uid())
     }
 
-    pub fn remove_conn(&self, conn_id: ConnID) -> Result<(), Error> {
+    pub fn remove_conn(&self, conn_id: &ConnID) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id).unwrap_or_default();
         {
             let mut conns = self.conns.write().unwrap();
@@ -166,7 +164,7 @@ impl ConnectionMgr {
                 "Couldn't find user: {}",
                 &uid
             )))?;
-            conns.remove(&conn_id);
+            conns.remove(conn_id);
         }
         println!("Removed {}", conn_id);
         Ok(())
@@ -174,12 +172,12 @@ impl ConnectionMgr {
 
     pub fn on_close(
         &self,
-        recipient: Recipient<ClientMessage>,
+        recipient: &Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        let conn_id = Self::get_conn_id(&recipient);
+        let conn_id = Self::get_conn_id(recipient);
         if !self.conns.read().unwrap().contains_key(&conn_id) {
             return Ok(());
         }
-        self.remove_conn(conn_id)
+        self.remove_conn(&conn_id)
     }
 }

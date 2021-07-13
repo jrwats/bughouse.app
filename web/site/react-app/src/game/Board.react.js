@@ -17,6 +17,7 @@ const Board = ({chessboard, orientation, gameID, id}) => {
 
   useEffect(() => {
     const onUpdate = (_) => {
+      console.log(`update holdings: ${chessboard.getHoldings()}`);
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       setFEN(board.fen);

@@ -3,6 +3,7 @@ use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;
 use std::fmt;
+// use std::option::NoneError;
 use thiserror::Error;
 use uuid::Error as UuidError;
 
@@ -47,6 +48,9 @@ pub enum Error {
     #[error("InvalidMove InvalidUser: {0}")]
     InvalidMoveUser(UserID),
 
+    #[error("Invalid game ID - doesn't exist {0}")]
+    InvalidGameID(GameID),
+
     #[error("InvalidMove wrong gameID: {0}, {1} != {2}")]
     InvalidGameIDForUser(UserID, GameID, GameID),
 
@@ -88,6 +92,9 @@ pub enum Error {
 
     #[error("FromRowError: {0}")]
     FromRowError(FromRowError),
+
+    // #[error("NoneError: {0}")]
+    // NoneError(NoneError),
 
     #[error("UuidError: {0}")]
     UuidError(UuidError),
@@ -140,6 +147,12 @@ impl From<UuidError> for Error {
         Error::UuidError(err)
     }
 }
+
+// impl From<NoneError> for Error {
+//     fn from(err: NoneError) -> Self {
+//         Error::NoneError(err)
+//     }
+// }
 
 impl From<actix::prelude::SendError<ServerMessage>> for Error {
     fn from(err: actix::prelude::SendError<ServerMessage>) -> Self {

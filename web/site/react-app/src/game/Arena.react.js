@@ -62,15 +62,20 @@ const Arena = ({gamePath, children}) => {
   useEffect(() => { ScreenLock.attemptAcquire(); }, []);
 
   // TODO make this user-controlled/editable (for observers etc)
-  if (handleColorB != null && !(orientation & Orientation.FLIPPED)) {
+  if (handleColorB != null) {
     invariant(handleColorA == null, `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`);
-    return <Redirect to={`/home/game/${gameID}~1`} />;
+    let newOrientation = (handleColorB === 'black' ? Orientation.BLACK : 0) | Orientation.FLIPPED;
+    if (orientation != newOrientation) {
+      return <Redirect to={`/home/game/${gameID}~${newOrientation}`} />;
+    }
   }
 
   // let orientation = null;
-  let orientationA = orientation != null 
-    ? (orientation & Orientation.BLACK)
+  let viewerOrientation = orientation != null 
+    ? (orientation & Orientation.BLACK ? 'black' : 'white')
     : (handleColorA || 'white');
+  let orientationA = (orientation & Orientation.FLIPPED) ?
+    opposite(viewerOrientation) : viewerOrientation;
 
   const boards = [
     <Board

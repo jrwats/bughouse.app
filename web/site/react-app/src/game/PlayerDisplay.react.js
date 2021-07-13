@@ -9,8 +9,8 @@ const PlayerDisplay = ({color, chessboard}) => {
 
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
-  const refTime = useRef(parseInt(playerData?.time));
-  const [time, setTime] = useState(refTime.current);
+  const refTime = useRef(parseInt(playerData?.ms));
+  const [ms, setTime] = useState(refTime.current);
 
   useEffect(() => {
     const onUpdate = () => {
@@ -22,18 +22,18 @@ const PlayerDisplay = ({color, chessboard}) => {
       if (playerData.handle !== handle) {
         setHandle(playerData.handle);
       }
-      const numTime = parseInt(playerData.time);
-      if (Number.isNaN(numTime)) {
-        console.log(`PlayerDisplay ${playerData.time} isNaN`);
+      const milliseconds = parseInt(playerData.ms);
+      if (Number.isNaN(milliseconds)) {
+        console.log(`PlayerDisplay ${playerData.ms} isNaN`);
         return;
       }
-      refTime.current = parseInt(playerData?.time);
+      refTime.current = parseInt(playerData?.ms);
       setTime(refTime.current);
     };
     const onTick = () => {
       const board = chessboard.getBoard();
       if ((board.toMove === 'W') === (color === 'white')) {
-        refTime.current = Math.max(0, refTime.current - 1);
+        refTime.current = Math.max(0, refTime.current - 1000);
         setTime(refTime.current);
       }
     };
@@ -44,8 +44,8 @@ const PlayerDisplay = ({color, chessboard}) => {
       _ticker.off('tick', onTick);
     };
   }, [color, chessboard, handle]);
-  const mins = Math.floor(time / 60);
-  const secs = Math.floor(time % 60);
+  const mins = Math.floor(ms / 1000.0 / 60.0);
+  const secs = Math.floor((ms / 1000.0) % 60);
   return (
     <div className="playerData">
       <HandleDisplay handle={handle} />

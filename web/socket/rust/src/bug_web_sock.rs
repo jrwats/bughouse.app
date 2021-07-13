@@ -100,16 +100,16 @@ impl Handler<ClientMessage> for BugWebSock {
                 });
                 ctx.text(msg.to_string());
             }
-            ClientMessageKind::GameStart(game_id) => {
-                let msg = json!({
-                    "kind": "game_start",
-                    "id": game_id,
-                    "path": B73::encode_uuid(game_id),
-                });
-                ctx.text(msg.to_string());
-            }
-            ClientMessageKind::GameUpdate(json) => {
-                ctx.text(json);
+            // ClientMessageKind::GameStart(game_id) => {
+            //     let msg = json!({
+            //         "kind": "game_start",
+            //         "id": game_id,
+            //         "path": B73::encode_uuid(game_id),
+            //     });
+            //     ctx.text(msg.to_string());
+            // }
+            ClientMessageKind::Text(json) => {
+                ctx.text(json.to_string());
             }
             ClientMessageKind::Empty => {
                 eprintln!("We don't expect to receive EMPTY");
@@ -266,12 +266,6 @@ impl BugWebSock {
                 println!("bug_mv: {:?}", bug_mv);
                 self.data.server.make_move(game_id, &bug_mv, self.id);
             }
-            "observe" => {
-                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
-                self.data.server.observe(ctx.address().recipient(), game_id);
-            }
-            "refresh" => {
-            }
             _ => {
                 eprintln!("Unkonwn kind: {}", kind);
                 return Err(Error::MalformedClientMsg {
@@ -319,6 +313,17 @@ impl BugWebSock {
                 let ms = delta as f64 / 1_000_000.0 / 2.0;
                 ctx.text(json!({"kind": "latency", "ms": ms}).to_string());
                 // println!("latency: {}ms", ms);
+            }
+            "observe" => {
+                let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
+                self.data.server.observe(game_id, ctx.address().recipient());
+                let game_msg = self.data.server.get_game_msg("game_update", game_id)?;
+                ctx.text(game_msg);
+            }
+            "refresh" => {
+                let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
+                let game_msg = self.data.server.get_game_msg("game_update", game_id)?;
+                ctx.text(game_msg);
             }
             "auth" => {
                 let token = val["token"].as_str().ok_or(Error::AuthError {

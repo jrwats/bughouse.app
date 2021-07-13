@@ -28,8 +28,8 @@ class ChessBoard extends EventEmitter {
   updateTime({id, white, black}) {
     console.log(`ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(black)}`);
     if (this._board.white != null) {
-      this._board.white.time = white.time;
-      this._board.black.time = black.time;
+      this._board.white.ms = white.ms;
+      this._board.black.ms = black.ms;
       this.emit('update', this);
     }
   }
@@ -107,8 +107,8 @@ class ChessBoard extends EventEmitter {
       id,
       board: {
         fen: 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        white: {handle: '', time: 0},
-        black: {handle: '', time: 0},
+        white: {handle: '', ms: 0},
+        black: {handle: '', ms: 0},
       },
       holdings: {},
     });

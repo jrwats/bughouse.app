@@ -20,6 +20,7 @@ mod firebase;
 mod game;
 mod game_json;
 mod games;
+mod observers;
 mod hash;
 mod messages;
 mod players;

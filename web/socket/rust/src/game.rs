@@ -1,14 +1,10 @@
 use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings};
 use chrono::prelude::*;
 use chrono::Duration;
-use serde_json::json;
-use serde_json::Value;
 use std::sync::{Arc, RwLock};
 
-use crate::b73::B73;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::game_json::GameJson;
 use crate::users::User;
 use crate::time_control::TimeControl;
 
@@ -18,6 +14,8 @@ pub type BoardPlayers = [Arc<RwLock<User>>; 2];
 //                      A,B
 pub type GamePlayers = [BoardPlayers; 2];
 
+pub type BoardClocks = [i32; 2];
+pub type GameClocks = [BoardClocks; 2];
 // pub type GameUserIDs = [BoardPlayers; 2];
 
 pub type GameID = uuid::Uuid;
@@ -31,6 +29,8 @@ pub struct Game {
     time_ctrl: TimeControl,
     //        board A       board B
     players: GamePlayers,
+    clocks: GameClocks,
+    last_move: [DateTime<Utc>; 2], // Time of last move on either board
 }
 
 impl Game {
@@ -40,12 +40,15 @@ impl Game {
         time_ctrl: TimeControl,
         players: GamePlayers,
     ) -> Self {
+        let base = time_ctrl.get_base_ms();
         Game {
             id,
             start,
             time_ctrl,
             game: BughouseGame::default(),
             players,
+            clocks: [[base; 2]; 2],
+            last_move: [start; 2],
         }
     }
 
@@ -59,6 +62,10 @@ impl Game {
 
     pub fn new_start() -> DateTime<Utc> {
         Utc::now() + Duration::seconds(GAME_SECS_IN_FUTURE)
+    }
+
+    pub fn get_clocks(&self) -> &GameClocks {
+        &self.clocks
     }
 
     pub fn get_players(&self) -> &GamePlayers {
@@ -127,6 +134,19 @@ impl Game {
     //     }
     // }
 
+    fn update_clocks(
+        &mut self,
+        board_id: BoardID,
+        moved_color: Color,
+        ) {
+        let idx = board_id.to_index();
+        let now = Utc::now();
+        let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;
+        let inc = self.time_ctrl.get_inc_ms() as i32;
+        self.last_move[idx] = now;
+        self.clocks[idx][moved_color.to_index()] += inc - elapsed;
+    }
+
     pub fn make_move(
         &mut self,
         user_id: UserID,
@@ -135,11 +155,11 @@ impl Game {
         let (board_id, color) = self
             .get_board_id_for_user(user_id)
             .ok_or(Error::InvalidMoveUser(user_id))?;
-        let board = self.game.get_board(board_id);
-        if color != board.side_to_move() {
+        if color != self.side_to_move(board_id) {
             return Err(Error::InvalidMoveTurn);
         }
         self.game.make_move(board_id, mv)?;
+        self.update_clocks(board_id, color);
         Ok(board_id)
     }
 }

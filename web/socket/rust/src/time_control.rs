@@ -8,7 +8,7 @@ pub type TimeID = String;
 
 #[derive(Hash, Debug, PartialEq, FromUserType, IntoUserType)]
 pub struct TimeControl {
-    base: i32, // Base time each player starts with
+    base: i32, // Base time (in minutes) each player starts with
     inc: i16,  // increment in seconds
 }
 
@@ -17,12 +17,12 @@ impl TimeControl {
         TimeControl { base, inc }
     }
 
-    pub fn get_base(&self) -> i32 {
-        self.base
+    pub fn get_base_ms(&self) -> i32 {
+        self.base * 60 * 1000
     }
 
-    pub fn get_inc(&self) -> i16 {
-        self.inc
+    pub fn get_inc_ms(&self) -> i16 {
+        self.inc * 1000
     }
 
     pub fn get_id(&self) -> TimeID {

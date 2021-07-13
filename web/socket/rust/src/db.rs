@@ -354,9 +354,9 @@ impl Db {
     //     Ok(((aw, ab), (bw, bb)))
     // }
 
-    pub fn to_move_key(duration: &Duration, board_id: BoardID) -> i16 {
+    pub fn to_move_key(duration: &Duration, board_id: BoardID) -> i32 {
         // let duration = Utc::now() - *game.get_start();
-        let mut ms = duration.num_milliseconds() as i16;
+        let mut ms = duration.num_milliseconds() as i32;
         ms <<= 1;
         if board_id == BoardID::B {
             ms |= 0x1;
@@ -385,14 +385,18 @@ impl Db {
     ) -> Result<(), Error> {
         let move_key = Self::to_move_key(duration, board_id);
         let move_val = Self::serialize_move(mv);
-        let _res = self
+        println!("make_move: {}, {}", move_key, move_val);
+        let res = self
             .session
             .query(
                 "UPDATE bughouse.games SET moves[?] = ? WHERE id = ?"
                     .to_string(),
                 (move_key, move_val, game_id),
             )
-            .await?;
+            .await;
+        if let Err(e) = res {
+            eprintln!("Error writing move to DB: {:?}", e);
+        }
         Ok(())
     }
 

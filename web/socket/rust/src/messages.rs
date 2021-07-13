@@ -13,8 +13,8 @@ use crate::time_control::TimeControl;
 #[derive(Debug, Clone)]
 pub enum ClientMessageKind {
     Auth(ConnID),
-    GameStart(GameID),
-    GameUpdate(ByteString),
+    // GameStart(GameID),
+    Text(Arc<ByteString>),
     Empty,
 }
 

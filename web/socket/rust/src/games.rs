@@ -36,12 +36,13 @@ impl Games {
         start: DateTime<Utc>,
         time_ctrl: TimeControl,
         players: GamePlayers,
-    ) -> Result<(), Error> {
+    ) -> Result<Arc<RwLock<Game>>, Error> {
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
         let game = Game::new(id, start, time_ctrl, players.clone());
+        let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
-            games.insert(id, Arc::new(RwLock::new(game)));
+            games.insert(id, locked_game.clone());
         }
         {
             let mut user_games = self.user_games.write().unwrap();
@@ -50,7 +51,7 @@ impl Games {
                 user_games.insert(player.get_uid(), id);
             }
         }
-        Ok(())
+        Ok(locked_game)
     }
 
     pub fn rm_game(&self, game_id: GameID) {
@@ -69,10 +70,15 @@ impl Games {
     }
 
     pub fn is_in_game(&self, uid: UserID) -> bool {
-        self.get_game(uid).is_some()
+        self.get_user_game(uid).is_some()
     }
 
-    pub fn get_game(&self, uid: UserID) -> Option<Arc<RwLock<Game>>> {
+    pub fn get(&self, game_id: &GameID) -> Option<Arc<RwLock<Game>>> {
+        let games = self.games.read().unwrap();
+        games.get(game_id).map(|a| a.clone())
+    }
+
+    pub fn get_user_game(&self, uid: UserID) -> Option<Arc<RwLock<Game>>> {
         let games = self.user_games.read().unwrap();
         if let Some(game_id) = games.get(&uid) {
             return Some(

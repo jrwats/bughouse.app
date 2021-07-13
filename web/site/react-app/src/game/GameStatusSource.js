@@ -34,14 +34,13 @@ class GameStatusSource extends EventEmitter {
     this.emit('gameOver', board);
   }
 
-  _onGameStart({game}) {
-    if (game.path != null) {
-      navigate(`/home/game/${game.path}`);
-    } else {
-      // FICS logic
-      const gamePair = `${game.viewer.id}~${game.partner.id}`;
-      navigate(`/home/fics_arena/${gamePair}`);
-    }
+  _onGameStart({id, a, b}) {
+      this._games[id] = new BughouseGame({
+        id,
+        a: new ChessBoard({...a, id: id + '/a'}),
+        b: new ChessBoard({...b, id: id + '/b'}),
+      });
+      navigate(`/home/game/${id}`);
   }
 
   _destroy(uid)  {
