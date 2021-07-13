@@ -7,8 +7,8 @@ use std::fmt;
 use thiserror::Error;
 use uuid::Error as UuidError;
 
-use crate::game::GameID;
 use crate::connection_mgr::UserID;
+use crate::game::GameID;
 use crate::messages::ServerMessage;
 
 #[derive(Debug)]
@@ -95,7 +95,6 @@ pub enum Error {
 
     // #[error("NoneError: {0}")]
     // NoneError(NoneError),
-
     #[error("UuidError: {0}")]
     UuidError(UuidError),
 }

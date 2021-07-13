@@ -227,19 +227,35 @@ impl BugWebSock {
         Ok(())
     }
 
-    fn get_field(val: &Value, field: &str, kind: &str) -> Result<String, Error> {
+    fn get_field(
+        val: &Value,
+        field: &str,
+        kind: &str,
+    ) -> Result<String, Error> {
         let str_res = val[field].as_str().ok_or(Error::MalformedClientMsg {
-            reason: format!("Missing '{}' field for time' field for '{}'", field, kind),
+            reason: format!(
+                "Missing '{}' field for time' field for '{}'",
+                field, kind
+            ),
             msg: val.to_string(),
         })?;
         Ok(str_res.to_string())
     }
 
-    fn get_uuid(val: &Value, field: &str, kind: &str) -> Result<uuid::Uuid, Error> {
+    fn get_uuid(
+        val: &Value,
+        field: &str,
+        kind: &str,
+    ) -> Result<uuid::Uuid, Error> {
         let id_str = Self::get_field(val, field, kind)?;
-        let game_id = B66::decode_uuid(&id_str).ok_or_else(|| Error::MalformedClientMsg {
-            reason: format!("Couldn't parse '{}' as uuid in '{}'", field, kind),
-            msg: val.to_string(),
+        let game_id = B66::decode_uuid(&id_str).ok_or_else(|| {
+            Error::MalformedClientMsg {
+                reason: format!(
+                    "Couldn't parse '{}' as uuid in '{}'",
+                    field, kind
+                ),
+                msg: val.to_string(),
+            }
         })?;
         Ok(game_id)
     }
@@ -317,12 +333,14 @@ impl BugWebSock {
             "observe" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
                 self.data.server.observe(game_id, ctx.address().recipient());
-                let game_msg = self.data.server.get_game_msg("game_update", game_id)?;
+                let game_msg =
+                    self.data.server.get_game_msg("game_update", game_id)?;
                 ctx.text(game_msg);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                let game_msg = self.data.server.get_game_msg("game_update", game_id)?;
+                let game_msg =
+                    self.data.server.get_game_msg("game_update", game_id)?;
                 ctx.text(game_msg);
             }
             "auth" => {
@@ -330,7 +348,8 @@ impl BugWebSock {
                     reason: "Malformed token".to_string(),
                 })?;
 
-                self.data.srv_recipient
+                self.data
+                    .srv_recipient
                     .do_send(ServerMessage::new(ServerMessageKind::Auth(
                         ctx.address().recipient(),
                         token.to_string(),

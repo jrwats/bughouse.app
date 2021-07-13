@@ -1,12 +1,14 @@
-use bughouse::{BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings};
+use bughouse::{
+    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
+};
 use chrono::prelude::*;
 use chrono::Duration;
 use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::users::User;
 use crate::time_control::TimeControl;
+use crate::users::User;
 
 //                      White, Black
 pub type BoardPlayers = [Arc<RwLock<User>>; 2];
@@ -134,11 +136,7 @@ impl Game {
     //     }
     // }
 
-    fn update_clocks(
-        &mut self,
-        board_id: BoardID,
-        moved_color: Color,
-        ) {
+    fn update_clocks(&mut self, board_id: BoardID, moved_color: Color) {
         let idx = board_id.to_index();
         let now = Utc::now();
         let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;

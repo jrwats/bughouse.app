@@ -33,10 +33,26 @@ impl Players {
         let [[a_white, a_black], [b_white, b_black]] = game_players;
         Players {
             players: [
-                Player::new(a_white.read().unwrap().get_uid(), BoardID::A, Color::White),
-                Player::new(a_black.read().unwrap().get_uid(), BoardID::A, Color::Black),
-                Player::new(b_white.read().unwrap().get_uid(), BoardID::B, Color::White),
-                Player::new(b_black.read().unwrap().get_uid(), BoardID::B, Color::Black),
+                Player::new(
+                    a_white.read().unwrap().get_uid(),
+                    BoardID::A,
+                    Color::White,
+                ),
+                Player::new(
+                    a_black.read().unwrap().get_uid(),
+                    BoardID::A,
+                    Color::Black,
+                ),
+                Player::new(
+                    b_white.read().unwrap().get_uid(),
+                    BoardID::B,
+                    Color::White,
+                ),
+                Player::new(
+                    b_black.read().unwrap().get_uid(),
+                    BoardID::B,
+                    Color::Black,
+                ),
             ],
         }
     }

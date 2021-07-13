@@ -1,17 +1,17 @@
 use actix::prelude::*;
-use actix_web::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
+use actix_web::*;
 use bughouse::{BoardID, BughouseMove};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use chrono::Duration;
 // use actix_web_actors::ws::WebsocketContext;
 use futures::try_join;
+use serde_json::json;
 use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
-use serde_json::json;
 // use std::thread;
 
 use crate::bug_web_sock::BugContext;
@@ -20,14 +20,14 @@ use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers};
-use crate::games::Games;
 use crate::game_json::GameJson;
+use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
+use crate::observers::Observers;
 use crate::players::Players;
 use crate::seeks::{SeekMap, Seeks};
-use crate::observers::Observers;
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
 use once_cell::sync::OnceCell;
@@ -87,7 +87,8 @@ impl Handler<ServerMessage> for ServerHandler {
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::RecordMove(duration, game_id, board_id, mv) => {
-                let fut = self.srv(ctx).record_move(duration, game_id, board_id, mv);
+                let fut =
+                    self.srv(ctx).record_move(duration, game_id, board_id, mv);
                 Box::pin(async move { fut.await })
             }
         }
@@ -102,7 +103,10 @@ impl BughouseServer {
     //     &mut INSTANCE
     // }
 
-    pub fn get(db: Arc<Db>, loopback: Recipient<ServerMessage>) -> &'static BughouseServer {
+    pub fn get(
+        db: Arc<Db>,
+        loopback: Recipient<ServerMessage>,
+    ) -> &'static BughouseServer {
         INSTANCE.get_or_init(move || BughouseServer::new(db, loopback))
     }
 
@@ -232,7 +236,10 @@ impl BughouseServer {
 
     // If, on the offchance, that a user disconnects right after game start (and is not present),
     // try fetching user from DB.
-    pub async fn user_from_uid(&'static self, uid: &UserID) -> Option<Arc<RwLock<User>>> {
+    pub async fn user_from_uid(
+        &'static self,
+        uid: &UserID,
+    ) -> Option<Arc<RwLock<User>>> {
         if let Some(u) = self.users.get(uid) {
             // let lock = u.read();
             // let user = lock.unwrap();
@@ -287,7 +294,9 @@ impl BughouseServer {
             .db
             .create_game(start, &time_ctrl, &rating_snapshots)
             .await?;
-        let game = self.games.start_game(id, start, time_ctrl, players.clone())?;
+        let game =
+            self.games
+                .start_game(id, start, time_ctrl, players.clone())?;
         let msg_str = GameJson::from(game).to_string("game_start").to_string();
         let bytestr = Arc::new(ByteString::from(msg_str));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
@@ -303,8 +312,10 @@ impl BughouseServer {
         game_id: GameID,
         board_id: BoardID,
         mv: BughouseMove,
-        ) -> Result<ClientMessage, Error> {
-        self.db.record_move(&duration, &game_id, board_id, &mv).await?;
+    ) -> Result<ClientMessage, Error> {
+        self.db
+            .record_move(&duration, &game_id, board_id, &mv)
+            .await?;
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
@@ -314,9 +325,10 @@ impl BughouseServer {
         mv: &BughouseMove,
         conn_id: ConnID,
     ) -> Result<(), Error> {
-        let uid = self.conns.uid_from_conn(&conn_id).ok_or(Error::AuthError { 
-            reason: "Not authed".to_string() 
-        })?;
+        let uid =
+            self.conns.uid_from_conn(&conn_id).ok_or(Error::AuthError {
+                reason: "Not authed".to_string(),
+            })?;
         let game = self
             .games
             .get_user_game(uid)
@@ -325,7 +337,11 @@ impl BughouseServer {
             let user_game = game.read().unwrap();
             let user_game_id = user_game.get_id();
             if *user_game_id != game_id {
-                return Err(Error::InvalidGameIDForUser(uid, game_id, (*user_game_id).clone()));
+                return Err(Error::InvalidGameIDForUser(
+                    uid,
+                    game_id,
+                    (*user_game_id).clone(),
+                ));
             }
             println!("Found game {}, for: {}", user_game_id, uid);
         }
@@ -335,16 +351,26 @@ impl BughouseServer {
             let rgame = game.read().unwrap();
             let duration = Utc::now() - *rgame.get_start();
             let msg = ServerMessage::new(ServerMessageKind::RecordMove(
-                    duration, *rgame.get_id(), board_id, *mv
-                    ));
+                duration,
+                *rgame.get_id(),
+                board_id,
+                *mv,
+            ));
             self.loopback.try_send(msg)?;
         }
         self.notify_game_observers(game);
         Ok(())
     }
 
-    pub fn get_game_msg(&self, kind: &str, game_id: GameID) -> Result<ByteString, Error> {
-        let game = self.games.get(&game_id).ok_or(Error::InvalidGameID(game_id))?;
+    pub fn get_game_msg(
+        &self,
+        kind: &str,
+        game_id: GameID,
+    ) -> Result<ByteString, Error> {
+        let game = self
+            .games
+            .get(&game_id)
+            .ok_or(Error::InvalidGameID(game_id))?;
         let game_json = GameJson::from(game);
         Ok(ByteString::from(game_json.to_string(kind).to_string()))
     }
@@ -387,7 +413,7 @@ impl BughouseServer {
         &'static self,
         game_id: GameID,
         recipient: Recipient<ClientMessage>,
-        ) {
+    ) {
         // Only observe if the user ISN'T playing a game
         let maybe_game = self.games.get(&game_id);
         if maybe_game.is_none() {
@@ -397,14 +423,13 @@ impl BughouseServer {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
         if let Some(uid) = self.conns.uid_from_conn(&conn_id) {
             let game = locked_game.read().unwrap();
-            for player in Players::new(game.get_players()).get_players().iter() {
+            for player in Players::new(game.get_players()).get_players().iter()
+            {
                 if player.get_uid() == uid {
                     return;
                 }
-
             }
         }
         self.observers.observe(game_id, recipient);
     }
-
 }

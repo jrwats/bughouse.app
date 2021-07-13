@@ -4,8 +4,8 @@ use std::sync::{Arc, RwLock};
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::game::GamePlayers;
-use crate::users::Users;
 use crate::time_control::{TimeControl, TimeID};
+use crate::users::Users;
 
 pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
 
@@ -39,17 +39,17 @@ impl Seeks {
                 players.iter().take(4).collect::<Vec<&UserID>>();
             if let [aw, ab, bw, bb] = &game_players[0..4] {
                 let [awp, abp, bwp, bbp] = [
-                    self.users.get(aw), 
-                    self.users.get(ab), 
-                    self.users.get(bw), 
+                    self.users.get(aw),
+                    self.users.get(ab),
+                    self.users.get(bw),
                     self.users.get(bb),
                 ];
                 if [&awp, &abp, &bwp, &bbp].iter().any(|b| b.is_none()) {
                     return None;
                 }
                 let players = [
-                    [awp.unwrap(), abp.unwrap()], 
-                    [bwp.unwrap(), bbp.unwrap()], 
+                    [awp.unwrap(), abp.unwrap()],
+                    [bwp.unwrap(), bbp.unwrap()],
                 ];
                 return Some(players);
             }

@@ -2,9 +2,9 @@ use actix::prelude::*;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use crate::messages::ClientMessage;
 use crate::game::GameID;
 use crate::hash::hash;
+use crate::messages::ClientMessage;
 
 pub type AnonConnID = u64;
 pub type Recipients = HashMap<AnonConnID, Recipient<ClientMessage>>;
@@ -25,8 +25,8 @@ impl Observers {
     pub fn observe(
         &self,
         game_id: GameID,
-        recipient: Recipient<ClientMessage>
-        ) {
+        recipient: Recipient<ClientMessage>,
+    ) {
         let anon_id = hash(&recipient);
         let mut observing = self.observer_to_games.write().unwrap();
         if let Some(old_game_id) = observing.insert(anon_id, game_id) {
@@ -53,11 +53,7 @@ impl Observers {
         }
     }
 
-    pub fn notify(
-        &self,
-        game_id: &GameID,
-        msg: ClientMessage,
-        ) {
+    pub fn notify(&self, game_id: &GameID, msg: ClientMessage) {
         let observers = self.game_to_observers.read().unwrap();
         if let Some(observers) = observers.get(&game_id) {
             for (_, recipient) in observers.iter() {
@@ -69,10 +65,7 @@ impl Observers {
         }
     }
 
-    pub fn remove_recipient(
-        &self,
-        recipient: &Recipient<ClientMessage>
-        ) {
+    pub fn remove_recipient(&self, recipient: &Recipient<ClientMessage>) {
         let anon_id = hash(&recipient);
         {
             let observers = self.observer_to_games.read().unwrap();
@@ -83,5 +76,4 @@ impl Observers {
         let mut observers = self.observer_to_games.write().unwrap();
         observers.remove(&anon_id);
     }
-
 }

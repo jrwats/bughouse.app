@@ -1,20 +1,20 @@
 use bughouse::{BoardID, BughouseMove};
-use chrono::Duration;
 use chrono::prelude::*;
+use chrono::Duration;
 use noneifempty::NoneIfEmpty;
-use scylla::SessionBuilder;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
 use scylla::transport::session::{IntoTypedRows, Session};
+use scylla::SessionBuilder;
 use std::env;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
-use uuid::Uuid;
 use uuid::v1::{Context, Timestamp};
+use uuid::Uuid;
 
 use crate::b66::B66;
 use crate::connection_mgr::UserID;
@@ -117,7 +117,6 @@ impl UserRowData {
     pub fn get_photo_url(&self) -> Option<String> {
         self.photo_url.clone()
     }
-
 }
 
 impl Db {

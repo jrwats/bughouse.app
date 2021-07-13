@@ -65,10 +65,7 @@ impl GameJson {
     }
 }
 
-fn get_board_json(
-    game: &Game,
-    board_id: BoardID,
-    ) -> BoardJson {
+fn get_board_json(game: &Game, board_id: BoardID) -> BoardJson {
     let board = game.get_board(board_id);
     let players = game.get_players();
     let [white_lock, black_lock] = &players[board_id.to_index()];
@@ -79,15 +76,15 @@ fn get_board_json(
         holdings: board.get_holdings().to_string(),
         board: BoardFenJson {
             fen: board.get_board().to_string(),
-            white: PlayerJson  {
+            white: PlayerJson {
                 handle: white.get_handle(),
                 ms: clocks[Color::White.to_index()],
             },
-            black: PlayerJson  {
+            black: PlayerJson {
                 handle: black.get_handle(),
-                ms: clocks[Color::Black.to_index()]
+                ms: clocks[Color::Black.to_index()],
             },
-        }
+        },
     }
 }
 

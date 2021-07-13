@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 // URL-safe characters
-pub const ALPHABET: &[u8] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*$".as_bytes();
+pub const ALPHABET: &[u8] =
+    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*$"
+        .as_bytes();
 pub const LEN: usize = ALPHABET.len() as usize; // 74
 pub const MAX_STR_LEN: usize = 22; // (66^22) > (2^128)
 
