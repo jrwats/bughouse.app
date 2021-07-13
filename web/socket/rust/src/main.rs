@@ -10,7 +10,7 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
-mod b73;
+mod b66;
 mod bug_web_sock;
 mod bughouse_server;
 mod connection_mgr;

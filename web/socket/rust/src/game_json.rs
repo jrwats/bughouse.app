@@ -3,7 +3,7 @@ use serde_json::json;
 use serde_json::Value;
 use std::sync::{Arc, RwLock};
 
-use crate::b73::B73;
+use crate::b66::B66;
 use crate::game::{Game, GameID};
 
 pub struct PlayerJson {
@@ -32,7 +32,7 @@ impl GameJson {
     pub fn to_string(&self, kind: &str) -> Value {
         json!({
             "kind": kind,
-            "id": B73::encode_uuid(self.id),
+            "id": B66::encode_uuid(self.id),
             "a": {
                 "holdings": self.a.holdings,
                 "board": {

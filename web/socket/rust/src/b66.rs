@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 // URL-safe characters
-pub const ALPHABET: &[u8] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_`\"!$'()*,-.".as_bytes();
+pub const ALPHABET: &[u8] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*$".as_bytes();
 pub const LEN: usize = ALPHABET.len() as usize; // 74
-pub const MAX_STR_LEN: usize = 21; // (74^21) > (2^128)
+pub const MAX_STR_LEN: usize = 22; // (66^22) > (2^128)
 
 pub fn get_byte_map() -> &'static HashMap<u8, u8> {
     static INSTANCE: OnceCell<HashMap<u8, u8>> = OnceCell::new();
@@ -21,9 +21,9 @@ pub fn create_byte_map() -> HashMap<u8, u8> {
     map
 }
 
-pub struct B73 {}
+pub struct B66 {}
 
-impl B73 {
+impl B66 {
     pub fn encode_num(num: u128) -> String {
         let mut result: [u8; MAX_STR_LEN] = [0; MAX_STR_LEN];
         let mut idx = MAX_STR_LEN;
@@ -57,7 +57,7 @@ impl B73 {
     }
 
     pub fn encode_uuid(uuid: Uuid) -> String {
-        B73::encode_num(uuid.as_u128())
+        B66::encode_num(uuid.as_u128())
     }
 
     pub fn decode_uuid(s: &str) -> Option<Uuid> {
@@ -70,28 +70,29 @@ mod test {
     use super::*;
 
     #[test]
-    fn b73_sanity() {
+    fn b66() {
         println!("LEN: {}", LEN);
-        let enc = B73::encode_num(123456789);
-        assert!(enc == "48n4.");
-        let num = B73::decode_num(&"48n4.");
+        let enc = B66::encode_num(123456789);
+        assert!(enc == "6XRpR");
+        let num = B66::decode_num(&"6XRpR");
         assert!(num == Some(123456789 as u128));
 
-        let big = B73::encode_num(std::u128::MAX);
+        let big = B66::encode_num(std::u128::MAX);
         println!("big: {}", big);
-        assert!(big == "E2gQRY'kdVupqC36d3CT)");
+        assert!(big == "26Ml1pJBwNhCfTRurCkzXv");
         assert!(
-            Some(std::u128::MAX) == B73::decode_num(&"E2gQRY'kdVupqC36d3CT)")
+            Some(std::u128::MAX) == B66::decode_num(&"26Ml1pJBwNhCfTRurCkzXv")
         );
     }
 
     #[test]
-    fn b73_uuid() {
+    fn b66_uuid() {
         let d8 = [255; 8];
         let max_uuid =
             Uuid::from_fields(std::u32::MAX, std::u16::MAX, std::u16::MAX, &d8);
-        let enc = B73::encode_uuid(max_uuid.unwrap());
-        assert!(enc == "E2gQRY'kdVupqC36d3CT)");
-        assert!(B73::encode_uuid(Uuid::nil()) == "");
+        let enc = B66::encode_uuid(max_uuid.unwrap());
+        println!("enc: {}", enc);
+        assert!(enc == "26Ml1pJBwNhCfTRurCkzXv");
+        assert!(B66::encode_uuid(Uuid::nil()) == "");
     }
 }

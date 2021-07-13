@@ -10,7 +10,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use crate::b73::B73;
+use crate::b66::B66;
 use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::ConnID;
 use crate::db::Db;
@@ -104,7 +104,7 @@ impl Handler<ClientMessage> for BugWebSock {
             //     let msg = json!({
             //         "kind": "game_start",
             //         "id": game_id,
-            //         "path": B73::encode_uuid(game_id),
+            //         "path": B66::encode_uuid(game_id),
             //     });
             //     ctx.text(msg.to_string());
             // }
@@ -237,7 +237,7 @@ impl BugWebSock {
 
     fn get_uuid(val: &Value, field: &str, kind: &str) -> Result<uuid::Uuid, Error> {
         let id_str = Self::get_field(val, field, kind)?;
-        let game_id = B73::decode_uuid(&id_str).ok_or_else(|| Error::MalformedClientMsg {
+        let game_id = B66::decode_uuid(&id_str).ok_or_else(|| Error::MalformedClientMsg {
             reason: format!("Couldn't parse '{}' as uuid in '{}'", field, kind),
             msg: val.to_string(),
         })?;
