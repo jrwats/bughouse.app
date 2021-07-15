@@ -80,7 +80,7 @@ impl ConnectionMgr {
         let user = self.db.user_from_firebase_id(fid).await?;
         {
             let mut f2u = self.fid_users.write().unwrap();
-            f2u.insert(fid.to_string(), user.get_uid());
+            f2u.insert(fid.to_string(), *user.get_uid());
         }
         Ok(self.users.add(user.into()))
     }
@@ -92,7 +92,8 @@ impl ConnectionMgr {
     ) -> Result<ConnID, Error> {
         let user = self.user_from_fid(fid).await?;
         println!("ConnectionMgr.add_conn ...");
-        let uid = user.read().unwrap().get_uid();
+        let user = user.read().unwrap();
+        let uid = *user.get_uid();
         let conn_id = hash(&recipient);
         println!("inserting...");
         {

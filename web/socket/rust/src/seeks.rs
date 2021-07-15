@@ -60,7 +60,7 @@ impl Seeks {
     pub fn add_seeker(
         &self,
         time_ctrl: &TimeControl,
-        uid: UserID,
+        uid: &UserID,
     ) -> Result<(), Error> {
         let time_id = time_ctrl.get_id();
         {
@@ -71,14 +71,14 @@ impl Seeks {
             let users = seeks
                 .get_mut(&time_id)
                 .ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
-            users.insert(uid);
+            users.insert(*uid);
         }
         {
             let mut user_seeks = self.user_seeks.write().unwrap();
-            if !user_seeks.contains_key(&uid) {
-                user_seeks.insert(uid, HashSet::new());
+            if !user_seeks.contains_key(uid) {
+                user_seeks.insert(*uid, HashSet::new());
             }
-            let time_ctrls = user_seeks.get_mut(&uid).ok_or(
+            let time_ctrls = user_seeks.get_mut(uid).ok_or(
                 Error::Unexpected("Couldn't get user seeks".to_string()),
             )?;
             time_ctrls.insert(time_id);
@@ -112,8 +112,9 @@ impl Seeks {
     pub fn remove_player_seeks(&self, players: GamePlayers) {
         for board in players.iter() {
             for user in board.iter() {
-                let uid = user.read().unwrap().get_uid();
-                let res = self.remove_all_user_seeks(&uid);
+                let user = user.read().unwrap();
+                let uid = user.get_uid();
+                let res = self.remove_all_user_seeks(uid);
                 if let Err(e) = res {
                     eprintln!("{}: {}", e, uid);
                 }

@@ -111,7 +111,7 @@ impl Game {
 
     pub fn get_board_id_for_user(
         &self,
-        user_id: UserID,
+        user_id: &UserID,
     ) -> Option<(BoardID, Color)> {
         let [[a_white, a_black], [b_white, b_black]] = &self.players;
         if a_white.read().unwrap().get_uid() == user_id {
@@ -147,17 +147,29 @@ impl Game {
 
     pub fn make_move(
         &mut self,
-        user_id: UserID,
+        user_id: &UserID,
         mv: &BughouseMove,
     ) -> Result<BoardID, Error> {
         let (board_id, color) = self
             .get_board_id_for_user(user_id)
-            .ok_or(Error::InvalidMoveUser(user_id))?;
+            .ok_or(Error::InvalidMoveUser(*user_id))?;
         if color != self.side_to_move(board_id) {
             return Err(Error::InvalidMoveTurn);
         }
         self.game.make_move(board_id, mv)?;
         self.update_clocks(board_id, color);
         Ok(board_id)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn uuid_eq_sanity() {
+        let uid_nil_1 = Uuid::nil();
+        let uid_nil_2 = Uuid::nil();
+        assert!(&uid_nil_1 == &uid_nil_2);
     }
 }

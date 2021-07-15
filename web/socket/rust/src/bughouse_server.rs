@@ -6,15 +6,12 @@ use bytestring::ByteString;
 use chrono::prelude::*;
 use chrono::Duration;
 // use actix_web_actors::ws::WebsocketContext;
-use futures::try_join;
-use serde_json::json;
 use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
 // use std::thread;
 
-use crate::bug_web_sock::BugContext;
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
 use crate::error::Error;
@@ -173,9 +170,9 @@ impl BughouseServer {
             })?;
         let user = user_lock.read().unwrap();
         if self.games.is_in_game(user.get_uid()) {
-            return Err(Error::InGame(user.get_handle().to_string()));
+            return Err(Error::InGame(user.handle.to_string()));
         }
-        self.seeks.add_seeker(&time_ctrl, user.get_uid())?;
+        self.seeks.add_seeker(&time_ctrl, &user.id)?;
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
@@ -241,9 +238,6 @@ impl BughouseServer {
         uid: &UserID,
     ) -> Option<Arc<RwLock<User>>> {
         if let Some(u) = self.users.get(uid) {
-            // let lock = u.read();
-            // let user = lock.unwrap();
-            // let user = u.read().unwrap();
             return Some(u);
         } else if let Some(user_row) = self.db.get_user(uid).await {
             return Some(self.users.add(User::from(user_row)));
@@ -254,12 +248,9 @@ impl BughouseServer {
     pub async fn rating_snapshot_from_uid(
         &'static self,
         uid: &UserID,
-        // user: Arc<RwLock<User>>,
     ) -> Result<UserRatingSnapshot, Error> {
         if let Some(u) = self.user_from_uid(uid).await {
-            let user = u.read().unwrap();
-            let user_ref: &User = &user.to_owned();
-            return Ok(UserRatingSnapshot::from(user_ref));
+            return Ok(UserRatingSnapshot::from(u));
         }
         Err(Error::UnknownUID(*uid))
     }
@@ -274,10 +265,6 @@ impl BughouseServer {
             UserRatingSnapshot::from(ab),
             UserRatingSnapshot::from(bw),
             UserRatingSnapshot::from(bb),
-            // self.rating_snapshot_from_user(&aw),
-            // self.rating_snapshot_from_user(&ab),
-            // self.rating_snapshot_from_user(&bw),
-            // self.rating_snapshot_from_user(&bb),
         );
         Ok(((aws, abs), (bws, bbs)))
     }
@@ -331,7 +318,7 @@ impl BughouseServer {
             })?;
         let game = self
             .games
-            .get_user_game(uid)
+            .get_user_game(&uid)
             .ok_or(Error::InvalidMoveNotPlaying(uid))?;
         {
             let user_game = game.read().unwrap();
@@ -345,7 +332,7 @@ impl BughouseServer {
             }
             println!("Found game {}, for: {}", user_game_id, uid);
         }
-        let board_id = game.write().unwrap().make_move(uid, mv)?;
+        let board_id = game.write().unwrap().make_move(&uid, mv)?;
         println!("Made move. board: {}", board_id.to_index());
         {
             let rgame = game.read().unwrap();

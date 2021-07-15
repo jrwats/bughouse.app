@@ -77,11 +77,11 @@ fn get_board_json(game: &Game, board_id: BoardID) -> BoardJson {
         board: BoardFenJson {
             fen: board.get_board().to_string(),
             white: PlayerJson {
-                handle: white.get_handle(),
+                handle: white.handle.clone(),
                 ms: clocks[Color::White.to_index()],
             },
             black: PlayerJson {
-                handle: black.get_handle(),
+                handle: black.handle.clone(),
                 ms: clocks[Color::Black.to_index()],
             },
         },

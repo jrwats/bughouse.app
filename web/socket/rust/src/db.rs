@@ -41,18 +41,6 @@ pub struct FirebaseRowData {
     provider_id: Option<String>,
 }
 
-#[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
-pub struct UserRowData {
-    id: Option<Uuid>,
-    firebase_id: Option<String>,
-    handle: Option<String>,
-    deviation: Option<i16>,
-    email: Option<String>,
-    name: Option<String>,
-    photo_url: Option<String>,
-    rating: Option<i16>,
-}
-
 // User's GLICKO rating snapshot before game start
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
@@ -65,59 +53,15 @@ impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
     fn from(user_lock: Arc<RwLock<User>>) -> Self {
         let user = user_lock.read().unwrap();
         UserRatingSnapshot {
-            user_id: user.get_uid(),
-            rating: user.get_rating(),
-            deviation: user.get_deviation(),
-        }
-    }
-}
-
-impl From<&User> for UserRatingSnapshot {
-    fn from(user: &User) -> Self {
-        UserRatingSnapshot {
-            user_id: user.get_uid(),
-            rating: user.get_rating(),
-            deviation: user.get_deviation(),
+            user_id: *user.get_uid(),
+            rating: user.rating,
+            deviation: user.deviation,
         }
     }
 }
 
 pub type BoardSnapshot = (UserRatingSnapshot, UserRatingSnapshot);
 pub type PregameRatingSnapshot = (BoardSnapshot, BoardSnapshot);
-
-impl UserRowData {
-    pub fn get_uid(&self) -> Uuid {
-        self.id.unwrap()
-    }
-
-    pub fn get_firebase_id(&self) -> String {
-        self.firebase_id.as_ref().unwrap().clone()
-    }
-
-    pub fn get_handle(&self) -> String {
-        self.handle.as_ref().unwrap().clone()
-    }
-
-    pub fn get_email(&self) -> Option<String> {
-        self.email.clone()
-    }
-
-    pub fn get_name(&self) -> Option<String> {
-        self.name.clone()
-    }
-
-    pub fn get_rating(&self) -> i16 {
-        self.rating.unwrap()
-    }
-
-    pub fn get_deviation(&self) -> i16 {
-        self.deviation.unwrap()
-    }
-
-    pub fn get_photo_url(&self) -> Option<String> {
-        self.photo_url.clone()
-    }
-}
 
 impl Db {
     pub async fn new() -> Result<Self, Error> {
@@ -197,7 +141,7 @@ impl Db {
         Ok(())
     }
 
-    pub async fn get_user(&self, uid: &UserID) -> Option<UserRowData> {
+    pub async fn get_user(&self, uid: &UserID) -> Option<User> {
         let res = self
             .session
             .query(
@@ -210,7 +154,7 @@ impl Db {
             .await
             .ok()?;
         if let Some(rows) = res.rows {
-            for row in rows.into_typed::<UserRowData>() {
+            for row in rows.into_typed::<User>() {
                 // return Some(row?);
                 return row.ok();
             }
@@ -218,10 +162,7 @@ impl Db {
         None
     }
 
-    pub async fn mk_user_for_fid(
-        &self,
-        fid: &str,
-    ) -> Result<UserRowData, Error> {
+    pub async fn mk_user_for_fid(&self, fid: &str) -> Result<User, Error> {
         println!("mk_user_for_fid {}", fid);
         let firebase_data = Db::fetch_firebase_data(fid)?;
         let (id, handle) = self.new_guest_handle().await?;
@@ -243,13 +184,13 @@ impl Db {
             )
             .await?;
         self.add_rating(id, &rating).await?;
-        Ok(UserRowData {
-            id: Some(id),
-            firebase_id: Some(firebase_data.fid),
+        Ok(User {
+            id,
+            firebase_id: firebase_data.fid,
             name: firebase_data.display_name,
-            handle: Some(handle),
-            rating: Some(rating.get_rating()),
-            deviation: Some(rating.get_deviation()),
+            handle,
+            rating: rating.get_rating(),
+            deviation: rating.get_deviation(),
             photo_url: firebase_data.photo_url,
             email: firebase_data.email,
         })
@@ -297,7 +238,7 @@ impl Db {
     pub async fn user_from_firebase_id(
         &self,
         fid: &str,
-    ) -> Result<UserRowData, Error> {
+    ) -> Result<User, Error> {
         println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
             "SELECT id, firebase_id, handle, deviation, email, name, photo_url, rating
@@ -307,7 +248,7 @@ impl Db {
         println!("Querying session...");
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
-            for row in rows.into_typed::<UserRowData>() {
+            for row in rows.into_typed::<User>() {
                 println!("got a row: {:?}", row);
                 return Ok(row?);
             }

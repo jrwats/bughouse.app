@@ -96,7 +96,7 @@ impl Handler<ClientMessage> for BugWebSock {
                 // TODO - rethink - emulating old FICS login auth
                 let msg = json!({
                     "kind": "login",
-                    "handle": user.unwrap().read().unwrap().get_handle()
+                    "handle": user.unwrap().read().unwrap().handle,
                 });
                 ctx.text(msg.to_string());
             }

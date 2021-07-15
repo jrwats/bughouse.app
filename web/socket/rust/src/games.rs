@@ -69,7 +69,7 @@ impl Games {
         }
     }
 
-    pub fn is_in_game(&self, uid: UserID) -> bool {
+    pub fn is_in_game(&self, uid: &UserID) -> bool {
         self.get_user_game(uid).is_some()
     }
 
@@ -78,9 +78,9 @@ impl Games {
         games.get(game_id).map(|a| a.clone())
     }
 
-    pub fn get_user_game(&self, uid: UserID) -> Option<Arc<RwLock<Game>>> {
+    pub fn get_user_game(&self, uid: &UserID) -> Option<Arc<RwLock<Game>>> {
         let games = self.user_games.read().unwrap();
-        if let Some(game_id) = games.get(&uid) {
+        if let Some(game_id) = games.get(uid) {
             return Some(
                 self.games.read().unwrap().get(game_id).unwrap().clone(),
             );
