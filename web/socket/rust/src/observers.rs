@@ -53,7 +53,7 @@ impl Observers {
         }
     }
 
-    pub fn notify(&self, game_id: &GameID, msg: ClientMessage) {
+    pub fn notify(&self, game_id: &GameID, msg: &ClientMessage) {
         let observers = self.game_to_observers.read().unwrap();
         if let Some(observers) = observers.get(&game_id) {
             for (_, recipient) in observers.iter() {

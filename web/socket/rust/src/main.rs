@@ -10,6 +10,8 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
+use timer::Timer;
+
 mod b66;
 mod bug_web_sock;
 mod bughouse_server;
@@ -59,8 +61,13 @@ async fn main() -> Result<(), io::Error> {
     let db = Db::new().await.expect("Could not start DB");
     // let _db = Db::new();
     let adb = Arc::new(db);
+    // let timer = Arc::new(Timer::new());
     let addr = ServerHandler::new(adb.clone()).start();
-    let server = BughouseServer::get(adb.clone(), addr.clone().recipient());
+    let server = BughouseServer::get(
+        adb.clone(), 
+        addr.clone().recipient(),
+        // timer 
+        );
 
     // server.start();
     // let addr = (&server).start();

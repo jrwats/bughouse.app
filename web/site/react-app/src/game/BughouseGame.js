@@ -21,6 +21,20 @@ class BughouseGame extends EventEmitter {
     return this._a;
   }
 
+  onGameOver(data) { 
+    invariant(
+      data.id === this._id,
+      `Mismatched board IDs? ${data.id} ${this._id}`
+    );
+    let {board, color, kind} = data.result;
+    console.log(data.result);
+    this._finished = true;
+    this._reason = data.reason;
+    this._winner = data.result[0] === '1' ? 'white' : 'black';
+    ScreenLock.release();
+    this.emit('gameOver', data);
+  }
+
   getBoardB() { 
     return this._b;
   }

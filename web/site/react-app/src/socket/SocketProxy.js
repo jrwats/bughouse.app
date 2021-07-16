@@ -120,8 +120,8 @@ class SocketProxy extends EventEmitter {
         this._emit('gameStart', game);
       };
 
-      handlers['gameOver'] = (board) => {
-        this._emit('gameOver', {user: this._user, board});
+      handlers['game_end'] = (board) => {
+        this._emit('gameOver', board);
       };
 
       handlers['game_update'] = (data) => {

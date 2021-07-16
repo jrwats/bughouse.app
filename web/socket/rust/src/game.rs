@@ -1,9 +1,10 @@
 use bughouse::{
-    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
+    ALL_COLORS, BOARD_IDS, BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
 };
 use chrono::prelude::*;
 use chrono::Duration;
 use std::sync::{Arc, RwLock};
+use serde::ser::{Serialize, Serializer, SerializeStruct};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
@@ -20,6 +21,31 @@ pub type BoardClocks = [i32; 2];
 pub type GameClocks = [BoardClocks; 2];
 // pub type GameUserIDs = [BoardPlayers; 2];
 
+#[derive(Clone, Copy, Debug)]
+pub struct GameResult {
+    pub board: BoardID,
+    pub winner: Color,
+    pub kind: GameResultType,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum GameResultType {
+    Flagged,
+    Checkmate,
+}
+
+impl Serialize for GameResult {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer {
+            let mut state = serializer.serialize_struct("GameResultType", 3)?;
+            state.serialize_field("board", &(self.board as u8))?;
+            state.serialize_field("winner", &(self.winner as u8))?;
+            state.serialize_field("kind", &(self.kind as u8))?;
+            state.end()
+        }
+}
+
+
 pub type GameID = uuid::Uuid;
 
 const GAME_SECS_IN_FUTURE: i64 = 5;
@@ -29,9 +55,9 @@ pub struct Game {
     start: DateTime<Utc>,
     game: BughouseGame,
     time_ctrl: TimeControl,
-    //        board A       board B
     players: GamePlayers,
     clocks: GameClocks,
+    result: Option<GameResult>,
     last_move: [DateTime<Utc>; 2], // Time of last move on either board
 }
 
@@ -51,6 +77,7 @@ impl Game {
             players,
             clocks: [[base; 2]; 2],
             last_move: [start; 2],
+            result: None,
         }
     }
 
@@ -78,33 +105,6 @@ impl Game {
         self.game.get_board(board_id)
     }
 
-    // pub fn get_board_json(
-    //     board: &BughouseBoard,
-    //     ) -> BoardJson {
-    //     BoardJson {
-    //         holdings: board.get_holdings().to_string(),
-    //         board: BoardFenJson {
-    //             fen: board.get_board().to_string(),
-    //             white: PlayerJson  {
-    //                 handle: "".to_string(),
-    //                 clock_ms: 0,
-    //             },
-    //             black: PlayerJson  {
-    //                 handle: "".to_string(),
-    //                 clock_ms: 0,
-    //             },
-    //         }
-    //     }
-    // }
-    //
-    // pub fn to_json(&self) -> GameJson {
-    //     GameJson {
-    //         id: (self.id),
-    //         a: Self::get_board_json(self.get_board(BoardID::A)),
-    //         b: Self::get_board_json(self.get_board(BoardID::B)),
-    //     }
-    // }
-    //
     pub fn side_to_move(&self, board_id: BoardID) -> Color {
         self.game.get_board(board_id).side_to_move()
     }
@@ -126,15 +126,17 @@ impl Game {
         None
     }
 
-    // fn get_color(&self, board_id: BoardID, user_id: UserID) -> Color {
-    //     let [a, b] = self.players;
-    //     let [white, _] = if board_id == BoardID::A { a } else { b };
-    //     if white == user_id {
-    //         Color::White
-    //     } else {
-    //         Color::Black
-    //     }
-    // }
+    pub fn get_min_to_move_clock_ms(&self) -> i32 {
+        let a_color = self.side_to_move(BoardID::A).to_index();
+        let b_color = self.side_to_move(BoardID::B).to_index();
+        std::cmp::min(self.clocks[0][a_color], self.clocks[1][b_color])
+    }
+
+    pub fn update_all_clocks(&mut self) {
+        for board_id in [BoardID::A, BoardID::B].iter() {
+            self.update_clocks(*board_id, self.side_to_move(*board_id));
+        }
+    }
 
     fn update_clocks(&mut self, board_id: BoardID, moved_color: Color) {
         let idx = board_id.to_index();
@@ -143,6 +145,53 @@ impl Game {
         let inc = self.time_ctrl.get_inc_ms() as i32;
         self.last_move[idx] = now;
         self.clocks[idx][moved_color.to_index()] += inc - elapsed;
+    }
+
+    pub fn check_for_mate(&mut self) -> bool {
+        if self.result.is_some() {
+            return true
+        }
+
+        // Double check for checkmated boards
+        for board_id in [BoardID::A, BoardID::B].iter() {
+            let board = self.game.get_board(*board_id);
+            if board.is_mated() {
+                self.result = Some(GameResult {
+                    board: *board_id,
+                    winner: !board.side_to_move(), // winner
+                    kind: GameResultType::Checkmate,
+                });
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn end_game(&mut self) {
+        println!("game.end_game()");
+        if self.check_for_mate() {
+            return;
+        }
+        self.update_all_clocks();
+        let mut flaggee = (std::i32::MAX, BoardID::A, Color::White);
+        for (bidx, boards) in self.clocks.iter().enumerate() {
+            for (cidx, clock) in boards.iter().enumerate() {
+                if *clock < flaggee.0 {
+                    flaggee = (*clock, BOARD_IDS[bidx], ALL_COLORS[cidx]);
+                }
+            }
+        }
+        println!("flaggee: {:?}", flaggee);
+        self.result = Some(GameResult {
+            board: flaggee.1,
+            winner: !flaggee.2,
+            kind: GameResultType::Flagged,
+        });
+        println!("self.result: {:?}", self.result);
+    }
+
+    pub fn get_result(&self) -> Option<GameResult> {
+        self.result
     }
 
     pub fn make_move(
@@ -157,6 +206,7 @@ impl Game {
             return Err(Error::InvalidMoveTurn);
         }
         self.game.make_move(board_id, mv)?;
+        self.check_for_mate();
         self.update_clocks(board_id, color);
         Ok(board_id)
     }
@@ -167,9 +217,9 @@ mod test {
     use super::*;
 
     #[test]
-    fn uuid_eq_sanity() {
-        let uid_nil_1 = Uuid::nil();
-        let uid_nil_2 = Uuid::nil();
+    fn uuid_ref_eq_sanity() {
+        let uid_nil_1 = uuid::Uuid::nil();
+        let uid_nil_2 = uuid::Uuid::nil();
         assert!(&uid_nil_1 == &uid_nil_2);
     }
 }

@@ -32,7 +32,7 @@ const PlayerDisplay = ({color, chessboard}) => {
     };
     const onTick = () => {
       const board = chessboard.getBoard();
-      if ((board.toMove === 'W') === (color === 'white')) {
+      if (chessboard.getColorToMove() === color) {
         refTime.current = Math.max(0, refTime.current - 1000);
         setTime(refTime.current);
       }

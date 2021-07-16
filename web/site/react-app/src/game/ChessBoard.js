@@ -1,6 +1,7 @@
 import {EventEmitter} from 'events';
 import invariant from 'invariant';
 import ScreenLock from './ScreenLock';
+import {Board, Color, GameResultType} from './Constants.js';
 
 class ChessBoard extends EventEmitter {
   constructor({id, board, holdings}) {
@@ -25,6 +26,7 @@ class ChessBoard extends EventEmitter {
     }
   }
 
+  // TODO: delete? Was only used observing "global" games in FICS
   updateTime({id, white, black}) {
     console.log(`ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(black)}`);
     if (this._board.white != null) {
@@ -64,8 +66,8 @@ class ChessBoard extends EventEmitter {
   }
 
   getColorToMove() {
-    const {toMove} = this._board;
-    return toMove === 'W' ? 'white' : (toMove === 'B' ? 'black' : null);
+    const toMove = this._board.fen.split(/\s/g)[1];
+    return toMove === 'w' ?  'white' : (toMove === 'b' ? 'black' : null);
   }
 
   getHandles() {
@@ -78,15 +80,6 @@ class ChessBoard extends EventEmitter {
 
   getHoldings() {
     return this._holdings;
-  }
-
-  onGameOver(data) {
-    invariant(data.id === this._id, `Mismatched board IDs? ${data.id} ${this._id}`);
-    this._finished = true;
-    this._reason = data.reason;
-    this._winner = data.result[0] === '1' ? 'white' : 'black';
-    ScreenLock.release();
-    this.emit('gameOver', data);
   }
 
   isFinished() {

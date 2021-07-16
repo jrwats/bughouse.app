@@ -24,14 +24,12 @@ class GameStatusSource extends EventEmitter {
     this.emit('gameUpdate', this._games[data.id]);
   }
 
-  _onGameOver({board}) {
-    console.log(`GameStatusSource 'gameOver' ${JSON.stringify(board)}`);
-    if (board.id in this._boards) {
-      this._boards[board.id].onGameOver(board);
+  _onGameOver(data) {
+    console.log(`GameStatusSource 'gameOver' ${JSON.stringify(data)}`);
+    if (data.id in this._games) {
+      this._games[data.id].onGameOver(data);
     }
-    // delete this._boards[board.id];
-    // delete this._observing[board.id];
-    this.emit('gameOver', board);
+    this.emit('gameOver', data);
   }
 
   _onGameStart({id, a, b}) {

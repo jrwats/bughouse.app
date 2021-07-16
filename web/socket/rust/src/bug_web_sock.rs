@@ -16,6 +16,7 @@ use crate::connection_mgr::ConnID;
 use crate::db::Db;
 use crate::error::Error;
 use crate::game::GameID;
+use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -164,7 +165,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
-                self.data.server.on_close(ctx.address().recipient());
+                self.data.server.on_close(&ctx.address().recipient());
                 ctx.close(reason);
                 ctx.stop();
             }
@@ -273,14 +274,20 @@ impl BugWebSock {
             "seek" => {
                 let time_str = Self::get_field(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
-                self.data.server.add_seek(time_ctrl, recipient);
+                let res = self.data.server.add_seek(time_ctrl, recipient);
+                if let Err(e) = res {
+                    eprintln!("add_seek err: {}", e);
+                }
             }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field(val, "move", kind)?;
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
                 println!("bug_mv: {:?}", bug_mv);
-                self.data.server.make_move(game_id, &bug_mv, self.id);
+                let res = self.data.server.make_move(game_id, &bug_mv, self.id);
+                if let Err(e) = res {
+                    eprintln!("move err: {}", e);
+                };
             }
             _ => {
                 eprintln!("Unkonwn kind: {}", kind);
@@ -332,15 +339,15 @@ impl BugWebSock {
             }
             "observe" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                self.data.server.observe(game_id, ctx.address().recipient());
+                self.data.server.observe(&game_id, ctx.address().recipient());
                 let game_msg =
-                    self.data.server.get_game_msg("game_update", game_id)?;
+                    self.data.server.get_game_msg(GameJsonKind::Update, game_id)?;
                 ctx.text(game_msg);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
                 let game_msg =
-                    self.data.server.get_game_msg("game_update", game_id)?;
+                    self.data.server.get_game_msg(GameJsonKind::Update, game_id)?;
                 ctx.text(game_msg);
             }
             "auth" => {

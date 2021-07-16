@@ -7,7 +7,7 @@ import Challenges from './Challenges.react';
 import { UsersContext } from './user/UsersProvider';
 import ChallengesProvider from './game/ChallengesProvider';
 import GamesListProvider from './game/GamesListProvider';
-import Seek from './Seek.react';
+import Seeks from './Seeks.react';
 
 const Bugwho = (props) => {
   const {
@@ -28,7 +28,8 @@ const Bugwho = (props) => {
           {/* <Teams {...{partners, onlineUsers, partnerMap}} /> */}
           {/* <Offers {...{unpartnered, incomingOffers}} /> */}
           <Unpartnered unpartnered={unpartnered} />
-          <Seek />
+
+          <Seeks />
         </div>
       </ChallengesProvider>
     </GamesListProvider>
