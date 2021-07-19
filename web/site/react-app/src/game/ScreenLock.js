@@ -1,7 +1,6 @@
 let _lock = null;
 
 class ScreenLock {
-
   static release() {
     if (_lock != null) {
       _lock.release();
@@ -12,9 +11,9 @@ class ScreenLock {
     if (_lock != null) {
       return;
     }
-    if ('wakeLock' in global.navigator) {
+    if ("wakeLock" in global.navigator) {
       try {
-        _lock = await navigator.wakeLock.request('screen');
+        _lock = await navigator.wakeLock.request("screen");
       } catch (e) {
         console.error(e);
       }

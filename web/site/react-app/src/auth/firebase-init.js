@@ -10,7 +10,7 @@ const prodConfig = {
   storageBucket: "bughouse-274816.appspot.com",
   messagingSenderId: "757856014866",
   appId: "1:757856014866:web:cd7a7ac96676ba9255fecb",
-  measurementId: "G-BGZVQM1CG5"
+  measurementId: "G-BGZVQM1CG5",
 };
 
 const devConfig = {
@@ -20,15 +20,15 @@ const devConfig = {
   projectId: "bughouse-dev",
   storageBucket: "bughouse-dev.appspot.com",
   messagingSenderId: "49685448221",
-  appId: "1:49685448221:web:52bab4a65a9aea225a28f4"
+  appId: "1:49685448221:web:52bab4a65a9aea225a28f4",
 };
 
 // console.log(`FIREBASE: ${FIREBASE}`);
 console.log(`FIREBASE: ${process.env.REACT_APP_FIREBASE}`);
 
 firebase.initializeApp(
-  (process.env.REACT_APP_FIREBASE !== 'DEV' &&
-   process.env.NODE_ENV === 'production')
+  process.env.REACT_APP_FIREBASE !== "DEV" &&
+    process.env.NODE_ENV === "production"
     ? prodConfig
     : devConfig
 );

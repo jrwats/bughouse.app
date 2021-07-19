@@ -1,12 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
-import { EventEmitter } from 'events';
-import HandleDisplay from './HandleDisplay.react';
+import React, { useEffect, useRef, useState } from "react";
+import { EventEmitter } from "events";
+import HandleDisplay from "./HandleDisplay.react";
 
 const _ticker = new EventEmitter();
-setInterval(() => { _ticker.emit('tick'); }, 1000);
+setInterval(() => {
+  _ticker.emit("tick");
+}, 1000);
 
-const PlayerDisplay = ({color, chessboard}) => {
-
+const PlayerDisplay = ({ color, chessboard }) => {
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const refTime = useRef(parseInt(playerData?.ms));
@@ -37,11 +38,11 @@ const PlayerDisplay = ({color, chessboard}) => {
         setTime(refTime.current);
       }
     };
-    chessboard.on('update', onUpdate);
-    _ticker.on('tick', onTick);
+    chessboard.on("update", onUpdate);
+    _ticker.on("tick", onTick);
     return () => {
-      chessboard.off('update', onUpdate);
-      _ticker.off('tick', onTick);
+      chessboard.off("update", onUpdate);
+      _ticker.off("tick", onTick);
     };
   }, [color, chessboard, handle]);
   const mins = Math.floor(ms / 1000.0 / 60.0);
@@ -50,10 +51,10 @@ const PlayerDisplay = ({color, chessboard}) => {
     <div className="playerData">
       <HandleDisplay handle={handle} />
       <span className="h6 mono bold light">
-        {mins}:{(secs < 10 ? '0' : '') + secs}
+        {mins}:{(secs < 10 ? "0" : "") + secs}
       </span>
     </div>
   );
-}
+};
 
 export default PlayerDisplay;

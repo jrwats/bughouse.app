@@ -1,6 +1,6 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 import OnlineUsers from "./OnlineUsers";
-import {AuthContext} from '../auth/AuthProvider';
+import { AuthContext } from "../auth/AuthProvider";
 
 export const UsersContext = createContext({
   viewingUser: null,
@@ -14,17 +14,17 @@ export const UsersContext = createContext({
 
 const _mapPartners = (partners) => {
   const partnerMap = {};
-  partners.forEach(pair => {
+  partners.forEach((pair) => {
     const [user1, user2] = pair;
     partnerMap[user1.handle] = user2.handle;
     partnerMap[user2.handle] = user1.handle;
   });
   return partnerMap;
-}
+};
 
 const UsersProvider = (props) => {
   const src = OnlineUsers.get();
-  const {user} = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [handleToUser, setHandleToUser] = useState(src.getHandleToUsers());
   const [incomingOffers, setIncomingOffers] = useState(src.getIncomingOffers());
   const [onlineUsers, setOnlineUsers] = useState(src.getUsers());
@@ -36,7 +36,7 @@ const UsersProvider = (props) => {
 
   useEffect(() => {
     const usersListener = (users) => {
-      setOnlineUsers({...users});
+      setOnlineUsers({ ...users });
       setViewingUser(users[user.uid]);
       setHandleToUser(src.getHandleToUsers());
     };
@@ -45,41 +45,44 @@ const UsersProvider = (props) => {
     };
     const partnersListener = (partners) => {
       setPartners(partners);
-      setPartnerMap(_mapPartners(partners))
+      setPartnerMap(_mapPartners(partners));
     };
     const outgoingOffersListener = (newOutgoingOffers) => {
-      setOutgoingOffers({...newOutgoingOffers});
+      setOutgoingOffers({ ...newOutgoingOffers });
     };
     const incomingOffersListener = (newIncomingOffers) => {
-      setIncomingOffers({...newIncomingOffers});
+      setIncomingOffers({ ...newIncomingOffers });
     };
-    src.on('value', usersListener);
-    src.on('unpartneredHandles', unpartneredListener);
-    src.on('partners', partnersListener);
-    src.on('outgoingOffers', outgoingOffersListener);
-    src.on('incomingOffers', incomingOffersListener);
+    src.on("value", usersListener);
+    src.on("unpartneredHandles", unpartneredListener);
+    src.on("partners", partnersListener);
+    src.on("outgoingOffers", outgoingOffersListener);
+    src.on("incomingOffers", incomingOffersListener);
     return () => {
-      src.off('value', usersListener);
-      src.off('unpartneredHandles', unpartneredListener);
-      src.off('partners', partnersListener);
-      src.off('outgoingOffers', outgoingOffersListener);
-      src.off('incomingOffers', incomingOffersListener);
+      src.off("value", usersListener);
+      src.off("unpartneredHandles", unpartneredListener);
+      src.off("partners", partnersListener);
+      src.off("outgoingOffers", outgoingOffersListener);
+      src.off("incomingOffers", incomingOffersListener);
     };
   });
 
   return (
-    <UsersContext.Provider value={{
-      viewingUser,
-      onlineUsers,
-      handleToUser,
-      incomingOffers,
-      outgoingOffers,
-      partners,
-      partnerMap,
-      unpartnered}}>
+    <UsersContext.Provider
+      value={{
+        viewingUser,
+        onlineUsers,
+        handleToUser,
+        incomingOffers,
+        outgoingOffers,
+        partners,
+        partnerMap,
+        unpartnered,
+      }}
+    >
       {props.children}
     </UsersContext.Provider>
   );
-}
+};
 
 export default UsersProvider;

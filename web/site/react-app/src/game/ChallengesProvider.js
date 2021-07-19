@@ -1,4 +1,4 @@
-import React, {createContext, useEffect, useState} from 'react';
+import React, { createContext, useEffect, useState } from "react";
 import ChallengesSource from "./ChallengesSource";
 
 export const ChallengesContext = createContext({
@@ -10,19 +10,19 @@ const ChallengesProvider = (props) => {
   const [challenges, setChallenges] = useState(src.getChallenges());
 
   useEffect(() => {
-    const onChallenges = challenges => {
-      setChallenges({...challenges});
+    const onChallenges = (challenges) => {
+      setChallenges({ ...challenges });
     };
-    src.on('challenges', onChallenges);
+    src.on("challenges", onChallenges);
     return () => {
-      src.off('challenges', onChallenges);
+      src.off("challenges", onChallenges);
     };
   });
   return (
-    <ChallengesContext.Provider value={{challenges}} >
+    <ChallengesContext.Provider value={{ challenges }}>
       {props.children}
     </ChallengesContext.Provider>
   );
-}
+};
 
 export default ChallengesProvider;

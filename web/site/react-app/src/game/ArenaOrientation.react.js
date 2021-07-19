@@ -1,9 +1,9 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from "react";
 
-const ArenaOrientation = ({orientation}) => {
-  console.log(`!!! ArenaOrientation !!! ${orientation}`)
+const ArenaOrientation = ({ orientation }) => {
+  console.log(`!!! ArenaOrientation !!! ${orientation}`);
   debugger;
-  return <div>ArenaOrientation</div>
-}
+  return <div>ArenaOrientation</div>;
+};
 
 export default ArenaOrientation;

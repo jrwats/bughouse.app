@@ -1,6 +1,6 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 import GamesListSource from "./GamesListSource";
-import {SocketContext} from '../socket/SocketProvider';
+import { SocketContext } from "../socket/SocketProvider";
 
 export const GamesListContext = createContext({
   games: [],
@@ -17,29 +17,29 @@ const getHandlesFromGames = (games) => {
     handles[board2.black.handle] = 1;
   }
   return handles;
-}
+};
 
 const GamesListProvider = (props) => {
-  const {socket} = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
   const src = GamesListSource.get(socket);
   const [games, setGames] = useState(src.getGames());
   const [handles, setHandles] = useState(getHandlesFromGames(games));
 
   useEffect(() => {
-    const onGames = games => {
+    const onGames = (games) => {
       setGames(games);
       setHandles(getHandlesFromGames(games));
     };
-    src.on('games', onGames);
+    src.on("games", onGames);
     return () => {
-      src.off('games', onGames);
+      src.off("games", onGames);
     };
   });
   return (
-    <GamesListContext.Provider value={{games, handles}} >
+    <GamesListContext.Provider value={{ games, handles }}>
       {props.children}
     </GamesListContext.Provider>
   );
-}
+};
 
 export default GamesListProvider;

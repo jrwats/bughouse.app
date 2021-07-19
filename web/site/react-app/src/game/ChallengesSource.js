@@ -1,5 +1,5 @@
-import {EventEmitter} from 'events';
-import SocketProxy from '../socket/SocketProxy';
+import { EventEmitter } from "events";
+import SocketProxy from "../socket/SocketProxy";
 // import OnlineUsers from '../user/OnlineUsers';
 // import invariant from 'invariant';
 
@@ -15,30 +15,32 @@ class ChallengesSource extends EventEmitter {
     this._challenges = {};
     this._partnerChallenges = {};
 
-    proxy.on('incomingChallenge', ({user, challenge}) => {
-      SocketProxy.get(user).sendEvent('pending');
+    proxy.on("incomingChallenge", ({ user, challenge }) => {
+      SocketProxy.get(user).sendEvent("pending");
       this._addChallenge(user.uid, challenge);
-      console.log(`ChallengesSource 'incomingChallenge': ${JSON.stringify(this._challenges)}`);
-      this.emit('challenges', this._challenges);
+      console.log(
+        `ChallengesSource 'incomingChallenge': ${JSON.stringify(
+          this._challenges
+        )}`
+      );
+      this.emit("challenges", this._challenges);
     });
 
-    proxy.on('pending', ({user, pending}) => {
+    proxy.on("pending", ({ user, pending }) => {
       console.log(`ChallengesSource 'pending' ${JSON.stringify(pending)}`);
       this._challenges = {};
-      for (const challenge of (pending.incoming.challenges || [])) {
+      for (const challenge of pending.incoming.challenges || []) {
         this._addChallenge(user.uid, challenge);
       }
-      this.emit('challenges', this._challenges);
+      this.emit("challenges", this._challenges);
     });
 
-    proxy.on('incomingPartnerChallenge', ({user, challenge}) => {
-    });
-    proxy.on('outgoingPartnerChallenge', ({user, challenge}) => {
-    });
+    proxy.on("incomingPartnerChallenge", ({ user, challenge }) => {});
+    proxy.on("outgoingPartnerChallenge", ({ user, challenge }) => {});
   }
 
   _addChallenge(uid, challenge) {
-    const {challenger} = challenge;
+    const { challenger } = challenge;
     // const viewer = onlineUsers.getUsers()[uid];
     // if (viewer == null) {
     //   console.error(`null viewer?`);
@@ -67,7 +69,7 @@ const singleton = new ChallengesSource();
 const ChallengesSourceGetter = {
   get() {
     return singleton;
-  }
+  },
 };
 
 export default ChallengesSourceGetter;

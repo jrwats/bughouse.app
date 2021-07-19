@@ -1,15 +1,15 @@
-import React, {useContext, useEffect, useState} from 'react';
-import Chessground from 'react-chessground'
-import Holdings from './Holdings.react'
-import PlayerDisplay from './PlayerDisplay.react'
-import './chessground.css'
-import { SocketContext } from '../socket/SocketProvider';
-import { opposite } from 'chessground/util';
-import GameOverMessage from './GameOverMessage.react';
-import invariant from 'invariant';
+import React, { useContext, useEffect, useState } from "react";
+import Chessground from "react-chessground";
+import Holdings from "./Holdings.react";
+import PlayerDisplay from "./PlayerDisplay.react";
+import "./chessground.css";
+import { SocketContext } from "../socket/SocketProvider";
+import { opposite } from "chessground/util";
+import GameOverMessage from "./GameOverMessage.react";
+import invariant from "invariant";
 
-const Board = ({chessboard, orientation, gameID, id}) => {
-  const {socket, handle} = useContext(SocketContext);
+const Board = ({ chessboard, orientation, gameID, id }) => {
+  const { socket, handle } = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
@@ -23,29 +23,30 @@ const Board = ({chessboard, orientation, gameID, id}) => {
       setFEN(board.fen);
       setHoldings(holdings);
       setViewOnly(
-        chessboard.isInitialized() &&
-        chessboard.getHandleColor(handle) == null
+        chessboard.isInitialized() && chessboard.getHandleColor(handle) == null
       );
     };
     const onGameOver = () => {
       console.log(`onGameOver`);
-      invariant(chessboard.isFinished(), 'WTF?');
+      invariant(chessboard.isFinished(), "WTF?");
       setFinished(true);
     };
-    chessboard.on('update', onUpdate);
-    chessboard.on('gameOver', onGameOver);
+    chessboard.on("update", onUpdate);
+    chessboard.on("gameOver", onGameOver);
     return () => {
-      chessboard.off('update', onUpdate);
-      chessboard.off('gameOver', onGameOver);
+      chessboard.off("update", onUpdate);
+      chessboard.off("gameOver", onGameOver);
     };
   }, [handle, chessboard]);
 
   useEffect(() => {
-    const onGameOver = ({board}) => {
+    const onGameOver = ({ board }) => {
       setFinished(true);
     };
-    chessboard.on('gameOver', onGameOver);
-    return () => { chessboard.off('gameOver', onGameOver); };
+    chessboard.on("gameOver", onGameOver);
+    return () => {
+      chessboard.off("gameOver", onGameOver);
+    };
   }, [chessboard]);
 
   const chessgroundRef = React.useRef(null);
@@ -57,22 +58,24 @@ const Board = ({chessboard, orientation, gameID, id}) => {
   }
 
   return (
-    <div style={{display: 'inline-block', width: '50%'}}>
+    <div style={{ display: "inline-block", width: "50%" }}>
       <PlayerDisplay color={opposite(orientation)} chessboard={chessboard} />
       <div
         id={id}
         style={{
-          position: 'relative',
-          height: 'min(44vw, 90vh)',
-          width: '100%',
-        }} >
+          position: "relative",
+          height: "min(44vw, 90vh)",
+          width: "100%",
+        }}
+      >
         {alert}
         <Holdings
           chessground={chessgroundRef}
           orientation={orientation}
           holdings={holdings}
           chessboard={chessboard}
-          viewOnly={viewOnly} />
+          viewOnly={viewOnly}
+        />
         <Chessground
           ref={chessgroundRef}
           key={chessboard.getID()}
@@ -80,18 +83,18 @@ const Board = ({chessboard, orientation, gameID, id}) => {
           onMove={(from, to) => {
             console.log(`onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`);
             // Send UCI formatted move
-            socket.sendEvent('move', {id: gameID, move: `${from}${to}`});
+            socket.sendEvent("move", { id: gameID, move: `${from}${to}` });
           }}
-          animation={{enabled: true, duration: 150}}
+          animation={{ enabled: true, duration: 150 }}
           viewOnly={viewOnly}
           orientation={orientation}
           pieceKey={true}
           coordinates={false}
-          drawable={{enabled: false}}
+          drawable={{ enabled: false }}
           promotion={(e) => {
             debugger;
           }}
-          style={{display: 'inline-block'}}
+          style={{ display: "inline-block" }}
         />
       </div>
       <PlayerDisplay color={orientation} chessboard={chessboard} />

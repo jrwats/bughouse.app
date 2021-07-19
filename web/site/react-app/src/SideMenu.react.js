@@ -1,34 +1,34 @@
-import React, {useContext} from 'react';
-import { withStyles } from '@material-ui/core/styles';
-import Button from '@material-ui/core/Button';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
+import React, { useContext } from "react";
+import { withStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
-import MenuIcon from '@material-ui/icons/Menu';
-import PeopleIcon from '@material-ui/icons/People';
+import MenuIcon from "@material-ui/icons/Menu";
+import PeopleIcon from "@material-ui/icons/People";
 import { Link } from "@reach/router";
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import {SocketContext} from './socket/SocketProvider';
-import logout from './logout';
+import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import { SocketContext } from "./socket/SocketProvider";
+import logout from "./logout";
 
 const StyledMenu = withStyles({
   paper: {
-    border: '1px solid #d3d4d5',
+    border: "1px solid #d3d4d5",
   },
 })((props) => (
   <Menu
     elevation={0}
     getContentAnchorEl={null}
     anchorOrigin={{
-      vertical: 'bottom',
-      horizontal: 'center',
+      vertical: "bottom",
+      horizontal: "center",
     }}
     transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
+      vertical: "top",
+      horizontal: "center",
     }}
     {...props}
   />
@@ -36,18 +36,18 @@ const StyledMenu = withStyles({
 
 const StyledMenuItem = withStyles((theme) => ({
   root: {
-    '&:focus': {
+    "&:focus": {
       backgroundColor: theme.palette.primary.main,
-      '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
+      "& .MuiListItemIcon-root, & .MuiListItemText-primary": {
         color: theme.palette.common.white,
       },
     },
   },
 }))(MenuItem);
 
-const SideMenu = ({style}) => {
+const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const {telnet, handle} = useContext(SocketContext);
+  const { telnet, handle } = useContext(SocketContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -58,9 +58,14 @@ const SideMenu = ({style}) => {
   };
 
   return (
-    <div style={{ zIndex: '99', ...style }}>
+    <div style={{ zIndex: "99", ...style }}>
       <Button
-        style={{padding: '2px 2px', minWidth: '3em', color: '#efef', backgroundColor: '#6c8cad'}}
+        style={{
+          padding: "2px 2px",
+          minWidth: "3em",
+          color: "#efef",
+          backgroundColor: "#6c8cad",
+        }}
         aria-controls="customized-menu"
         aria-haspopup="true"
         variant="contained"
@@ -86,10 +91,10 @@ const SideMenu = ({style}) => {
         </Link>
         <Link to="/home/fics_console">
           <StyledMenuItem>
-              <ListItemIcon>
-                <img alt="console" src="/Octicons-terminal.svg" width="18px" />
-              </ListItemIcon>
-              <ListItemText primary="Console" />
+            <ListItemIcon>
+              <img alt="console" src="/Octicons-terminal.svg" width="18px" />
+            </ListItemIcon>
+            <ListItemText primary="Console" />
           </StyledMenuItem>
         </Link>
         {/*
@@ -100,13 +105,21 @@ const SideMenu = ({style}) => {
           <ListItemText primary="Game" />
         </StyledMenuItem>
         */}
-        <StyledMenuItem onClick={(e) => {telnet.logout(); }} >
+        <StyledMenuItem
+          onClick={(e) => {
+            telnet.logout();
+          }}
+        >
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText primary={`Logout as ${handle}`} />
         </StyledMenuItem>
-        <StyledMenuItem onClick={(e) => { logout(telnet); }}>
+        <StyledMenuItem
+          onClick={(e) => {
+            logout(telnet);
+          }}
+        >
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>
@@ -115,6 +128,6 @@ const SideMenu = ({style}) => {
       </StyledMenu>
     </div>
   );
-}
+};
 
 export default SideMenu;

@@ -1,19 +1,24 @@
-import React from 'react';
-import Player from './Player.react';
-import Paper from '@material-ui/core/Paper';
+import React from "react";
+import Player from "./Player.react";
+import Paper from "@material-ui/core/Paper";
 import { Link } from "@reach/router";
 
-const BughouseGameSummary = ({bughouseGame}) => {
+const BughouseGameSummary = ({ bughouseGame }) => {
   // TODO add non-FICS logic
   const [board1, board2] = bughouseGame;
 
   return (
-    <Link to={`/home/fics_arena/${board1.id}~${board2.id}`}
-      style={{textDecoration: 'none'}}>
-      <span className="grid" style={{
-        alignItems: 'center',
-        justifyContent: 'center'
-        }}>
+    <Link
+      to={`/home/fics_arena/${board1.id}~${board2.id}`}
+      style={{ textDecoration: "none" }}
+    >
+      <span
+        className="grid"
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Paper className="cell">
           <Player white player={board1.white} />
           <Player black player={board2.black} />
@@ -26,7 +31,6 @@ const BughouseGameSummary = ({bughouseGame}) => {
       </span>
     </Link>
   );
-}
-
+};
 
 export default BughouseGameSummary;

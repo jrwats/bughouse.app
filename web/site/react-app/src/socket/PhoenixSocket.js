@@ -1,11 +1,10 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 /**
  * A wrapper around WebSocket that automatically reconnects.
  * When it finally gives up, we emit a 'disconect' event.
  */
 class PhoenixSocket extends EventEmitter {
-
   static DEFAULT_INTERVAL = 5000;
   static DEFAULT_MAX_RETRIES = 5;
 
@@ -15,7 +14,7 @@ class PhoenixSocket extends EventEmitter {
     this._createSocket();
     this._totalRetries = 0;
     this._retries = 0;
-    this._maxRetries = opts.maxRetries || PhoenixSocket.DEFAULT_MAX_RETRIES
+    this._maxRetries = opts.maxRetries || PhoenixSocket.DEFAULT_MAX_RETRIES;
     const interval = opts.interval || PhoenixSocket.DEFAULT_INTERVAL;
     this._tickerID = setInterval(this._onInterval.bind(this), interval);
   }
@@ -25,10 +24,10 @@ class PhoenixSocket extends EventEmitter {
       return;
     }
     if (++this._retries > this._maxRetries) {
-      this.emit('disconnect', 'Maximum retries exceeded');
+      this.emit("disconnect", "Maximum retries exceeded");
     }
     ++this._totalRetries;
-    this.emit('reconnect', {retry: this._retries});
+    this.emit("reconnect", { retry: this._retries });
     console.debug(`Reconnecting, total: ${this._totalRetries}`);
     this._createSocket();
   }
@@ -64,27 +63,26 @@ class PhoenixSocket extends EventEmitter {
   }
 
   _onOpen(evt) {
-    console.debug('onopen: %o', evt);
-    this.emit('open', evt);
+    console.debug("onopen: %o", evt);
+    this.emit("open", evt);
     this._retries = 0;
   }
 
   _onClose(evt) {
-    console.warn('onclose: %o', evt);
-    this.emit('close', evt);
+    console.warn("onclose: %o", evt);
+    this.emit("close", evt);
     this._createSocket();
   }
 
   _onError(evt) {
-    this.emit('error', evt);
-    console.error('onerror: %o', evt);
+    this.emit("error", evt);
+    console.error("onerror: %o", evt);
   }
 
   _onMessage(evt) {
-    this.emit('message', evt);
+    this.emit("message", evt);
     // console.debug('onmessage: %o', evt);
   }
-
 }
 
 export default PhoenixSocket;

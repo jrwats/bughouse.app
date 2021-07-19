@@ -1,12 +1,10 @@
-import firebase from 'firebase/app';
-import auth from '../auth/firebase-init';
+import firebase from "firebase/app";
+import auth from "../auth/firebase-init";
 
 class Presence {
-
   static init() {
-
-    auth.onAuthStateChanged(userAuth => {
-      console.log('Presence registering presence');
+    auth.onAuthStateChanged((userAuth) => {
+      console.log("Presence registering presence");
       console.log(`Presence ${userAuth}`);
       if (userAuth == null) {
         return;
@@ -19,16 +17,18 @@ class Presence {
       const db = firebase.database();
       // const connsRef = db.ref(`users/${uid}/connections`);
       const lastOnlineRef = db.ref(`users/${uid}/lastOnline`);
-      const connectedRef = db.ref('.info/connected');
+      const connectedRef = db.ref(".info/connected");
       db.ref(`users/${uid}/displayName`).set(userAuth.displayName);
       db.ref(`users/${uid}/email`).set(userAuth.email);
       db.ref(`users/${uid}/photoURL`).set(userAuth.photoURL);
 
-      connectedRef.on('value', snap => {
+      connectedRef.on("value", (snap) => {
         const isOnline = snap.val();
         console.log(`Presence is ${isOnline} for ${uid}`);
         if (isOnline) {
-          lastOnlineRef.onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
+          lastOnlineRef
+            .onDisconnect()
+            .set(firebase.database.ServerValue.TIMESTAMP);
         }
       });
     });

@@ -1,7 +1,7 @@
-import React, {useContext} from 'react';
-import Button from '@material-ui/core/Button';
-import { SocketContext } from './socket/SocketProvider';
-import Seek from './Seek.react';
+import React, { useContext } from "react";
+import Button from "@material-ui/core/Button";
+import { SocketContext } from "./socket/SocketProvider";
+import Seek from "./Seek.react";
 
 const Seeks = () => {
   return (
@@ -13,6 +13,5 @@ const Seeks = () => {
       </div>
     </div>
   );
-
-}
+};
 export default Seeks;

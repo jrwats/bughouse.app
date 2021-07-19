@@ -1,38 +1,42 @@
-import {EventEmitter} from 'events';
-import invariant from 'invariant';
-import ScreenLock from './ScreenLock';
-import {Board, Color, GameResultType} from './Constants.js';
+import { EventEmitter } from "events";
+import invariant from "invariant";
+import ScreenLock from "./ScreenLock";
+import { Board, Color, GameResultType } from "./Constants.js";
 
 class ChessBoard extends EventEmitter {
-  constructor({id, board, holdings}) {
+  constructor({ id, board, holdings }) {
     super();
     this._id = id;
     this._board = board;
     this._holdings = holdings;
     this._initialized = false;
     this._finished = false;
-    this._reason = '';
+    this._reason = "";
     this._winner = null;
   }
 
-  update({board, holdings}) {
+  update({ board, holdings }) {
     // invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     this._board = board;
     this._holdings = holdings;
-    this.emit('update', this);
+    this.emit("update", this);
     if (!this._initialized) {
       this._initialized = true;
-      this.emit('init');
+      this.emit("init");
     }
   }
 
   // TODO: delete? Was only used observing "global" games in FICS
-  updateTime({id, white, black}) {
-    console.log(`ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(black)}`);
+  updateTime({ id, white, black }) {
+    console.log(
+      `ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(
+        black
+      )}`
+    );
     if (this._board.white != null) {
       this._board.white.ms = white.ms;
       this._board.black.ms = black.ms;
-      this.emit('update', this);
+      this.emit("update", this);
     }
   }
 
@@ -46,14 +50,14 @@ class ChessBoard extends EventEmitter {
 
   getHandleColor(handle) {
     if (handle === this._board?.white?.handle) {
-      return 'white';
+      return "white";
     } else if (handle === this._board?.black?.handle) {
-      return 'black';
+      return "black";
     }
     return null;
   }
 
-  decrHolding({color, piece}) {
+  decrHolding({ color, piece }) {
     const holdings = this._holdings[color];
     const idx = holdings.indexOf(piece);
     if (idx < 0) {
@@ -61,13 +65,15 @@ class ChessBoard extends EventEmitter {
     }
     const prevHoldings = holdings;
     this._holdings[color] = holdings.substr(0, idx) + holdings.substr(idx + 1);
-    console.log(`ChessBoard decrHolding ${prevHoldings} => ${this._holdings[color]}`);
-    this.emit('update', this);
+    console.log(
+      `ChessBoard decrHolding ${prevHoldings} => ${this._holdings[color]}`
+    );
+    this.emit("update", this);
   }
 
   getColorToMove() {
     const toMove = this._board.fen.split(/\s/g)[1];
-    return toMove === 'w' ?  'white' : (toMove === 'b' ? 'black' : null);
+    return toMove === "w" ? "white" : toMove === "b" ? "black" : null;
   }
 
   getHandles() {
@@ -99,15 +105,15 @@ class ChessBoard extends EventEmitter {
     return new ChessBoard({
       id,
       board: {
-        fen: 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-        white: {handle: '', ms: 0},
-        black: {handle: '', ms: 0},
+        fen: "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        white: { handle: "", ms: 0 },
+        black: { handle: "", ms: 0 },
       },
       holdings: {},
     });
   }
-  static WHITE = 'white';
-  static BLACK = 'black';
+  static WHITE = "white";
+  static BLACK = "black";
 }
 
 export default ChessBoard;
