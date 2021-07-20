@@ -70,10 +70,7 @@ impl GameJson {
         let game = locked_game.read().unwrap();
         let now = Utc::now();
         let start = *game.get_start();
-        let mut start_in_ms = 0;
-        if now < start {
-            start_in_ms = (start - now).num_milliseconds() as i32;
-        }
+        let start_in_ms = if now < start { (start - now).num_milliseconds() as i32 } else { 0 };
         GameJson {
             kind,
             id: *game.get_id(),

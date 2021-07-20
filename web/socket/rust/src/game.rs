@@ -141,6 +141,9 @@ impl Game {
     fn update_clocks(&mut self, board_id: BoardID, moved_color: Color) {
         let idx = board_id.to_index();
         let now = Utc::now();
+        if now < self.start {
+            return;
+        }
         let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;
         let inc = self.time_ctrl.get_inc_ms() as i32;
         self.last_move[idx] = now;

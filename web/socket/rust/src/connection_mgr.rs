@@ -124,13 +124,27 @@ impl ConnectionMgr {
 
     pub fn send_to_user(&self, uid: UserID, msg: &ClientMessage) {
         let conns = self.conns.read().unwrap();
-        if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
-            for conn_id in conn_ids.iter() {
-                let conn = conns.get(conn_id).unwrap();
-                let res = conn.recipient().do_send(msg.clone());
-                if let Err(e) = res {
-                    eprintln!("Failed sending msg: {}", e);
+        let mut conn_id_to_remove: Option<ConnID> = None;
+        {
+            if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
+                for conn_id in conn_ids.iter() {
+                    let conn = conns.get(conn_id).unwrap();
+                    let res = conn.recipient().do_send(msg.clone());
+                    if let Err(e) = res {
+                        eprintln!("Failed sending msg: {:?}", e);
+                        if let SendError::Closed(_) = e {
+                            conn_id_to_remove = Some(*conn_id);
+                        } else {
+                            eprintln!("Full mailbox for uid: {}! {}", uid, conn_id);
+                        }
+                    }
                 }
+            }
+        }
+        if let Some(conn_id) = conn_id_to_remove {
+            println!("Removing {} from uid {} conns", conn_id, uid);
+            if let Some(conn_ids) = self.user_conns.write().unwrap().get_mut(&uid) {
+                conn_ids.remove(&conn_id);
             }
         }
     }

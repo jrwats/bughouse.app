@@ -34,13 +34,9 @@ class GameStatusSource extends EventEmitter {
     this.emit("gameOver", data);
   }
 
-  _onGameStart({ id, a, b }) {
-    this._games[id] = new BughouseGame({
-      id,
-      a: new ChessBoard({ ...a, id: id + "/a" }),
-      b: new ChessBoard({ ...b, id: id + "/b" }),
-    });
-    navigate(`/home/game/${id}`);
+  _onGameStart(data) {
+    this._games[data.id] = BughouseGame.init(data);
+    navigate(`/home/game/${data.id}`);
   }
 
   _destroy(uid) {
@@ -54,7 +50,7 @@ class GameStatusSource extends EventEmitter {
     if (id in this._games) {
       return this._games[id];
     }
-    return (this._games[id] = BughouseGame.init(id));
+    return (this._games[id] = BughouseGame.init({ id }));
   }
 
   unobserve(id) {

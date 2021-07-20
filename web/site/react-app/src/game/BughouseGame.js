@@ -4,11 +4,19 @@ import ScreenLock from "./ScreenLock";
 import ChessBoard from "./ChessBoard";
 
 class BughouseGame extends EventEmitter {
-  constructor({ id, a, b }) {
+  constructor({ id, delayStartMillis, a, b }) {
     super();
+    this._startTime = Date.now() + delayStartMillis;
     this._id = id;
-    this._a = a;
-    this._b = b;
+
+    let idA = id + "/a";
+    let idB = id + "/b";
+    this._a = a != null
+      ? new ChessBoard({ ...a, game: this, id: idA })
+      : ChessBoard.init(this, idA);
+    this._b = b != null
+      ? new ChessBoard({ ...b, game: this, id: idB })
+      : ChessBoard.init(this, idB);
   }
 
   update({ id, a, b }) {
@@ -16,8 +24,16 @@ class BughouseGame extends EventEmitter {
     this._b.update(b);
   }
 
+  getStart() {
+    return this._startTime;
+  }
+
   getBoardA() {
     return this._a;
+  }
+
+  getBoardB() {
+    return this._b;
   }
 
   onGameOver(data) {
@@ -34,15 +50,12 @@ class BughouseGame extends EventEmitter {
     this.emit("gameOver", data);
   }
 
-  getBoardB() {
-    return this._b;
-  }
-
-  static init(id) {
+  static init({ id, delayStartMillis, a, b }) {
     return new BughouseGame({
       id,
-      a: ChessBoard.init(id + "/a"),
-      b: ChessBoard.init(id + "/b"),
+      delayStartMillis,
+      a,
+      b,
     });
   }
 }

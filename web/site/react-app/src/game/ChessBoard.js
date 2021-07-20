@@ -4,9 +4,10 @@ import ScreenLock from "./ScreenLock";
 import { Board, Color, GameResultType } from "./Constants.js";
 
 class ChessBoard extends EventEmitter {
-  constructor({ id, board, holdings }) {
+  constructor({ id, game, board, holdings }) {
     super();
     this._id = id;
+    this._game = game;
     this._board = board;
     this._holdings = holdings;
     this._initialized = false;
@@ -42,6 +43,10 @@ class ChessBoard extends EventEmitter {
 
   isInitialized() {
     return this._initialized;
+  }
+
+  getGame() {
+    return this._game;
   }
 
   getID() {
@@ -80,6 +85,14 @@ class ChessBoard extends EventEmitter {
     return [this._board.white.handle, this._board.black.handle];
   }
 
+  getGame() {
+    return this._game;
+  }
+
+  getStart() {
+    return this._game.getStart();
+  }
+
   getBoard() {
     return this._board;
   }
@@ -100,9 +113,10 @@ class ChessBoard extends EventEmitter {
     return this._reason;
   }
 
-  static init(id) {
+  static init(game, id) {
     console.log(`ChessBoard.init() ${id}`);
     return new ChessBoard({
+      game,
       id,
       board: {
         fen: "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq - 0 1",

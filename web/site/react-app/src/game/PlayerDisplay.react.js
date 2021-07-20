@@ -5,12 +5,13 @@ import HandleDisplay from "./HandleDisplay.react";
 const _ticker = new EventEmitter();
 setInterval(() => {
   _ticker.emit("tick");
-}, 1000);
+}, 200);
 
 const PlayerDisplay = ({ color, chessboard }) => {
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const refTime = useRef(parseInt(playerData?.ms));
+  const lastUpdate = useRef(Date.now());
   const [ms, setTime] = useState(refTime.current);
 
   useEffect(() => {
@@ -29,12 +30,19 @@ const PlayerDisplay = ({ color, chessboard }) => {
         return;
       }
       refTime.current = parseInt(playerData?.ms);
+      lastUpdate.current = Date.now();
       setTime(refTime.current);
     };
     const onTick = () => {
       const board = chessboard.getBoard();
-      if (chessboard.getColorToMove() === color) {
-        refTime.current = Math.max(0, refTime.current - 1000);
+      if (
+        chessboard.getColorToMove() === color &&
+        chessboard.getStart() <= Date.now()
+      ) {
+        let now = Date.now();
+        let delta = now - lastUpdate.current; 
+        lastUpdate.current = now;
+        refTime.current = Math.max(0, refTime.current - delta);
         setTime(refTime.current);
       }
     };
