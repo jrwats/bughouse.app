@@ -133,19 +133,10 @@ impl Games {
         for clocks in board_clocks.iter() {
             for clock_ms in clocks.iter() {
                 let (mins, secs) = div_rem(clock_ms / 1000, 60 as i32);
-                // format!("{}:{}", mins, secs)
                 print!("{}:{}, ", mins, secs);
             }
         }
         println!("");
-
-        // let clock_strs: Vec<Vec<String>> = board_clocks.iter().map(|clocks| {
-        //     clocks.iter().map(|clock_ms| {
-        //         let (mins, secs) = div_rem(clock_ms / 60, 60 as i32);
-        //         format!("{}:{}", mins, secs)
-        //     })
-        // }).collect();
-        // println!("clocks:\n\t{:?}", clock_strs);
 
         let msg_str = Arc::new(ByteString::from(json_str.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(msg_str));
