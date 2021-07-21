@@ -202,6 +202,9 @@ impl Game {
         user_id: &UserID,
         mv: &BughouseMove,
     ) -> Result<BoardID, Error> {
+        if Utc::now() < self.start {
+            return Err(Error::InvalidMoveTurn);
+        }
         let (board_id, color) = self
             .get_board_id_for_user(user_id)
             .ok_or(Error::InvalidMoveUser(*user_id))?;

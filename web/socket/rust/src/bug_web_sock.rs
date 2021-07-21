@@ -287,6 +287,9 @@ impl BugWebSock {
                 let res = self.data.server.make_move(game_id, &bug_mv, self.id);
                 if let Err(e) = res {
                     eprintln!("move err: {}", e);
+                    let game_msg =
+                        self.data.server.get_game_msg(GameJsonKind::Update, game_id)?;
+                    ctx.text(game_msg);
                 };
             }
             _ => {
