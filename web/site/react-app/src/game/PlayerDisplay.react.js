@@ -11,7 +11,7 @@ const PlayerDisplay = ({ color, chessboard }) => {
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const refTime = useRef(parseInt(playerData?.ms));
-  const lastUpdate = useRef(Date.now());
+  const lastUpdate = useRef(Math.max(chessboard.getStart(), Date.now()));
   const [ms, setTime] = useState(refTime.current);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ const PlayerDisplay = ({ color, chessboard }) => {
         return;
       }
       refTime.current = parseInt(playerData?.ms);
-      lastUpdate.current = Date.now();
+      lastUpdate.current = Math.max(chessboard.getStart(), Date.now());
       setTime(refTime.current);
     };
     const onTick = () => {
@@ -40,7 +40,7 @@ const PlayerDisplay = ({ color, chessboard }) => {
         chessboard.getStart() <= Date.now()
       ) {
         let now = Date.now();
-        let delta = now - lastUpdate.current; 
+        let delta = now - lastUpdate.current;
         lastUpdate.current = now;
         refTime.current = Math.max(0, refTime.current - delta);
         setTime(refTime.current);
