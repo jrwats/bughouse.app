@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import Board from "./Board.react";
+import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
 import invariant from "invariant";
@@ -107,11 +108,17 @@ const Arena = ({ gamePath, children }) => {
       orientation={opposite(orientationA)}
     />,
   ];
+  const countdown = <GameStartCountdown game={game} />;
 
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();
   }
-  return <div style={{ width: "100%" }}>{boards}</div>;
+  return (
+    <div style={{ width: "100%" }}>
+      {boards}
+      {countdown}
+    </div>
+  );
 };
 
 export default Arena;
