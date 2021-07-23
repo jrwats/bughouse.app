@@ -9,16 +9,13 @@ const PlayerHoldings = ({
   color,
   viewOnly,
 }) => {
-  const piece2count = {};
-  for (const p of ["P", "B", "N", "R", "Q"]) {
-    piece2count[p] = 0;
-  }
-  for (const c of holdings ? holdings.split("") : []) {
+  const piece2count = {P: 0, B: 0, N: 0, R: 0, Q: 0};
+  for (const c of holdings) {
     ++piece2count[c];
   }
   return (
     <div style={{ height: "50%" }}>
-      {["P", "B", "N", "R", "Q"].map((piece) => {
+      {Object.keys(piece2count).map((piece) => {
         const comp = (
           <HeldPiece
             chessgroundRef={chessground}
@@ -43,7 +40,9 @@ const Holdings = ({
   orientation,
   viewOnly,
 }) => {
-  const opponentColor = opposite(orientation);
+  const chars = (holdings || '').split('');
+  const blackHoldings = chars.filter(c => c === c.toLowerCase()).map(c => c.toUpperCase());
+  const whiteHoldings = chars.filter(c => c === c.toUpperCase());
   return (
     <div
       style={{
@@ -54,15 +53,15 @@ const Holdings = ({
       }}
     >
       <PlayerHoldings
-        color={opponentColor}
-        holdings={holdings ? holdings[opponentColor] : ""}
+        color={opposite(orientation)}
+        holdings={orientation === 'white' ? blackHoldings : whiteHoldings}
         viewOnly={true}
       />
       <PlayerHoldings
         chessground={chessground}
         color={orientation}
         chessboard={chessboard}
-        holdings={holdings ? holdings[orientation] : ""}
+        holdings={orientation === 'white' ? whiteHoldings : blackHoldings}
         viewOnly={viewOnly}
       />
     </div>
