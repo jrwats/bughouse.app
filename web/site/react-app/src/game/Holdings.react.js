@@ -46,9 +46,6 @@ const Holdings = ({
   orientation,
   viewOnly,
 }) => {
-  if ((holdings || '').split == null) {
-    debugger;
-  }
   const chars = (holdings || '').split('');
   const blackHoldings = chars.filter(c => c === c.toLowerCase()).map(c => c.toUpperCase());
   const whiteHoldings = chars.filter(c => c === c.toUpperCase());
