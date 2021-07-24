@@ -3,8 +3,10 @@ import HeldPiece from "./HeldPiece.react";
 import { opposite } from "chessground/util";
 
 const PlayerHoldings = ({
+  boardID,
   chessground,
   chessboard,
+  gameID,
   holdings,
   color,
   viewOnly,
@@ -18,8 +20,10 @@ const PlayerHoldings = ({
       {Object.keys(piece2count).map((piece) => {
         const comp = (
           <HeldPiece
+            boardID={boardID}
             chessgroundRef={chessground}
             chessboard={chessboard}
+            gameID={gameID}
             key={piece}
             color={color}
             piece={piece}
@@ -34,12 +38,17 @@ const PlayerHoldings = ({
 };
 
 const Holdings = ({
+  boardID,
+  gameID,
   chessground,
   chessboard,
   holdings,
   orientation,
   viewOnly,
 }) => {
+  if ((holdings || '').split == null) {
+    debugger;
+  }
   const chars = (holdings || '').split('');
   const blackHoldings = chars.filter(c => c === c.toLowerCase()).map(c => c.toUpperCase());
   const whiteHoldings = chars.filter(c => c === c.toUpperCase());
@@ -58,6 +67,8 @@ const Holdings = ({
         viewOnly={true}
       />
       <PlayerHoldings
+        boardID={boardID}
+        gameID={gameID}
         chessground={chessground}
         color={orientation}
         chessboard={chessboard}

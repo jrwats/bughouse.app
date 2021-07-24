@@ -47,7 +47,7 @@ const StyledMenuItem = withStyles((theme) => ({
 
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { telnet, handle } = useContext(SocketContext);
+  const { socket, handle } = useContext(SocketContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -107,7 +107,7 @@ const SideMenu = ({ style }) => {
         */}
         <StyledMenuItem
           onClick={(e) => {
-            telnet.logout();
+            socket.logout();
           }}
         >
           <ListItemIcon>
@@ -117,7 +117,7 @@ const SideMenu = ({ style }) => {
         </StyledMenuItem>
         <StyledMenuItem
           onClick={(e) => {
-            logout(telnet);
+            logout(socket);
           }}
         >
           <ListItemIcon>

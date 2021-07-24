@@ -12,11 +12,13 @@ const roles = {
 };
 
 const HeldPiece = ({
-  chessgroundRef,
+  boardID,
   chessboard,
-  piece,
+  chessgroundRef,
   color,
   count,
+  gameID,
+  piece,
   top,
   viewOnly,
 }) => {
@@ -58,7 +60,7 @@ const HeldPiece = ({
     }
     chessground.cg.newPiece({ role: roles[piece], color: color }, key);
     chessboard.decrHolding({ color, piece });
-    socket.sendEvent("move", `${piece}@${key}`);
+    socket.sendEvent("move", { id: gameID, move: `${piece}@${key}` });
   }
 
   const visibility = count === 0 ? "hidden" : "visible";
@@ -77,7 +79,7 @@ const HeldPiece = ({
     >
       <Draggable
         nodeRef={pieceRef}
-        bounds="#board1"
+        bounds={`#${boardID}`}
         disabled={disabled}
         onStop={onStop}
         onDrag={onDrag}

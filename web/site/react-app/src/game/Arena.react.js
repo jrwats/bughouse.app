@@ -108,7 +108,7 @@ const Arena = ({ gamePath, children }) => {
       orientation={opposite(orientationA)}
     />,
   ];
-  const countdown = <GameStartCountdown game={game} />;
+  const countdown = game && <GameStartCountdown start={game.getStart()} />;
 
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();

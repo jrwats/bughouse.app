@@ -63,13 +63,16 @@ class ChessBoard extends EventEmitter {
   }
 
   decrHolding({ color, piece }) {
-    const holdings = this._holdings[color];
+    if (color === 'black') {
+      piece = piece.toLowerCase();
+    }
+    const holdings = this._holdings;
     const idx = holdings.indexOf(piece);
     if (idx < 0) {
       console.error(`decrementing unheld piece?`);
     }
     const prevHoldings = holdings;
-    this._holdings[color] = holdings.substr(0, idx) + holdings.substr(idx + 1);
+    this._holdings = holdings.substr(0, idx) + holdings.substr(idx + 1);
     console.log(
       `ChessBoard decrHolding ${prevHoldings} => ${this._holdings[color]}`
     );
@@ -123,7 +126,7 @@ class ChessBoard extends EventEmitter {
         white: { handle: "", ms: 0 },
         black: { handle: "", ms: 0 },
       },
-      holdings: {},
+      holdings: "",
     });
   }
   static WHITE = "white";

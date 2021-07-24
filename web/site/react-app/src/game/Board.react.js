@@ -70,7 +70,9 @@ const Board = ({ chessboard, orientation, gameID, id }) => {
       >
         {alert}
         <Holdings
+          boardID={id}
           chessground={chessgroundRef}
+          gameID={gameID}
           orientation={orientation}
           holdings={holdings}
           chessboard={chessboard}

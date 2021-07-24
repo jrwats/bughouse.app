@@ -268,7 +268,7 @@ impl BugWebSock {
         ctx: &mut <Self as Actor>::Context,
     ) -> Result<(), Error> {
         self.ensure_authed()?;
-        println!("handling, {}", kind);
+        println!("handling: {}", kind);
         let recipient = ctx.address().recipient();
         match kind {
             "seek" => {
@@ -282,6 +282,7 @@ impl BugWebSock {
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field(val, "move", kind)?;
+                println!("mv_str: {}", mv_str);
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
                 println!("bug_mv: {:?}", bug_mv);
                 let res = self.data.server.make_move(game_id, &bug_mv, self.id);
