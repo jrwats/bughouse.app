@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS games (
   start_time timestamp,
   result smallint,
   time_ctrl time_control,
+  rated boolean,
   boards tuple<
     tuple<rating_snapshot, rating_snapshot>, 
     tuple<rating_snapshot, rating_snapshot>

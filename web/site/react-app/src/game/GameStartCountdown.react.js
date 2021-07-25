@@ -14,11 +14,19 @@ const GameStartCountdown = ({start}) => {
 
   return (
     <div id="game_countdown" style={{
-      position: "absolute",
-      top: "20%",
-      left: "45%",
+      // left: "45%",
+      // margin: "0",
+      backgroundColor: "#efefef",
+      border: "0.3rem solid black",
+      borderRadius: "1rem",
       color: "red",
       fontSize: "8em",
+      left: "50%",
+      position: "absolute",
+      top: "40%",
+      minWidth: "1em",
+      textAlign: "center",
+      transform: "translate(-50%, -50%)",
       zIndex: 999,
       }}>
       {count}

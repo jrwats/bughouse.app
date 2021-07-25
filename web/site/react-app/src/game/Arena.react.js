@@ -51,6 +51,7 @@ const Arena = ({ gamePath, children }) => {
       );
       invariant(boardB != null, "wtf");
       console.log(`setHandleColorB(${newHC2})`);
+      debugger;
       setHandleColorB(newHC2);
     };
     onboardB();
@@ -114,7 +115,7 @@ const Arena = ({ gamePath, children }) => {
     boards.reverse();
   }
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       {boards}
       {countdown}
     </div>

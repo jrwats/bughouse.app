@@ -34,6 +34,13 @@ pub enum GameResultType {
     Checkmate,
 }
 
+pub enum GameStatus {
+    Over(GameResult),
+    InProgress,
+    Starting,
+    WaitingForPlayers,
+}
+
 impl Serialize for GameResult {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: serde::Serializer {
@@ -58,6 +65,7 @@ pub struct Game {
     players: GamePlayers,
     clocks: GameClocks,
     result: Option<GameResult>,
+    status: GameStatus,
     last_move: [DateTime<Utc>; 2], // Time of last move on either board
 }
 
@@ -78,6 +86,7 @@ impl Game {
             clocks: [[base; 2]; 2],
             last_move: [start; 2],
             result: None,
+            status: GameStatus::Starting,
         }
     }
 
@@ -191,6 +200,10 @@ impl Game {
             kind: GameResultType::Flagged,
         });
         println!("self.result: {:?}", self.result);
+    }
+
+    pub fn get_status(&self) -> Option<GameStatus> {
+        self.status
     }
 
     pub fn get_result(&self) -> Option<GameResult> {
