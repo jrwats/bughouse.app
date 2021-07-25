@@ -65,7 +65,6 @@ pub struct Game {
     players: GamePlayers,
     clocks: GameClocks,
     result: Option<GameResult>,
-    status: GameStatus,
     last_move: [DateTime<Utc>; 2], // Time of last move on either board
 }
 
@@ -86,7 +85,6 @@ impl Game {
             clocks: [[base; 2]; 2],
             last_move: [start; 2],
             result: None,
-            status: GameStatus::Starting,
         }
     }
 
@@ -202,8 +200,20 @@ impl Game {
         println!("self.result: {:?}", self.result);
     }
 
-    pub fn get_status(&self) -> Option<GameStatus> {
-        self.status
+    pub fn has_empty_seat(&self) -> bool {
+        false
+    }
+
+    pub fn get_status(&self) -> GameStatus {
+        if let Some(result) = self.result {
+            GameStatus::Over(result)
+        } else if self.start > Utc::now() {
+            GameStatus::Starting
+        } else if self.has_empty_seat() {
+            GameStatus::WaitingForPlayers
+        } else {
+            GameStatus::InProgress
+        }
     }
 
     pub fn get_result(&self) -> Option<GameResult> {

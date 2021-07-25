@@ -54,7 +54,7 @@ impl Users {
     pub fn add(&self, user: User) -> Arc<RwLock<User>> {
         let mut users = self.users.write().unwrap();
         let new_user = Arc::new(RwLock::new(user));
-        users.insert(*new_user.read().unwrap().get_uid(), new_user.clone());
+        users.insert(new_user.read().unwrap().id, new_user.clone());
         new_user
     }
 }

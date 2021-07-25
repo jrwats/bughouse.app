@@ -88,7 +88,7 @@ impl Db {
     async fn new_guest_handle(&self) -> Result<(Uuid, String), Error> {
         let uuid = self.now()?;
         let handle =
-            format!("Guest_{}", B66::encode_num(uuid.as_fields().0 as u128));
+            format!("Player_{}", B66::encode_num(uuid.as_fields().0 as u128));
         let mut query = Query::new(
             "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
