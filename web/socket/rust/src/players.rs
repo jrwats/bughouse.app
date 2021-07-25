@@ -1,7 +1,9 @@
 use bughouse::{BoardID, Color};
+use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::game::GamePlayers;
+use crate::users::User;
 
 pub struct Player {
     id: UserID,
@@ -29,27 +31,35 @@ pub struct Players {
 }
 
 impl Players {
+    pub fn uid(maybe_user: &Option<Arc<RwLock<User>>>) -> UserID {
+        if let Some(user) = maybe_user {
+            *user.read().unwrap().get_uid()
+        } else {
+            uuid::Uuid::nil()
+        }
+    }
+
     pub fn new(game_players: &GamePlayers) -> Self {
         let [[a_white, a_black], [b_white, b_black]] = game_players;
         Players {
             players: [
                 Player::new(
-                    *a_white.read().unwrap().get_uid(),
+                    Players::uid(a_white),
                     BoardID::A,
                     Color::White,
                 ),
                 Player::new(
-                    *a_black.read().unwrap().get_uid(),
+                    Players::uid(a_black),
                     BoardID::A,
                     Color::Black,
                 ),
                 Player::new(
-                    *b_white.read().unwrap().get_uid(),
+                    Players::uid(b_white),
                     BoardID::B,
                     Color::White,
                 ),
                 Player::new(
-                    *b_black.read().unwrap().get_uid(),
+                    Players::uid(b_black),
                     BoardID::B,
                     Color::Black,
                 ),

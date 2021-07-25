@@ -4,7 +4,7 @@ use bughouse::{
 use chrono::prelude::*;
 use chrono::Duration;
 use std::sync::{Arc, RwLock};
-use serde::ser::{Serialize, Serializer, SerializeStruct};
+use serde::ser::{Serialize, SerializeStruct};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
@@ -12,7 +12,7 @@ use crate::time_control::TimeControl;
 use crate::users::User;
 
 //                      White, Black
-pub type BoardPlayers = [Arc<RwLock<User>>; 2];
+pub type BoardPlayers = [Option<Arc<RwLock<User>>>; 2];
 
 //                      A,B
 pub type GamePlayers = [BoardPlayers; 2];
@@ -69,7 +69,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(
+    pub fn start(
         id: GameID,
         start: DateTime<Utc>,
         time_ctrl: TimeControl,

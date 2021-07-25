@@ -47,7 +47,7 @@ impl Games {
         players: GamePlayers,
     ) -> Result<(Arc<RwLock<Game>>, ClientMessage), Error> {
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
-        let game = Game::new(id, start, time_ctrl, players.clone());
+        let game = Game::start(id, start, time_ctrl, players.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
