@@ -40,7 +40,7 @@ impl Serialize for GameJsonKind {
 }
 
 pub struct PlayerJson {
-    handle: String,
+    handle: Option<String>,
     ms: i32,
 }
 
@@ -126,9 +126,7 @@ fn get_board_json(
     ) -> BoardJson {
     let board = game.get_board(board_id);
     let players = game.get_players();
-    let [white_lock, black_lock] = &players[board_id.to_index()];
-    let white = white_lock.read().unwrap();
-    let black = black_lock.read().unwrap();
+    let [maybe_white, maybe_black] = &players[board_id.to_index()];
     let clocks = game.get_clocks()[board_id.to_index()];
     BoardJson {
         holdings: board.get_holdings().to_string(),
@@ -136,11 +134,11 @@ fn get_board_json(
         board: BoardFenJson {
             fen: board.get_board().to_string(),
             white: PlayerJson {
-                handle: white.handle.clone(),
+                handle: Game::handle(maybe_white),
                 ms: clocks[Color::White.to_index()],
             },
             black: PlayerJson {
-                handle: black.handle.clone(),
+                handle: Game::handle(maybe_black),
                 ms: clocks[Color::Black.to_index()],
             },
         },

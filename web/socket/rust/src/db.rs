@@ -49,6 +49,19 @@ pub struct UserRatingSnapshot {
     deviation: i16,
 }
 
+impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
+    fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
+        match maybe_user {
+            None => UserRatingSnapshot {
+                user_id: Uuid::nil(),
+                rating: 0,
+                deviation: 0,
+            },
+            Some(user_lock) => UserRatingSnapshot::from(user_lock)
+        }
+    }
+}
+
 impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
     fn from(user_lock: Arc<RwLock<User>>) -> Self {
         let user = user_lock.read().unwrap();

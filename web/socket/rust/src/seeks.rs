@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::game::GamePlayers;
+use crate::game::{Game, GamePlayers};
 use crate::time_control::{TimeControl, TimeID};
 use crate::users::Users;
 
@@ -48,8 +48,8 @@ impl Seeks {
                     return None;
                 }
                 let players = [
-                    [awp.unwrap(), abp.unwrap()],
-                    [bwp.unwrap(), bbp.unwrap()],
+                    [Some(awp.unwrap()), Some(abp.unwrap())],
+                    [Some(bwp.unwrap()), Some(bbp.unwrap())],
                 ];
                 return Some(players);
             }
@@ -111,10 +111,9 @@ impl Seeks {
 
     pub fn remove_player_seeks(&self, players: GamePlayers) {
         for board in players.iter() {
-            for user in board.iter() {
-                let user = user.read().unwrap();
-                let uid = user.get_uid();
-                let res = self.remove_all_user_seeks(uid);
+            for maybe_user in board.iter() {
+                let uid = Game::uid(maybe_user);
+                let res = self.remove_all_user_seeks(&uid);
                 if let Err(e) = res {
                     eprintln!("{}: {}", e, uid);
                 }

@@ -88,6 +88,23 @@ impl Game {
         }
     }
 
+    pub fn handle(maybe_user: &Option<Arc<RwLock<User>>>) -> Option<String> {
+        if let Some(user_lock) = maybe_user {
+            let user = user_lock.read().unwrap();
+            Some(user.handle.clone())
+        } else {
+            None
+        }
+    }
+
+    pub fn uid(maybe_user: &Option<Arc<RwLock<User>>>) -> UserID {
+        if let Some(user) = maybe_user {
+            *user.read().unwrap().get_uid()
+        } else {
+            uuid::Uuid::nil()
+        }
+    }
+
     pub fn get_start(&self) -> &DateTime<Utc> {
         &self.start
     }
@@ -121,13 +138,13 @@ impl Game {
         user_id: &UserID,
     ) -> Option<(BoardID, Color)> {
         let [[a_white, a_black], [b_white, b_black]] = &self.players;
-        if a_white.read().unwrap().get_uid() == user_id {
+        if Game::uid(a_white) == *user_id {
             return Some((BoardID::A, Color::White));
-        } else if a_black.read().unwrap().get_uid() == user_id {
+        } else if Game::uid(a_black) == *user_id {
             return Some((BoardID::A, Color::Black));
-        } else if b_white.read().unwrap().get_uid() == user_id {
+        } else if Game::uid(b_white) == *user_id {
             return Some((BoardID::B, Color::White));
-        } else if b_black.read().unwrap().get_uid() == user_id {
+        } else if Game::uid(b_black) == *user_id {
             return Some((BoardID::B, Color::Black));
         }
         None
