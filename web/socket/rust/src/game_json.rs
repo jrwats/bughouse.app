@@ -1,8 +1,8 @@
 use bughouse::{BoardID, Color};
 use chrono::prelude::*;
 use chrono::Duration;
+use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
-use serde::ser::{Serializer, SerializeStruct};
 use serde_json::{json, Value};
 use std::sync::{Arc, RwLock};
 
@@ -29,14 +29,16 @@ impl std::fmt::Display for GameJsonKind {
 
 impl Serialize for GameJsonKind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: serde::Serializer {
-            serializer.serialize_str(&self.to_string())
-            // let mut state = serializer.serialize_struct("GameJsonKind", 3)?;
-            // state.serialize_field("board", &(self.board as u8))?;
-            // state.serialize_field("color", &(self.color as u8))?;
-            // state.serialize_field("kind", &(self.kind as u8))?;
-            // state.end()
-        }
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+        // let mut state = serializer.serialize_struct("GameJsonKind", 3)?;
+        // state.serialize_field("board", &(self.board as u8))?;
+        // state.serialize_field("color", &(self.color as u8))?;
+        // state.serialize_field("kind", &(self.kind as u8))?;
+        // state.end()
+    }
 }
 
 pub struct PlayerJson {
@@ -70,11 +72,15 @@ impl GameJson {
         let game = locked_game.read().unwrap();
         let now = Utc::now();
         let start = *game.get_start();
-        let start_in_ms = if now < start { (start - now).num_milliseconds() as i32 } else { 0 };
+        let start_in_ms = if now < start {
+            (start - now).num_milliseconds() as i32
+        } else {
+            0
+        };
         GameJson {
             kind,
             id: *game.get_id(),
-            result:  game.get_result(),
+            result: game.get_result(),
             start_in_ms,
             a: get_board_json(&game, BoardID::A), // kind),
             b: get_board_json(&game, BoardID::B), // kind),
@@ -123,7 +129,7 @@ fn get_board_json(
     game: &Game,
     board_id: BoardID,
     // kind: GameJsonKind,
-    ) -> BoardJson {
+) -> BoardJson {
     let board = game.get_board(board_id);
     let players = game.get_players();
     let [maybe_white, maybe_black] = &players[board_id.to_index()];

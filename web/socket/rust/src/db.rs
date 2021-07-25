@@ -57,7 +57,7 @@ impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
                 rating: 0,
                 deviation: 0,
             },
-            Some(user_lock) => UserRatingSnapshot::from(user_lock)
+            Some(user_lock) => UserRatingSnapshot::from(user_lock),
         }
     }
 }

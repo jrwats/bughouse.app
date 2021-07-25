@@ -1,10 +1,11 @@
 use bughouse::{
-    ALL_COLORS, BOARD_IDS, BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
+    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
+    ALL_COLORS, BOARD_IDS,
 };
 use chrono::prelude::*;
 use chrono::Duration;
-use std::sync::{Arc, RwLock};
 use serde::ser::{Serialize, SerializeStruct};
+use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
@@ -43,15 +44,16 @@ pub enum GameStatus {
 
 impl Serialize for GameResult {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: serde::Serializer {
-            let mut state = serializer.serialize_struct("GameResultType", 3)?;
-            state.serialize_field("board", &(self.board as u8))?;
-            state.serialize_field("winner", &(self.winner as u8))?;
-            state.serialize_field("kind", &(self.kind as u8))?;
-            state.end()
-        }
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("GameResultType", 3)?;
+        state.serialize_field("board", &(self.board as u8))?;
+        state.serialize_field("winner", &(self.winner as u8))?;
+        state.serialize_field("kind", &(self.kind as u8))?;
+        state.end()
+    }
 }
-
 
 pub type GameID = uuid::Uuid;
 
@@ -176,7 +178,7 @@ impl Game {
 
     pub fn check_for_mate(&mut self) -> bool {
         if self.result.is_some() {
-            return true
+            return true;
         }
 
         // Double check for checkmated boards
@@ -218,7 +220,11 @@ impl Game {
     }
 
     pub fn has_empty_seat(&self) -> bool {
-        false
+        let [[a_white, a_black], [b_white, b_black]] = &self.players;
+        a_white.is_none()
+            || a_black.is_none()
+            || b_white.is_none()
+            || b_black.is_none()
     }
 
     pub fn get_status(&self) -> GameStatus {

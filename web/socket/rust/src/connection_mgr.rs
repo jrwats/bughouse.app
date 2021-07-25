@@ -135,7 +135,10 @@ impl ConnectionMgr {
                         if let SendError::Closed(_) = e {
                             conn_id_to_remove = Some(*conn_id);
                         } else {
-                            eprintln!("Full mailbox for uid: {}! {}", uid, conn_id);
+                            eprintln!(
+                                "Full mailbox for uid: {}! {}",
+                                uid, conn_id
+                            );
                         }
                     }
                 }
@@ -143,7 +146,9 @@ impl ConnectionMgr {
         }
         if let Some(conn_id) = conn_id_to_remove {
             println!("Removing {} from uid {} conns", conn_id, uid);
-            if let Some(conn_ids) = self.user_conns.write().unwrap().get_mut(&uid) {
+            if let Some(conn_ids) =
+                self.user_conns.write().unwrap().get_mut(&uid)
+            {
                 conn_ids.remove(&conn_id);
             }
         }

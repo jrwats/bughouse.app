@@ -26,7 +26,8 @@ pub struct Games {
 }
 
 impl Games {
-    pub fn new(// db: Arc<Db>,
+    pub fn new(
+        // db: Arc<Db>,
         conns: Arc<ConnectionMgr>,
     ) -> Self {
         Games {
@@ -60,7 +61,8 @@ impl Games {
                 user_games.insert(player.get_uid(), id);
             }
         }
-        let msg_val = GameJson::new(locked_game.clone(), GameJsonKind::Start).to_val();
+        let msg_val =
+            GameJson::new(locked_game.clone(), GameJsonKind::Start).to_val();
         println!("msg: {}", msg_val);
         let bytestr = Arc::new(ByteString::from(msg_val.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
@@ -69,7 +71,8 @@ impl Games {
         }
         // Someday, when you can form a game with empty seats (open to whoever has the link, perhaps
         // there'll be observers?)
-        self.observers.notify(locked_game.read().unwrap().get_id(), &msg);
+        self.observers
+            .notify(locked_game.read().unwrap().get_id(), &msg);
         Ok((locked_game.clone(), msg))
     }
 
@@ -101,9 +104,9 @@ impl Games {
         mv: &BughouseMove,
         uid: UserID,
     ) -> Result<(Arc<RwLock<Game>>, BoardID), Error> {
-        let game = self.get_user_game(&uid).ok_or(
-            Error::InvalidMoveNotPlaying(uid)
-            )?;
+        let game = self
+            .get_user_game(&uid)
+            .ok_or(Error::InvalidMoveNotPlaying(uid))?;
         {
             let user_game = game.read().unwrap();
             let user_game_id = user_game.get_id();
@@ -123,7 +126,11 @@ impl Games {
 
     pub fn notify_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
         let result = ar_game.read().unwrap().get_result();
-        let kind = if result.is_none() { GameJsonKind::Update } else { GameJsonKind::End };
+        let kind = if result.is_none() {
+            GameJsonKind::Update
+        } else {
+            GameJsonKind::End
+        };
         let game_json = GameJson::new(ar_game.clone(), kind);
         let json_str = game_json.to_val();
         println!("Notifying game players {}", json_str);
@@ -159,7 +166,11 @@ impl Games {
         games.get(game_id).map(|a| a.clone())
     }
 
-    pub fn observe(&self, game_id: &GameID, recipient: Recipient<ClientMessage>) {
+    pub fn observe(
+        &self,
+        game_id: &GameID,
+        recipient: Recipient<ClientMessage>,
+    ) {
         // Only observe if the user ISN'T playing a game
         let maybe_game = self.get(&game_id);
         if maybe_game.is_none() {

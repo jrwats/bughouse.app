@@ -64,10 +64,10 @@ async fn main() -> Result<(), io::Error> {
     // let timer = Arc::new(Timer::new());
     let addr = ServerHandler::new(adb.clone()).start();
     let server = BughouseServer::get(
-        adb.clone(), 
+        adb.clone(),
         addr.clone().recipient(),
-        // timer 
-        );
+        // timer
+    );
 
     // server.start();
     // let addr = (&server).start();

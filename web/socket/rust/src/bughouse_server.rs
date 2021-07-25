@@ -52,9 +52,9 @@ impl ServerHandler {
     pub fn new(
         db: Arc<Db>,
         // timer: Arc<Timer>
-        ) -> Self {
-        ServerHandler { 
-            db, 
+    ) -> Self {
+        ServerHandler {
+            db,
             game_checkers: RwLock::new(HashMap::new()),
             // timer
         }
@@ -67,15 +67,12 @@ impl Actor for ServerHandler {
 }
 
 impl ServerHandler {
-    fn srv(
-        &self, 
-        ctx: &mut Context<Self>,
-        ) -> &'static BughouseServer {
+    fn srv(&self, ctx: &mut Context<Self>) -> &'static BughouseServer {
         BughouseServer::get(
-            self.db.clone(), 
+            self.db.clone(),
             ctx.address().recipient(),
             // self.timer.clone(),
-            )
+        )
     }
 }
 
@@ -114,13 +111,17 @@ impl Handler<ServerMessage> for ServerHandler {
                 if let Some(lgame) = srv.get_game(&game_id) {
                     let (result, min_clock_ms) = get_game_status(lgame.clone());
                     if min_clock_ms > 0 {
-                        let dur = std::time::Duration::from_millis(min_clock_ms as u64);
+                        let dur = std::time::Duration::from_millis(
+                            min_clock_ms as u64,
+                        );
                         let mut checkers = self.game_checkers.write().unwrap();
                         if let Some(handle) = checkers.get(&game_id) {
                             ctx.cancel_future(*handle);
                         }
                         let checker = ctx.run_later(dur, move |_self, _ctx| {
-                            _ctx.address().do_send(ServerMessage::new(ServerMessageKind::CheckGame(game_id)));
+                            _ctx.address().do_send(ServerMessage::new(
+                                ServerMessageKind::CheckGame(game_id),
+                            ));
                         });
                         checkers.insert(game_id, checker);
                     } else if result.is_none() {
@@ -143,7 +144,6 @@ impl Handler<ServerMessage> for ServerHandler {
 static INSTANCE: OnceCell<BughouseServer> = OnceCell::new();
 
 impl BughouseServer {
-
     pub fn get(
         db: Arc<Db>,
         loopback: Recipient<ServerMessage>,
@@ -155,9 +155,8 @@ impl BughouseServer {
 
     fn new(
         db: Arc<Db>,
-        loopback: Recipient<ServerMessage>
-        // , timer: Arc<Timer>
-        ) -> Self {
+        loopback: Recipient<ServerMessage>, // , timer: Arc<Timer>
+    ) -> Self {
         // let (tx, rx): (Sender<ChanMsg>, Receiver<ChanMsg>) = mpsc::channel();
         // let _receiver = thread::spawn(move || {
         //     for (recipient, msg) in rx {
@@ -318,8 +317,11 @@ impl BughouseServer {
             .db
             .create_game(start, &time_ctrl, &rating_snapshots)
             .await?;
-        let (_game, msg) = self.games.start_game(id, start, time_ctrl, players.clone())?;
-        self.loopback.try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)));
+        let (_game, msg) =
+            self.games
+                .start_game(id, start, time_ctrl, players.clone())?;
+        self.loopback
+            .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)));
         Ok(msg)
     }
 
@@ -360,14 +362,13 @@ impl BughouseServer {
             self.loopback.try_send(msg)?;
         }
         // A successful move will change which clock is at risk for flagging
-        self.loopback.do_send(ServerMessage::new(ServerMessageKind::CheckGame(game_id)))?;
+        self.loopback.do_send(ServerMessage::new(
+            ServerMessageKind::CheckGame(game_id),
+        ))?;
         Ok(())
     }
 
-    pub fn get_game(
-        &self,
-        game_id: &GameID,
-        ) -> Option<Arc<RwLock<Game>>> {
+    pub fn get_game(&self, game_id: &GameID) -> Option<Arc<RwLock<Game>>> {
         self.games.get(game_id)
     }
 

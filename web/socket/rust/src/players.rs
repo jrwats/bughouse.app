@@ -31,31 +31,14 @@ pub struct Players {
 }
 
 impl Players {
-
     pub fn new(game_players: &GamePlayers) -> Self {
         let [[a_white, a_black], [b_white, b_black]] = game_players;
         Players {
             players: [
-                Player::new(
-                    Game::uid(a_white),
-                    BoardID::A,
-                    Color::White,
-                ),
-                Player::new(
-                    Game::uid(a_black),
-                    BoardID::A,
-                    Color::Black,
-                ),
-                Player::new(
-                    Game::uid(b_white),
-                    BoardID::B,
-                    Color::White,
-                ),
-                Player::new(
-                    Game::uid(b_black),
-                    BoardID::B,
-                    Color::Black,
-                ),
+                Player::new(Game::uid(a_white), BoardID::A, Color::White),
+                Player::new(Game::uid(a_black), BoardID::A, Color::Black),
+                Player::new(Game::uid(b_white), BoardID::B, Color::White),
+                Player::new(Game::uid(b_black), BoardID::B, Color::Black),
             ],
         }
     }
