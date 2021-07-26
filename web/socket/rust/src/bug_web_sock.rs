@@ -177,14 +177,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 impl BugWebSock {
     pub fn new(
         data: web::Data<BugContext>,
-        // server: &'static BughouseServer,
     ) -> Self {
         Self {
             hb_instant: Instant::now(),
             data,
-            // srv_recipient: data.get_srv_recipient().to_owned(),
-            // srv_recipient,
-            // server: data.server,
             id: 0,
         }
     }
@@ -205,16 +201,10 @@ impl BugWebSock {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb_instant) > CLIENT_TIMEOUT {
-                // heartbeat timed out
-                println!("Websocket Client heartbeat failed, disconnecting!");
-
-                // stop actor
+                eprintln!("Websocket Client heartbeat failed, disconnecting!");
                 ctx.stop();
-
-                // don't try to send a ping
                 return;
             }
-
             ctx.ping(b"");
         });
     }
@@ -274,7 +264,8 @@ impl BugWebSock {
             "seek" => {
                 let time_str = Self::get_field(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
-                let res = self.data.server.add_seek(time_ctrl, recipient);
+                let rated = val["rated"].as_bool().or(Some(true)).unwrap();
+                let res = self.data.server.add_seek(time_ctrl, rated, recipient);
                 if let Err(e) = res {
                     eprintln!("add_seek err: {}", e);
                 }

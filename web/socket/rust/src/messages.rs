@@ -37,7 +37,7 @@ impl ClientMessage {
 
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
-    CreateGame(TimeControl, GamePlayers),
+    CreateGame(TimeControl, bool, GamePlayers),
     CheckGame(GameID),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
 }

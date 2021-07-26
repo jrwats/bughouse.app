@@ -357,6 +357,7 @@ impl Db {
         &self,
         start: DateTime<Utc>,
         time_ctrl: &TimeControl,
+        rated: bool,
         rating_snapshots: &PregameRatingSnapshot,
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(start)?;
@@ -364,10 +365,10 @@ impl Db {
         self.session
             .query(
                 "INSERT INTO bughouse.games 
-             (id, start_time, time_ctrl, boards)
-              VALUES (?, ?, ?, ?)"
+             (id, start_time, time_ctrl, rated, boards)
+              VALUES (?, ?, ?, ?, ?)"
                     .to_string(),
-                (&id, Self::to_timestamp(start), time_ctrl, rating_snapshots),
+                (&id, Self::to_timestamp(start), time_ctrl, rated, rating_snapshots),
             )
             .await?;
         Ok(id)

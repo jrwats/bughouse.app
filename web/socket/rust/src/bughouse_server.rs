@@ -76,10 +76,15 @@ impl ServerHandler {
     }
 }
 
+fn get_result(game: Arc<RwLock<Game>>) -> Option<GameResult> {
+    let rgame = game.read().unwrap();
+    rgame.get_result()
+}
+
 fn get_game_status(game: Arc<RwLock<Game>>) -> (Option<GameResult>, i32) {
-    let mut wgame = game.write().unwrap();
-    let result = wgame.get_result();
+    let result = get_result(game.clone());
     if result.is_none() {
+        let mut wgame = game.write().unwrap();
         wgame.update_all_clocks();
         (None, wgame.get_min_to_move_clock_ms())
     } else {
@@ -101,8 +106,8 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).authenticate(recipient, token);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::CreateGame(time_ctrl, players) => {
-                let fut = self.srv(ctx).create_game(time_ctrl, players);
+            ServerMessageKind::CreateGame(time_ctrl, rated, players) => {
+                let fut = self.srv(ctx).start_new_game(time_ctrl, rated, players);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::CheckGame(game_id) => {
@@ -118,12 +123,13 @@ impl Handler<ServerMessage> for ServerHandler {
                         if let Some(handle) = checkers.get(&game_id) {
                             ctx.cancel_future(*handle);
                         }
-                        let checker = ctx.run_later(dur, move |_self, _ctx| {
-                            _ctx.address().do_send(ServerMessage::new(
+                        let checker = ctx.run_later(dur, move |_self, c| {
+                            c.address().do_send(ServerMessage::new(
                                 ServerMessageKind::CheckGame(game_id),
                             ));
                         });
                         checkers.insert(game_id, checker);
+                        srv.notify_game_observers(lgame);
                     } else if result.is_none() {
                         srv.end_game(lgame);
                     }
@@ -196,6 +202,7 @@ impl BughouseServer {
     pub fn add_seek(
         &'static self,
         time_ctrl: TimeControl,
+        rated: bool,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
@@ -212,11 +219,15 @@ impl BughouseServer {
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
-                time_ctrl, players,
+                time_ctrl, rated, players,
             ));
             self.loopback.try_send(msg)?;
         }
         Ok(())
+    }
+
+    pub fn notify_game_observers(&'static self, game: Arc<RwLock<Game>>) {
+        self.games.notify_game_observers(game);
     }
 
     pub fn is_authenticated(&'static self, conn_id: ConnID) -> bool {
@@ -305,9 +316,10 @@ impl BughouseServer {
         Ok(((aws, abs), (bws, bbs)))
     }
 
-    pub async fn create_game(
+    pub async fn start_new_game(
         &'static self,
         time_ctrl: TimeControl,
+        rated: bool,
         players: GamePlayers,
     ) -> Result<ClientMessage, Error> {
         self.seeks.remove_player_seeks(players.clone());
@@ -315,13 +327,13 @@ impl BughouseServer {
         let rating_snapshots = self.get_rating_snapshots(players.clone())?;
         let id = self
             .db
-            .create_game(start, &time_ctrl, &rating_snapshots)
+            .create_game(start, &time_ctrl, rated, &rating_snapshots)
             .await?;
         let (_game, msg) =
             self.games
                 .start_game(id, start, time_ctrl, players.clone())?;
         self.loopback
-            .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)));
+            .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)))?;
         Ok(msg)
     }
 
