@@ -1,5 +1,5 @@
 use bughouse::{
-    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, Holdings,
+    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, 
     ALL_COLORS, BOARD_IDS,
 };
 use chrono::prelude::*;
@@ -20,7 +20,6 @@ pub type GamePlayers = [BoardPlayers; 2];
 
 pub type BoardClocks = [i32; 2];
 pub type GameClocks = [BoardClocks; 2];
-// pub type GameUserIDs = [BoardPlayers; 2];
 
 #[derive(Clone, Copy, Debug)]
 pub struct GameResult {
@@ -57,11 +56,11 @@ impl Serialize for GameResult {
 
 pub type GameID = uuid::Uuid;
 
-const GAME_SECS_IN_FUTURE: i64 = 5;
+const GAME_MS_IN_FUTURE: i64 = 5500; // 5.5s from now
 
 pub struct Game {
     id: GameID,
-    start: DateTime<Utc>,
+    start: Option<DateTime<Utc>>,
     game: BughouseGame,
     time_ctrl: TimeControl,
     players: GamePlayers,
@@ -71,6 +70,25 @@ pub struct Game {
 }
 
 impl Game {
+    pub fn empty(
+        id: GameID,
+        time_ctrl: TimeControl,
+        user: Arc<RwLock<User>>,
+        ) -> Self {
+        let base = time_ctrl.get_base_ms();
+        let nil_date = Utc.ymd(0, 0, 0).and_hms(0, 0, 0);
+        Game {
+            id,
+            start: None,
+            time_ctrl,
+            game: BughouseGame::default(),
+            players: [[Some(user), None], [None, None]],
+            clocks: [[base; 2]; 2],
+            last_move: [nil_date; 2],
+            result: None,
+        }
+    }
+
     pub fn start(
         id: GameID,
         start: DateTime<Utc>,
@@ -80,7 +98,7 @@ impl Game {
         let base = time_ctrl.get_base_ms();
         Game {
             id,
-            start,
+            start: Some(start),
             time_ctrl,
             game: BughouseGame::default(),
             players,
@@ -107,8 +125,8 @@ impl Game {
         }
     }
 
-    pub fn get_start(&self) -> &DateTime<Utc> {
-        &self.start
+    pub fn get_start(&self) -> DateTime<Utc> {
+        self.start.unwrap()
     }
 
     pub fn get_id(&self) -> &GameID {
@@ -116,7 +134,7 @@ impl Game {
     }
 
     pub fn new_start() -> DateTime<Utc> {
-        Utc::now() + Duration::seconds(GAME_SECS_IN_FUTURE)
+        Utc::now() + Duration::milliseconds(GAME_MS_IN_FUTURE)
     }
 
     pub fn get_clocks(&self) -> &GameClocks {
@@ -167,8 +185,8 @@ impl Game {
     fn update_clocks(&mut self, board_id: BoardID, moved_color: Color) {
         let idx = board_id.to_index();
         let now = Utc::now();
-        if now < self.start {
-            return;
+        if self.start.is_none() || now < self.start.unwrap() {
+            return
         }
         let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;
         let inc = self.time_ctrl.get_inc_ms() as i32;
@@ -230,7 +248,7 @@ impl Game {
     pub fn get_status(&self) -> GameStatus {
         if let Some(result) = self.result {
             GameStatus::Over(result)
-        } else if self.start > Utc::now() {
+        } else if self.start.is_some() && self.start.unwrap() > Utc::now() {
             GameStatus::Starting
         } else if self.has_empty_seat() {
             GameStatus::WaitingForPlayers
@@ -248,7 +266,7 @@ impl Game {
         user_id: &UserID,
         mv: &BughouseMove,
     ) -> Result<BoardID, Error> {
-        if Utc::now() < self.start {
+        if self.start.is_none() || Utc::now() < self.start.unwrap() {
             return Err(Error::InvalidMoveTurn);
         }
         let (board_id, color) = self

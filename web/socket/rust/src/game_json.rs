@@ -71,7 +71,7 @@ impl GameJson {
     pub fn new(locked_game: Arc<RwLock<Game>>, kind: GameJsonKind) -> Self {
         let game = locked_game.read().unwrap();
         let now = Utc::now();
-        let start = *game.get_start();
+        let start = game.get_start();
         let start_in_ms = if now < start {
             (start - now).num_milliseconds() as i32
         } else {

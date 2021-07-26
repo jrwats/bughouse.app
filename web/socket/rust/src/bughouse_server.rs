@@ -352,7 +352,7 @@ impl BughouseServer {
         println!("Made move. board: {}", board_id.to_index());
         {
             let rgame = game.read().unwrap();
-            let duration = Utc::now() - *rgame.get_start();
+            let duration = Utc::now() - rgame.get_start();
             let msg = ServerMessage::new(ServerMessageKind::RecordMove(
                 duration,
                 *rgame.get_id(),
