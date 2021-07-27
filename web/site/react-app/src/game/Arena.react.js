@@ -14,7 +14,7 @@ const Orientation = {
   BLACK: 2, // Black's POV
 };
 
-const Arena = ({ gamePath, children }) => {
+const Arena = ({ gamePath }) => {
   const [gameID, orientation] = gamePath.split("~");
   // const gameID = gamePath;
   const { handle, socket } = useContext(SocketContext);

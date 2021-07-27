@@ -7,7 +7,7 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 200);
 
-const PlayerDisplay = ({ color, chessboard }) => {
+const PlayerDisplay = ({ color,  chessboard, forming }) => {
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const refTime = useRef(parseInt(playerData?.ms));

@@ -8,7 +8,7 @@ import { opposite } from "chessground/util";
 import GameOverMessage from "./GameOverMessage.react";
 import invariant from "invariant";
 
-const Board = ({ chessboard, orientation, gameID, id }) => {
+const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(false);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
@@ -59,7 +59,7 @@ const Board = ({ chessboard, orientation, gameID, id }) => {
 
   return (
     <div style={{ display: "inline-block", width: "50%" }}>
-      <PlayerDisplay color={opposite(orientation)} chessboard={chessboard} />
+      <PlayerDisplay forming={forming} color={opposite(orientation)} chessboard={chessboard} />
       <div
         id={id}
         style={{
@@ -99,7 +99,7 @@ const Board = ({ chessboard, orientation, gameID, id }) => {
           style={{ display: "inline-block" }}
         />
       </div>
-      <PlayerDisplay color={orientation} chessboard={chessboard} />
+      <PlayerDisplay forming={forming} color={orientation} chessboard={chessboard} />
     </div>
   );
 };
