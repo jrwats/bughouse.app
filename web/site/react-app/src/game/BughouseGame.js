@@ -24,6 +24,10 @@ class BughouseGame extends EventEmitter {
     this._b.update(b);
   }
 
+  getID() { 
+    return this.id; 
+  }
+
   getStart() {
     return this._startTime;
   }

@@ -9,7 +9,7 @@ import { Redirect } from "@reach/router";
 import { opposite } from "chessground/util";
 import ScreenLock from "./ScreenLock";
 
-const GameFormation = ({ gamePath, children }) => {
+const GameFormation = ({ gamePath }) => {
 
   const [gameID, orientation] = gamePath.split("~");
   const { handle, socket } = useContext(SocketContext);
@@ -20,16 +20,17 @@ const GameFormation = ({ gamePath, children }) => {
 
   const boards = [
     <Board
-      id="boardA"
-      gameID={gameID}
-      forming={true}
       chessboard={boardA}
+      forming={true}
+      gameID={gameID}
+      id="boardA"
       orientation="white"
     />,
     <Board
-      id="boardB"
-      gameID={gameID}
       chessboard={boardB}
+      forming={true}
+      gameID={gameID}
+      id="boardB"
       orientation="black"
     />,
   ];

@@ -1,6 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import Button from "@material-ui/core/Button";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { EventEmitter } from "events";
 import HandleDisplay from "./HandleDisplay.react";
+import { SocketContext } from "../socket/SocketProvider";
 
 const _ticker = new EventEmitter();
 setInterval(() => {
@@ -8,6 +10,7 @@ setInterval(() => {
 }, 200);
 
 const PlayerDisplay = ({ color,  chessboard, forming }) => {
+  const { socket } = useContext(SocketContext);
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
   const refTime = useRef(parseInt(playerData?.ms));
@@ -55,9 +58,26 @@ const PlayerDisplay = ({ color,  chessboard, forming }) => {
   }, [color, chessboard, handle]);
   const mins = Math.floor(ms / 1000.0 / 60.0);
   const secs = Math.floor((ms / 1000.0) % 60);
+  let handleDisplay = <HandleDisplay handle={handle} />
+  if (playerData == null) {
+    handleDisplay  = <Button
+    style={{ marginTop: "10px" }}
+    variant="contained"
+    color="primary"
+    onClick={() => {
+      socket.sendEvent('sit', { 
+        id: chessboard.getGame().getID(),
+        board: chessboard.getBoardID(),
+        color: color
+      });
+    }}
+    >
+      Sit
+    </Button>;
+  }
   return (
     <div className="playerData">
-      <HandleDisplay handle={handle} />
+      {playerData}
       <span className="h6 mono bold light">
         {mins}:{(secs < 10 ? "0" : "") + secs}
       </span>
