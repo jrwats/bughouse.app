@@ -27,20 +27,6 @@ class ChessBoard extends EventEmitter {
     }
   }
 
-  // TODO: delete? Was only used observing "global" games in FICS
-  updateTime({ id, white, black }) {
-    console.log(
-      `ChessBoard updating time ${JSON.stringify(white)} ${JSON.stringify(
-        black
-      )}`
-    );
-    if (this._board.white != null) {
-      this._board.white.ms = white.ms;
-      this._board.black.ms = black.ms;
-      this.emit("update", this);
-    }
-  }
-
   isInitialized() {
     return this._initialized;
   }

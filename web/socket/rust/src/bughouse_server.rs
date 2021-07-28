@@ -217,6 +217,7 @@ impl BughouseServer {
         println!("adding seeker");
         self.seeks.add_seeker(&time_ctrl, &user.id)?;
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
+            println!("forming game...");
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
                 time_ctrl, rated, players,
@@ -323,12 +324,15 @@ impl BughouseServer {
         players: GamePlayers,
     ) -> Result<ClientMessage, Error> {
         self.seeks.remove_player_seeks(players.clone());
+        println!("start_new_game");
         let start = Game::new_start();
         let rating_snapshots = self.get_rating_snapshots(players.clone())?;
+        println!("rating_snaps: {:?}", rating_snapshots);
         let id = self
             .db
             .create_game(start, &time_ctrl, rated, &rating_snapshots)
             .await?;
+        println!("id: {}", id);
         let (_game, msg) =
             self.games
                 .start_game(id, start, time_ctrl, players.clone())?;

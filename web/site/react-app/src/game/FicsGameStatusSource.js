@@ -13,16 +13,16 @@ function getTime(board) {
 }
 
 class GameStatusSource extends EventEmitter {
-  constructor(telnet) {
+  constructor(socket) {
     super();
-    this._telnet = telnet;
+    this._socket = socket;
     this._observing = {};
-    const uid = this._telnet.getUid();
-    this._telnet.on("logout", () => {
+    const uid = this._socket.getUid();
+    this._socket.on("logout", () => {
       this._destroy(uid);
     });
     this._boards = {};
-    this._allGames = GamesListSource.get(telnet);
+    this._allGames = GamesListSource.get(socket);
     this._allGames.on("games", (games) => {
       for (const game of games) {
         const [board1, board2] = game;
@@ -35,9 +35,9 @@ class GameStatusSource extends EventEmitter {
       }
     });
 
-    this._telnet.on("boardUpdate", (data) => this._onBoardUpdate(data));
-    this._telnet.on("gameOver", (data) => this._onGameOver(data));
-    this._telnet.on("gameStart", (data) => this._onGameStart(data));
+    this._socket.on("boardUpdate", (data) => this._onBoardUpdate(data));
+    this._socket.on("gameOver", (data) => this._onGameOver(data));
+    this._socket.on("gameStart", (data) => this._onGameStart(data));
   }
 
   _onBoardUpdate({ board }) {
@@ -84,25 +84,25 @@ class GameStatusSource extends EventEmitter {
   }
 
   unobserve(id) {
-    this._telnet.sendEvent("unobserve", { id });
+    this._socket.sendEvent("unobserve", { id });
     delete this._observing[id];
   }
 
   observe(id) {
     if (!(id in this._observing)) {
-      this._telnet.sendEvent("observe", { id });
+      this._socket.sendEvent("observe", { id });
       this._observing[id] = 1;
     } else {
-      this._telnet.sendEvent("refresh", { id });
+      this._socket.sendEvent("refresh", { id });
     }
   }
 }
 
 const _cache = {};
 const GameStatusSourceGetter = {
-  get(telnet) {
-    const uid = telnet.getUid();
-    return _cache[uid] || (_cache[uid] = new GameStatusSource(telnet));
+  get(socket) {
+    const uid = socket.getUid();
+    return _cache[uid] || (_cache[uid] = new GameStatusSource(socket));
   },
 };
 export default GameStatusSourceGetter;

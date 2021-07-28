@@ -22,8 +22,11 @@ setInterval(() => {
 }, 5000);
 
 /**
- * Proxy to our telnet connection that emits raw console output as well as
+ * Proxy to our WebScocket connection that emits raw console output as well as
  * parsed game and environment data.
+ *
+ * This websocket *USED* to be a proxy to a a FICS telnet connection held on
+ * the server, but not anymore.
  */
 class SocketProxy extends EventEmitter {
   constructor(user) {

@@ -47,6 +47,7 @@ impl Games {
         time_ctrl: TimeControl,
         players: GamePlayers,
     ) -> Result<(Arc<RwLock<Game>>, ClientMessage), Error> {
+        println!("Games::start_game");
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
         let game = Game::start(id, start, time_ctrl, players.clone());
         let locked_game = Arc::new(RwLock::new(game));

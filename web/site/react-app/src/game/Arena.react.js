@@ -79,7 +79,11 @@ const Arena = ({ gamePath }) => {
     let newOrientation =
       (handleColorB === "black" ? Orientation.BLACK : 0) | Orientation.FLIPPED;
     if (orientation != newOrientation) {
-      return <Redirect to={`/home/game/${gameID}~${newOrientation}`} />;
+      return (
+        <Redirect 
+          noThrow={process.env.NODE_ENV !== "production"}
+          to={`/home/game/${gameID}~${newOrientation}`} />
+      );
     }
   }
 
@@ -98,18 +102,20 @@ const Arena = ({ gamePath }) => {
   const boards = [
     <Board
       id="boardA"
+      key="boardA"
       gameID={gameID}
       chessboard={boardA}
       orientation={orientationA}
     />,
     <Board
       id="boardB"
+      key="boardB"
       gameID={gameID}
       chessboard={boardB}
       orientation={opposite(orientationA)}
     />,
   ];
-  const countdown = game && <GameStartCountdown start={game.getStart()} />;
+  const countdown = game && <GameStartCountdown key="countdown" start={game.getStart()} />;
 
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();

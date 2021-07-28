@@ -1,21 +1,14 @@
 import Button from "@material-ui/core/Button";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { EventEmitter } from "events";
 import HandleDisplay from "./HandleDisplay.react";
+import ClockDisplay from "./ClockDisplay.react";
 import { SocketContext } from "../socket/SocketProvider";
 
-const _ticker = new EventEmitter();
-setInterval(() => {
-  _ticker.emit("tick");
-}, 200);
 
 const PlayerDisplay = ({ color,  chessboard, forming }) => {
-  const { socket } = useContext(SocketContext);
+  const {socket} = useContext(SocketContext);
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
-  const refTime = useRef(parseInt(playerData?.ms));
-  const lastUpdate = useRef(Math.max(chessboard.getStart(), Date.now()));
-  const [ms, setTime] = useState(refTime.current);
 
   useEffect(() => {
     const onUpdate = () => {
@@ -27,60 +20,32 @@ const PlayerDisplay = ({ color,  chessboard, forming }) => {
       if (playerData.handle !== handle) {
         setHandle(playerData.handle);
       }
-      const milliseconds = parseInt(playerData.ms);
-      if (Number.isNaN(milliseconds)) {
-        console.log(`PlayerDisplay ${playerData.ms} isNaN`);
-        return;
-      }
-      refTime.current = parseInt(playerData?.ms);
-      lastUpdate.current = Math.max(chessboard.getStart(), Date.now());
-      setTime(refTime.current);
-    };
-    const onTick = () => {
-      const board = chessboard.getBoard();
-      if (
-        chessboard.getColorToMove() === color &&
-        chessboard.getStart() <= Date.now()
-      ) {
-        let now = Date.now();
-        let delta = now - lastUpdate.current;
-        lastUpdate.current = now;
-        refTime.current = Math.max(0, refTime.current - delta);
-        setTime(refTime.current);
-      }
     };
     chessboard.on("update", onUpdate);
-    _ticker.on("tick", onTick);
     return () => {
       chessboard.off("update", onUpdate);
-      _ticker.off("tick", onTick);
     };
-  }, [color, chessboard, handle]);
-  const mins = Math.floor(ms / 1000.0 / 60.0);
-  const secs = Math.floor((ms / 1000.0) % 60);
-  let handleDisplay = <HandleDisplay handle={handle} />
-  if (playerData == null) {
-    handleDisplay  = <Button
-    style={{ marginTop: "10px" }}
-    variant="contained"
-    color="primary"
-    onClick={() => {
-      socket.sendEvent('sit', { 
-        id: chessboard.getGame().getID(),
-        board: chessboard.getBoardID(),
-        color: color
-      });
-    }}
+  }, [forming, handle]);
+  let handleDisplay = playerData.handle == null ?
+    <Button
+      style={{ marginTop: "10px" }}
+      variant="contained"
+      color="primary"
+      onClick={() => {
+        socket.sendEvent('sit', { 
+          id: chessboard.getGame().getID(),
+          board: chessboard.getBoardID(),
+          color: color
+        });
+      }}
     >
       Sit
-    </Button>;
-  }
+    </Button>
+    : <HandleDisplay handle={handle} />;
   return (
     <div className="playerData">
-      {playerData}
-      <span className="h6 mono bold light">
-        {mins}:{(secs < 10 ? "0" : "") + secs}
-      </span>
+      {handleDisplay}
+      <ClockDisplay color={color} chessboard={chessboard} forming={forming} />
     </div>
   );
 };
