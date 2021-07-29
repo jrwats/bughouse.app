@@ -270,6 +270,21 @@ impl BugWebSock {
                     eprintln!("add_seek err: {}", e);
                 }
             }
+            "form" => {
+                let time_str = Self::get_field(val, "time", kind)?;
+                let time_ctrl = TimeControl::from_str(&time_str)?;
+                let rated = val["rated"].as_bool().or(Some(true)).unwrap();
+                let rated = val["rated"].as_bool().ok_or_else(|| {
+                    Error::MalformedClientMsg {
+                        reason: format!("Missing/malformed 'rated'"),
+                        msg: val.to_string(),
+                    }
+                })?;
+                // TODO
+            }
+            "sit" => {
+                println!("sit: {:?}", val);
+            }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field(val, "move", kind)?;
