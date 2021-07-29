@@ -12,6 +12,7 @@ use crate::game::{Game, GameID, GamePlayers};
 use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{ClientMessage, ClientMessageKind};
 use crate::observers::Observers;
+use crate::users::User;
 use crate::players::Players;
 use crate::time_control::TimeControl;
 // use crate::db::Db;
@@ -38,6 +39,16 @@ impl Games {
             observers: Observers::new(),
             conns,
         }
+    }
+
+    pub fn form_table(
+        &self,
+        id: GameID,
+        time_ctrl: TimeControl,
+        user: Arc<RwLock<User>>,
+        ) -> Result<ClientMessage, Error> {
+        let players = [[Some(user), None], [None, None]];
+        Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
     pub fn start_game(

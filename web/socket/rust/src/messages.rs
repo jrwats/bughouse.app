@@ -4,7 +4,7 @@ use bytestring::ByteString;
 use chrono::Duration;
 use std::sync::Arc;
 
-use crate::connection_mgr::ConnID;
+use crate::connection_mgr::{ConnID, UserID};
 use crate::error::Error;
 use crate::game::{GameID, GamePlayers};
 use crate::time_control::TimeControl;
@@ -38,6 +38,7 @@ impl ClientMessage {
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
     CreateGame(TimeControl, bool, GamePlayers),
+    FormTable(TimeControl, bool, UserID),
     CheckGame(GameID),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
 }

@@ -110,6 +110,10 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).start_new_game(time_ctrl, rated, players);
                 Box::pin(async move { fut.await })
             }
+            ServerMessageKind::FormTable(time_ctrl, rated, uid) => {
+                let fut = self.srv(ctx).form_table(time_ctrl, rated, uid);
+                Box::pin(async move { fut.await })
+            }
             ServerMessageKind::CheckGame(game_id) => {
                 println!("checking game_id: {}", game_id);
                 let srv = self.srv(ctx);
@@ -281,7 +285,7 @@ impl BughouseServer {
 
     // If, on the offchance, that a user disconnects right after game start (and is not present),
     // try fetching user from DB.
-    pub async fn user_from_uid(
+    pub async fn maybe_user_from_uid(
         &'static self,
         uid: &UserID,
     ) -> Option<Arc<RwLock<User>>> {
@@ -293,14 +297,22 @@ impl BughouseServer {
         None
     }
 
+    pub async fn user_from_uid(
+        &'static self,
+        uid: &UserID,
+    ) -> Result<Arc<RwLock<User>>, Error> {
+        if let Some(u) = self.maybe_user_from_uid(uid).await {
+            return Ok(u);
+        }
+        Err(Error::UnknownUID(*uid))
+    }
+
     pub async fn rating_snapshot_from_uid(
         &'static self,
         uid: &UserID,
     ) -> Result<UserRatingSnapshot, Error> {
-        if let Some(u) = self.user_from_uid(uid).await {
-            return Ok(UserRatingSnapshot::from(u));
-        }
-        Err(Error::UnknownUID(*uid))
+        let user = self.user_from_uid(uid).await?;
+        Ok(UserRatingSnapshot::from(user))
     }
 
     fn get_rating_snapshots(
@@ -315,6 +327,41 @@ impl BughouseServer {
             UserRatingSnapshot::from(bb),
         );
         Ok(((aws, abs), (bws, bbs)))
+    }
+
+    pub fn get_table_rating_snapshots(
+        &'static self,
+        user: Arc<RwLock<User>>,
+    ) -> PregameRatingSnapshot {
+        let user_snap = UserRatingSnapshot::from(user);
+        let nil = UserRatingSnapshot::nil();
+        ((user_snap, nil.clone()), (nil.clone(), nil))
+    }
+
+    pub fn queue_formation(
+        &'static self,
+        time_ctrl: TimeControl,
+        rated: bool,
+        conn_id: &ConnID,
+        ) -> Result<(), Error> {
+        let uid = self.uid_from_conn(conn_id)?;
+        self.loopback.do_send(ServerMessage::new(
+            ServerMessageKind::FormTable(time_ctrl, rated, uid),
+        ))?;
+        Ok(())
+    }
+
+    pub async fn form_table(
+        &'static self,
+        time_ctrl: TimeControl,
+        rated: bool,
+        uid: UserID,
+        ) -> Result<ClientMessage, Error> {
+        let user = self.user_from_uid(&uid).await?;
+        let snaps = self.get_table_rating_snapshots(user.clone());
+        let id = self .db.form_game(&time_ctrl, rated, &snaps).await?;
+        let msg = self.games.form_table(id, time_ctrl, user)?;
+        Ok(msg)
     }
 
     pub async fn start_new_game(
@@ -354,16 +401,19 @@ impl BughouseServer {
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
+    fn uid_from_conn(&self, conn_id: &ConnID) -> Result<UserID, Error> {
+        self.conns.uid_from_conn(&conn_id).ok_or(Error::AuthError {
+            reason: "Not authed".to_string(),
+        })
+    }
+
     pub fn make_move(
         &'static self,
         game_id: GameID,
         mv: &BughouseMove,
         conn_id: ConnID,
     ) -> Result<(), Error> {
-        let uid =
-            self.conns.uid_from_conn(&conn_id).ok_or(Error::AuthError {
-                reason: "Not authed".to_string(),
-            })?;
+        let uid = self.uid_from_conn(&conn_id)?;
         let (game, board_id) = self.games.make_move(game_id, mv, uid)?;
         println!("Made move. board: {}", board_id.to_index());
         {

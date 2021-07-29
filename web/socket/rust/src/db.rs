@@ -49,6 +49,12 @@ pub struct UserRatingSnapshot {
     deviation: i16,
 }
 
+impl UserRatingSnapshot {
+    pub fn nil() -> UserRatingSnapshot { 
+        UserRatingSnapshot::from(None)
+    }
+}
+
 impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
     fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
         match maybe_user {
@@ -351,6 +357,26 @@ impl Db {
             eprintln!("Error writing move to DB: {:?}", e);
         }
         Ok(())
+    }
+
+    pub async fn form_game(
+        &self,
+        time_ctrl: &TimeControl,
+        rated: bool,
+        rating_snapshots: &PregameRatingSnapshot,
+    ) -> Result<GameID, Error> {
+        let id: GameID = self.uuid_from_time(Utc::now())?;
+        // let rating_snapshots = self.rating_snapshots(players).await?;
+        self.session
+            .query(
+                "INSERT INTO bughouse.games 
+             (id, start_time, time_ctrl, rated, boards)
+              VALUES (?, ?, ?, ?, ?)"
+                    .to_string(),
+                (id, ScyllaTimestamp(0), time_ctrl, rated, rating_snapshots),
+            )
+            .await?;
+        Ok(id)
     }
 
     pub async fn create_game(

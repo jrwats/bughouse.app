@@ -273,14 +273,13 @@ impl BugWebSock {
             "form" => {
                 let time_str = Self::get_field(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
-                let rated = val["rated"].as_bool().or(Some(true)).unwrap();
                 let rated = val["rated"].as_bool().ok_or_else(|| {
                     Error::MalformedClientMsg {
                         reason: format!("Missing/malformed 'rated'"),
                         msg: val.to_string(),
                     }
                 })?;
-                // TODO
+               self.data.server.queue_formation(time_ctrl, rated, &self.id);
             }
             "sit" => {
                 println!("sit: {:?}", val);
