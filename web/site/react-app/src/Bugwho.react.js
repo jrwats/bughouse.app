@@ -21,7 +21,7 @@ function getExpansionDisplay(expansion, setExpansion) {
   if (expansion === ActionExpansion.SEEKS) {
     return <Seeks />;
   } else if (expansion === ActionExpansion.FORM_GAME) {
-    return <FormGame />;
+    return <FormGame onCancel={() => setExpansion(ActionExpansion.NONE)} />;
   }
   return (
     <>
@@ -64,7 +64,6 @@ const Bugwho = (props) => {
   } = useContext(UsersContext);
 
   let [expansion, setExpansion] = useState(ActionExpansion.NONE);
-  ;
   return (
     <GamesListProvider>
       <ChallengesProvider>
