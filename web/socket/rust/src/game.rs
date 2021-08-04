@@ -63,7 +63,7 @@ pub struct Game {
     start: Option<DateTime<Utc>>,
     game: BughouseGame,
     time_ctrl: TimeControl,
-    players: GamePlayers,
+    pub players: GamePlayers,
     clocks: GameClocks,
     result: Option<GameResult>,
     last_move: [DateTime<Utc>; 2], // Time of last move on either board

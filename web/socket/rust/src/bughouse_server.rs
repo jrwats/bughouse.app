@@ -13,7 +13,7 @@ use std::sync::{Arc, RwLock};
 // use std::thread;
 
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
-use crate::db::{Db, PregameRatingSnapshot, UserRatingSnapshot};
+use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers, GameResult};
@@ -322,14 +322,14 @@ impl BughouseServer {
 
     fn get_rating_snapshots(
         &'static self,
-        players: GamePlayers,
-    ) -> Result<PregameRatingSnapshot, Error> {
+        players: &GamePlayers,
+    ) -> Result<TableSnapshot, Error> {
         let [[aw, ab], [bw, bb]] = players;
         let (aws, abs, bws, bbs) = (
-            UserRatingSnapshot::from(aw),
-            UserRatingSnapshot::from(ab),
-            UserRatingSnapshot::from(bw),
-            UserRatingSnapshot::from(bb),
+            UserRatingSnapshot::from(aw.clone()),
+            UserRatingSnapshot::from(ab.clone()),
+            UserRatingSnapshot::from(bw.clone()),
+            UserRatingSnapshot::from(bb.clone()),
         );
         Ok(((aws, abs), (bws, bbs)))
     }
@@ -337,7 +337,7 @@ impl BughouseServer {
     pub fn get_table_rating_snapshots(
         &'static self,
         user: Arc<RwLock<User>>,
-    ) -> PregameRatingSnapshot {
+    ) -> TableSnapshot {
         let user_snap = UserRatingSnapshot::from(user);
         let nil = UserRatingSnapshot::nil();
         ((user_snap, nil.clone()), (nil.clone(), nil))
@@ -365,12 +365,16 @@ impl BughouseServer {
         uid: UserID,
     ) -> Result<ClientMessage, Error> {
         let game = self.get_game(&game_id).ok_or(Error::InvalidGameID(game_id))?;
-        let wgame = game.write().unwrap();
-        let players = wgame.get_players();
-        if players[board_id.to_index()][color.to_index()].is_some() {
+        let mut wgame = game.write().unwrap();
+        if wgame.players[board_id.to_index()][color.to_index()].is_some() {
             eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
             return Err(Error::SeatTaken(game_id, board_id, color.to_index()));
         }
+        let user = self.user_from_uid(&uid).await?;
+        wgame.players[board_id.to_index()][color.to_index()] = Some(user);
+        // let user_snap = self.rating_snapshot_from_uid(&uid).await?;
+        let rating_snapshots = self.get_rating_snapshots(&wgame.players)?;
+        self.db.sit(&game_id, &rating_snapshots).await?;
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
@@ -422,7 +426,7 @@ impl BughouseServer {
         self.seeks.remove_player_seeks(players.clone());
         println!("start_new_game");
         let start = Game::new_start();
-        let rating_snapshots = self.get_rating_snapshots(players.clone())?;
+        let rating_snapshots = self.get_rating_snapshots(&players)?;
         println!("rating_snaps: {:?}", rating_snapshots);
         let id = self
             .db

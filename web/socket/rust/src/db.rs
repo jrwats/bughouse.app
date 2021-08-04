@@ -20,7 +20,7 @@ use crate::b66::B66;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
-use crate::game::GameID;
+use crate::game::{GameID, GamePlayers};
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -80,7 +80,7 @@ impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
 }
 
 pub type BoardSnapshot = (UserRatingSnapshot, UserRatingSnapshot);
-pub type PregameRatingSnapshot = (BoardSnapshot, BoardSnapshot);
+pub type TableSnapshot = (BoardSnapshot, BoardSnapshot);
 
 impl Db {
     pub async fn new() -> Result<Self, Error> {
@@ -365,7 +365,7 @@ impl Db {
         time: &ScyllaTimestamp,
         time_ctrl: &TimeControl,
         rated: bool,
-        rating_snapshots: &PregameRatingSnapshot,
+        rating_snapshots: &TableSnapshot,
     ) -> Result<GameID, Error> {
         self.session
             .query(
@@ -379,11 +379,22 @@ impl Db {
         Ok(id)
     }
 
+    pub async fn sit(
+        &self,
+        game_id: &GameID,
+        user_snaps: &TableSnapshot,
+        ) -> Result<(), Error> {
+        let query = "UPDATE bughouse.games SET players = ? WHERE id = ?".to_string();
+        self.session.query(query, (user_snaps, game_id)).await?;
+        Ok(())
+    }
+
+
     pub async fn form_table(
         &self,
         time_ctrl: &TimeControl,
         rated: bool,
-        rating_snapshots: &PregameRatingSnapshot,
+        rating_snapshots: &TableSnapshot,
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(Utc::now())?;
         let zero_time = ScyllaTimestamp(Duration::zero());
@@ -396,7 +407,7 @@ impl Db {
         start: DateTime<Utc>,
         time_ctrl: &TimeControl,
         rated: bool,
-        rating_snapshots: &PregameRatingSnapshot,
+        rating_snapshots: &TableSnapshot,
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(start)?;
         self.insert_game(
