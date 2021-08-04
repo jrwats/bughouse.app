@@ -69,10 +69,10 @@ const Bugwho = (props) => {
       <ChallengesProvider>
         <div>
           {/* <Challenges /> */}
-          <GamesList />
+          {/* <GamesList /> */}
           {/* <Teams {...{partners, onlineUsers, partnerMap}} /> */}
           {/* <Offers {...{unpartnered, incomingOffers}} /> */}
-          <Unpartnered unpartnered={unpartnered} />
+          {/* <Unpartnered unpartnered={unpartnered} /> */}
           {getExpansionDisplay(expansion, setExpansion)}
         </div>
       </ChallengesProvider>

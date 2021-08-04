@@ -63,7 +63,7 @@ class GameStatusSource extends EventEmitter {
     if (game.path != null) {
       navigate(`/home/game/${game.path}`);
     } else {
-      // FICS logic
+      // At one point I thoughth about trying to ALSO host FICS games, but... meh
       const gamePair = `${game.viewer.id}~${game.partner.id}`;
       navigate(`/home/fics_arena/${gamePair}`);
     }

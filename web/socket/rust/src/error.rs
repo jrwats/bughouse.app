@@ -1,4 +1,4 @@
-use bughouse::Error as BugError;
+use bughouse::{BoardID, Color, Error as BugError};
 use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;
@@ -77,6 +77,9 @@ pub enum Error {
 
     #[error("Firebase err {0}")]
     FirebaseError(String),
+
+    #[error("Can't sit - already taken: {0}, {1}, {2}")]
+    SeatTaken(GameID, BoardID, usize),
 
     #[error("mpsc::SendError: {0}")]
     SendError(std::sync::mpsc::SendError<String>),

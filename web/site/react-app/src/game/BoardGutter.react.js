@@ -5,7 +5,7 @@ import ClockDisplay from "./ClockDisplay.react";
 import { SocketContext } from "../socket/SocketProvider";
 
 
-const PlayerDisplay = ({ color,  chessboard, forming }) => {
+const BoardGutter = ({ color,  chessboard, forming }) => {
   const {socket} = useContext(SocketContext);
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
@@ -14,7 +14,7 @@ const PlayerDisplay = ({ color,  chessboard, forming }) => {
     const onUpdate = () => {
       const playerData = chessboard.getBoard()[color];
       if (playerData == null) {
-        console.log(`PlayerDisplay NULL for ${chessboard.getID()} ${color}`);
+        console.log(`BoardGutter NULL for ${chessboard.getID()} ${color}`);
         return;
       }
       if (playerData.handle !== handle) {
@@ -50,4 +50,4 @@ const PlayerDisplay = ({ color,  chessboard, forming }) => {
   );
 };
 
-export default PlayerDisplay;
+export default BoardGutter;

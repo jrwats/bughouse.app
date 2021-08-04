@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import Chessground from "react-chessground";
 import Holdings from "./Holdings.react";
-import PlayerDisplay from "./PlayerDisplay.react";
+import BoardGutter from "./BoardGutter.react";
 import "./chessground.css";
 import { SocketContext } from "../socket/SocketProvider";
 import { opposite } from "chessground/util";
@@ -59,7 +59,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
 
   return (
     <div style={{ display: "inline-block", width: "50%" }}>
-      <PlayerDisplay forming={forming} color={opposite(orientation)} chessboard={chessboard} />
+      <BoardGutter forming={forming} color={opposite(orientation)} chessboard={chessboard} />
       <div
         id={id}
         style={{
@@ -99,7 +99,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           style={{ display: "inline-block" }}
         />
       </div>
-      <PlayerDisplay forming={forming} color={orientation} chessboard={chessboard} />
+      <BoardGutter forming={forming} color={orientation} chessboard={chessboard} />
     </div>
   );
 };

@@ -12,9 +12,9 @@ use crate::game::{Game, GameID, GamePlayers};
 use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{ClientMessage, ClientMessageKind};
 use crate::observers::Observers;
-use crate::users::User;
 use crate::players::Players;
 use crate::time_control::TimeControl;
+use crate::users::User;
 // use crate::db::Db;
 // use crate::bughouse_server::BughouseServer;
 
@@ -46,8 +46,19 @@ impl Games {
         id: GameID,
         time_ctrl: TimeControl,
         user: Arc<RwLock<User>>,
-        ) -> Result<ClientMessage, Error> {
-        let players = [[Some(user), None], [None, None]];
+    ) -> Result<ClientMessage, Error> {
+        let game = Game::table(id, time_ctrl, user.clone());
+        let locked_game = Arc::new(RwLock::new(game));
+        {
+            let mut games = self.games.write().unwrap();
+            games.insert(id, locked_game.clone());
+        }
+        {
+            let mut user_games = self.user_games.write().unwrap();
+            user_games.insert(user.read().unwrap().id, id);
+        }
+        let game_json = GameJson::new(locked_game.clone(), GameJsonKind::FormTable);
+        self.notify_observers(locked_game, game_json);
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
@@ -73,19 +84,10 @@ impl Games {
                 user_games.insert(player.get_uid(), id);
             }
         }
-        let msg_val =
-            GameJson::new(locked_game.clone(), GameJsonKind::Start).to_val();
-        println!("msg: {}", msg_val);
-        let bytestr = Arc::new(ByteString::from(msg_val.to_string()));
-        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
-        for player in Players::new(&players).get_players().iter() {
-            self.conns.send_to_user(player.get_uid(), &msg);
-        }
-        // Someday, when you can form a game with empty seats (open to whoever has the link, perhaps
-        // there'll be observers?)
-        self.observers
-            .notify(locked_game.read().unwrap().get_id(), &msg);
-        Ok((locked_game.clone(), msg))
+        let game_json = GameJson::new(locked_game.clone(), GameJsonKind::Start);
+        println!("json: {:?}", game_json);
+        let msg = self.notify_observers(locked_game.clone(), game_json);
+        Ok((locked_game, msg))
     }
 
     fn rm_from_user_games(&self, game_id: &GameID) -> bool {
@@ -132,20 +134,29 @@ impl Games {
             println!("Found game {}, for: {}", user_game_id, uid);
         }
         let board_id = game.write().unwrap().make_move(&uid, mv)?;
-        self.notify_game_observers(game.clone());
+        self.update_game_observers(game.clone());
         Ok((game.clone(), board_id))
     }
 
-    pub fn notify_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
-        let result = ar_game.read().unwrap().get_result();
-        let kind = if result.is_none() {
-            GameJsonKind::Update
-        } else {
-            GameJsonKind::End
-        };
-        let game_json = GameJson::new(ar_game.clone(), kind);
-        let json_str = game_json.to_val();
-        println!("Notifying game players {}", json_str);
+    pub fn notify_observers(
+        &self,
+        ar_game: Arc<RwLock<Game>>,
+        game_json: GameJson
+        ) -> ClientMessage {
+        let game = ar_game.read().unwrap();
+        let players = game.get_players();
+        let msg_val = game_json.to_val();
+        println!("notify msg: {}", msg_val);
+        let bytestr = Arc::new(ByteString::from(msg_val.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        for player in Players::new(&players).get_players().iter() {
+            self.conns.send_to_user(player.get_uid(), &msg);
+        }
+        self.observers.notify(game.get_id(), &msg);
+        msg
+    }
+
+    fn debug_print_clocks(ar_game: Arc<RwLock<Game>>) {
         let game = ar_game.read().unwrap();
         let board_clocks = game.get_clocks();
         print!("clocks: ");
@@ -156,16 +167,21 @@ impl Games {
             }
         }
         println!("");
+    }
 
-        let msg_str = Arc::new(ByteString::from(json_str.to_string()));
-        let msg = ClientMessage::new(ClientMessageKind::Text(msg_str));
-        let game = ar_game.read().unwrap();
-        for player in Players::new(game.get_players()).get_players().iter() {
-            self.conns.send_to_user(player.get_uid(), &msg);
-        }
-        self.observers.notify(game.get_id(), &msg);
+    pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
+        let result = ar_game.read().unwrap().get_result();
+        let kind = if result.is_none() {
+            GameJsonKind::Update
+        } else {
+            GameJsonKind::End
+        };
+        let game_json = GameJson::new(ar_game.clone(), kind);
+        println!("Notifying game players {:?}", game_json);
+        Self::debug_print_clocks(ar_game.clone());
+        // let msg = self.notify_observers(ar_game.clone(), game_json);
         if result.is_some() {
-            self.rm_game(game.get_id());
+            self.rm_game(ar_game.read().unwrap().get_id());
         }
     }
 

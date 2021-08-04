@@ -1,6 +1,6 @@
 use bughouse::{
-    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, 
-    ALL_COLORS, BOARD_IDS,
+    BoardID, BughouseBoard, BughouseGame, BughouseMove, Color, ALL_COLORS,
+    BOARD_IDS,
 };
 use chrono::prelude::*;
 use chrono::Duration;
@@ -70,24 +70,6 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn empty(
-        id: GameID,
-        time_ctrl: TimeControl,
-        user: Arc<RwLock<User>>,
-        ) -> Self {
-        let base = time_ctrl.get_base_ms();
-        let nil_date = Utc.ymd(0, 0, 0).and_hms(0, 0, 0);
-        Game {
-            id,
-            start: None,
-            time_ctrl,
-            game: BughouseGame::default(),
-            players: [[Some(user), None], [None, None]],
-            clocks: [[base; 2]; 2],
-            last_move: [nil_date; 2],
-            result: None,
-        }
-    }
 
     pub fn start(
         id: GameID,
@@ -104,6 +86,26 @@ impl Game {
             players,
             clocks: [[base; 2]; 2],
             last_move: [start; 2],
+            result: None,
+        }
+    }
+
+    // Form a "table" still waiting for players
+    pub fn table(
+        id: GameID,
+        time_ctrl: TimeControl,
+        user: Arc<RwLock<User>>,
+    ) -> Self {
+        let base = time_ctrl.get_base_ms();
+        let nil_date = Utc::now();
+        Game {
+            id,
+            start: None,
+            time_ctrl,
+            game: BughouseGame::default(),
+            players: [[Some(user), None], [None, None]],
+            clocks: [[base; 2]; 2],
+            last_move: [nil_date; 2],
             result: None,
         }
     }
@@ -125,8 +127,8 @@ impl Game {
         }
     }
 
-    pub fn get_start(&self) -> DateTime<Utc> {
-        self.start.unwrap()
+    pub fn get_start(&self) -> Option<DateTime<Utc>> {
+        self.start
     }
 
     pub fn get_id(&self) -> &GameID {
@@ -186,7 +188,7 @@ impl Game {
         let idx = board_id.to_index();
         let now = Utc::now();
         if self.start.is_none() || now < self.start.unwrap() {
-            return
+            return;
         }
         let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;
         let inc = self.time_ctrl.get_inc_ms() as i32;

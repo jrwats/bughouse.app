@@ -1,7 +1,5 @@
 use bughouse::{BoardID, Color};
 use chrono::prelude::*;
-use chrono::Duration;
-use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
 use serde_json::{json, Value};
 use std::sync::{Arc, RwLock};
@@ -11,17 +9,21 @@ use crate::game::{Game, GameID, GameResult};
 
 #[derive(Clone, Copy, Debug)]
 pub enum GameJsonKind {
-    Start,
-    Update,
-    End,
+    End, // Game over
+    FormTable, // Formation of a table
+    Table, // Table updates (sitting/leaving)
+    Start, // Game start
+    Update, // moves
 }
 
 impl std::fmt::Display for GameJsonKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let string = match self {
-            GameJsonKind::Start => "game_start",
-            GameJsonKind::Update => "game_update",
             GameJsonKind::End => "game_end",
+            GameJsonKind::FormTable => "form_table",
+            GameJsonKind::Start => "game_start",
+            GameJsonKind::Table => "table",
+            GameJsonKind::Update => "game_update",
         };
         f.write_str(string)
     }
@@ -41,23 +43,27 @@ impl Serialize for GameJsonKind {
     }
 }
 
+#[derive(Debug)]
 pub struct PlayerJson {
     handle: Option<String>,
     ms: i32,
 }
 
+#[derive(Debug)]
 pub struct BoardFenJson {
     fen: String,
     white: PlayerJson,
     black: PlayerJson,
 }
 
+#[derive(Debug)]
 pub struct BoardJson {
     // kind: GameJsonKind,
     holdings: String,
     board: BoardFenJson,
 }
 
+#[derive(Debug)]
 pub struct GameJson {
     id: GameID,
     kind: GameJsonKind,
@@ -68,20 +74,26 @@ pub struct GameJson {
 }
 
 impl GameJson {
+    fn start_in_ms(maybe_start: Option<DateTime<Utc>>) -> i32 {
+        if let Some(start) = maybe_start {
+            let now = Utc::now();
+            if now < start {
+                (start - now).num_milliseconds() as i32
+            } else {
+                0
+            }
+        } else {
+            -1
+        }
+    }
+
     pub fn new(locked_game: Arc<RwLock<Game>>, kind: GameJsonKind) -> Self {
         let game = locked_game.read().unwrap();
-        let now = Utc::now();
-        let start = game.get_start();
-        let start_in_ms = if now < start {
-            (start - now).num_milliseconds() as i32
-        } else {
-            0
-        };
         GameJson {
             kind,
             id: *game.get_id(),
             result: game.get_result(),
-            start_in_ms,
+            start_in_ms: Self::start_in_ms(game.get_start()),
             a: get_board_json(&game, BoardID::A), // kind),
             b: get_board_json(&game, BoardID::B), // kind),
         }

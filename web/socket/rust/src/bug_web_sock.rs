@@ -175,9 +175,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
 }
 
 impl BugWebSock {
-    pub fn new(
-        data: web::Data<BugContext>,
-    ) -> Self {
+    pub fn new(data: web::Data<BugContext>) -> Self {
         Self {
             hb_instant: Instant::now(),
             data,
@@ -265,7 +263,8 @@ impl BugWebSock {
                 let time_str = Self::get_field(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
                 let rated = val["rated"].as_bool().or(Some(true)).unwrap();
-                let res = self.data.server.add_seek(time_ctrl, rated, recipient);
+                let res =
+                    self.data.server.add_seek(time_ctrl, rated, recipient);
                 if let Err(e) = res {
                     eprintln!("add_seek err: {}", e);
                 }
@@ -279,9 +278,17 @@ impl BugWebSock {
                         msg: val.to_string(),
                     }
                 })?;
-               self.data.server.queue_formation(time_ctrl, rated, &self.id);
+                println!("form: {} {}", time_str, rated);
+                let res = self
+                    .data
+                    .server
+                    .queue_formation(time_ctrl, rated, &self.id);
+                if let Err(e) = res {
+                    eprintln!("table formation error: {}", e);
+                }
             }
             "sit" => {
+
                 println!("sit: {:?}", val);
             }
             "move" => {

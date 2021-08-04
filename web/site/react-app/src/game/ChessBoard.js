@@ -40,7 +40,7 @@ class ChessBoard extends EventEmitter {
   }
 
   getBoardID() {
-    return this.game.getBoardA() === this ? 'A' : 'B';
+    return this._game.getBoardA() === this ? 'A' : 'B';
   }
 
   getHandleColor(handle) {

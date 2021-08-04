@@ -1,5 +1,5 @@
 use actix::{prelude::*, Recipient};
-use bughouse::{BoardID, BughouseMove};
+use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::Duration;
 use std::sync::Arc;
@@ -41,6 +41,7 @@ pub enum ServerMessageKind {
     FormTable(TimeControl, bool, UserID),
     CheckGame(GameID),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
+    Sit(GameID, BoardID, Color, UserID),
 }
 
 #[derive(Message)]

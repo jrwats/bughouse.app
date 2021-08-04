@@ -130,9 +130,14 @@ class SocketProxy extends EventEmitter {
           this._emit("unpartnered", { user: this._user });
         };
 
+        // FICS
         handlers["games"] = ({ games }) => {
           this._emit("games", { user: this._user, games });
         };
+
+        handlers["form_table"] = (game) => {
+          this._emit("formTable", game);
+        }
 
         handlers["game_start"] = (game) => {
           this._emit("gameStart", game);
@@ -189,7 +194,10 @@ class SocketProxy extends EventEmitter {
           console.error("Socket error: %o", evt);
         });
         this._sock.on("message", (evt) => {
-          console.debug(evt);
+          // debugger;
+          if (!/"kind":"(ack|enq|latency)"/.test(evt.data)) {
+            console.debug(evt);
+          }
           try {
             const payload =
               evt.data[0] === "{" ? JSON.parse(evt.data) : evt.data;

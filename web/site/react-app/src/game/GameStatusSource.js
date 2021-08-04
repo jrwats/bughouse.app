@@ -18,6 +18,7 @@ class GameStatusSource extends EventEmitter {
     this._socket.on("gameUpdate", (data) => this._onGameUpdate(data));
     this._socket.on("gameOver", (data) => this._onGameOver(data));
     this._socket.on("gameStart", (data) => this._onGameStart(data));
+    this._socket.on("formTable", (data) => this._onTable(data));
   }
 
   _onGameUpdate(data) {
@@ -32,6 +33,12 @@ class GameStatusSource extends EventEmitter {
       this._games[data.id].onGameOver(data);
     }
     this.emit("gameOver", data);
+  }
+
+  _onTable(data) {
+    console.log('onTable!'); 
+    this._games[data.id] = BughouseGame.init(data);
+    navigate(`/home/table/${data.id}`);
   }
 
   _onGameStart(data) {

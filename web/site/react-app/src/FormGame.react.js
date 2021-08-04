@@ -48,41 +48,66 @@ const FormGame = ({onCancel}) => {
     setState({ ...state, [event.target.name]: event.target.checked });
   };
 
-  let baseMarks= [1,2,3,4,5,10,20].map(v => getMark(v, 'm'));
+  const mins = [1, 2, 3, 4, 5, 10, 20];
+  const baseMarks = mins.map((v, idx) => getMark(v, '')); // /'m'));
+  const secs = [0, 1, 2, 3, 4, 5, 10, 12, 20];
+  const baseSeconds = secs.map((v, idx) => getMark(v, '')); // /'m'));
+
   return (
-    <div style={{flexGrow: 1}}>
+    <div style={{marginLeft: "100px", flexGrow: 1}}>
       <Grid container spacing={1}>
         <Grid component="label" container alignItems="center" spacing={1}>
-          <Grid item>
-            <BugSwitch checked={state.rated} onChange={handleChange} name="rated" />
-          </Grid>
           <Grid item>
             <Typography>
               {state.rated ? "Rated" : "Unrated"}
             </Typography>
           </Grid>
-        </Grid>
-        <Grid  container alignItems="center" spacing={2}>
           <Grid item>
+            <BugSwitch checked={state.rated} onChange={handleChange} name="rated" />
+          </Grid>
+        </Grid>
+        <Grid container spacing={2}>
+          <Grid item xs={2}>
             <Typography id="discrete-slider" gutterBottom>
-              Minutes
+              Base (minutes)
             </Typography>
+          </Grid>
+          <Grid item xs={4}>
             <Slider
               defaultValue={state.base}
               getAriaValueText={(val) => `${val} minutes`}
               aria-labelledby="discrete-slider"
-              valueLabelDisplay="on"
+              valueLabelDisplay="auto"
               step={null}
+              max={mins[mins.length - 1]}
               marks={baseMarks}
             />
           </Grid>
         </Grid>
-        <Grid container item xs={2}>
+        <Grid container spacing={2}>
+          <Grid item xs={2}>
+            <Typography id="discrete-slider-inc" gutterBottom>
+              Increment (seconds)
+            </Typography>
+          </Grid>
+          <Grid item xs={4}>
+            <Slider
+              defaultValue={state.inc}
+              getAriaValueText={(val) => `${val} seconds`}
+              aria-labelledby="discrete-slider-inc"
+              valueLabelDisplay="auto"
+              step={null}
+              max={secs[secs.length - 1]}
+              marks={baseSeconds}
+            />
+          </Grid>
+        </Grid>
+        <Grid container item xs={3}>
           <Button variant="contained" color="primary" onClick={onCreate}>
-            Create Challenge
+            Create Table
           </Button>
         </Grid>
-        <Grid container item xs={2}>
+        <Grid container item xs={4}>
           <Button variant="contained" color="secondary" onClick={onCancel}>
             <CloseIcon />Cancel
           </Button>

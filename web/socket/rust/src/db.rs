@@ -50,7 +50,7 @@ pub struct UserRatingSnapshot {
 }
 
 impl UserRatingSnapshot {
-    pub fn nil() -> UserRatingSnapshot { 
+    pub fn nil() -> UserRatingSnapshot {
         UserRatingSnapshot::from(None)
     }
 }
@@ -359,24 +359,36 @@ impl Db {
         Ok(())
     }
 
-    pub async fn form_game(
+    async fn insert_game(
         &self,
+        id: GameID,
+        time: &ScyllaTimestamp,
         time_ctrl: &TimeControl,
         rated: bool,
         rating_snapshots: &PregameRatingSnapshot,
     ) -> Result<GameID, Error> {
-        let id: GameID = self.uuid_from_time(Utc::now())?;
-        // let rating_snapshots = self.rating_snapshots(players).await?;
         self.session
             .query(
                 "INSERT INTO bughouse.games 
              (id, start_time, time_ctrl, rated, boards)
               VALUES (?, ?, ?, ?, ?)"
                     .to_string(),
-                (id, ScyllaTimestamp(0), time_ctrl, rated, rating_snapshots),
+                (id, time, time_ctrl, rated, rating_snapshots),
             )
             .await?;
         Ok(id)
+    }
+
+    pub async fn form_table(
+        &self,
+        time_ctrl: &TimeControl,
+        rated: bool,
+        rating_snapshots: &PregameRatingSnapshot,
+    ) -> Result<GameID, Error> {
+        let id: GameID = self.uuid_from_time(Utc::now())?;
+        let zero_time = ScyllaTimestamp(Duration::zero());
+        self.insert_game(id, &zero_time, time_ctrl, rated, rating_snapshots)
+            .await
     }
 
     pub async fn create_game(
@@ -387,16 +399,13 @@ impl Db {
         rating_snapshots: &PregameRatingSnapshot,
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(start)?;
-        // let rating_snapshots = self.rating_snapshots(players).await?;
-        self.session
-            .query(
-                "INSERT INTO bughouse.games 
-             (id, start_time, time_ctrl, rated, boards)
-              VALUES (?, ?, ?, ?, ?)"
-                    .to_string(),
-                (&id, Self::to_timestamp(start), time_ctrl, rated, rating_snapshots),
-            )
-            .await?;
-        Ok(id)
+        self.insert_game(
+            id,
+            &Self::to_timestamp(start),
+            time_ctrl,
+            rated,
+            rating_snapshots,
+        )
+        .await
     }
 }

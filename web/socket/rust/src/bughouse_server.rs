@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 use actix_web::*;
-use bughouse::{BoardID, BughouseMove};
+use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
 // use actix_web_actors::ws::WebsocketContext;
@@ -107,11 +107,16 @@ impl Handler<ServerMessage> for ServerHandler {
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::CreateGame(time_ctrl, rated, players) => {
-                let fut = self.srv(ctx).start_new_game(time_ctrl, rated, players);
+                let fut =
+                    self.srv(ctx).start_new_game(time_ctrl, rated, players);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::FormTable(time_ctrl, rated, uid) => {
                 let fut = self.srv(ctx).form_table(time_ctrl, rated, uid);
+                Box::pin(async move { fut.await })
+            }
+            ServerMessageKind::Sit(game_id, board_id, color, uid) => {
+                let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::CheckGame(game_id) => {
@@ -133,7 +138,7 @@ impl Handler<ServerMessage> for ServerHandler {
                             ));
                         });
                         checkers.insert(game_id, checker);
-                        srv.notify_game_observers(lgame);
+                        srv.update_game_observers(lgame);
                     } else if result.is_none() {
                         srv.end_game(lgame);
                     }
@@ -231,8 +236,8 @@ impl BughouseServer {
         Ok(())
     }
 
-    pub fn notify_game_observers(&'static self, game: Arc<RwLock<Game>>) {
-        self.games.notify_game_observers(game);
+    pub fn update_game_observers(&'static self, game: Arc<RwLock<Game>>) {
+        self.games.update_game_observers(game);
     }
 
     pub fn is_authenticated(&'static self, conn_id: ConnID) -> bool {
@@ -338,12 +343,43 @@ impl BughouseServer {
         ((user_snap, nil.clone()), (nil.clone(), nil))
     }
 
+    pub fn queue_sit(
+        &'static self,
+        game_id: &GameID,
+        board_id: BoardID,
+        color: Color,
+        conn_id: &ConnID,
+        ) -> Result<(), Error> {
+        let uid = self.uid_from_conn(conn_id)?;
+        self.loopback.do_send(ServerMessage::new(
+            ServerMessageKind::Sit(*game_id, board_id, color, uid),
+        ))?;
+        Ok(())
+    }
+
+    pub async fn sit(
+        &'static self,
+        game_id: GameID,
+        board_id: BoardID,
+        color: Color,
+        uid: UserID,
+    ) -> Result<ClientMessage, Error> {
+        let game = self.get_game(&game_id).ok_or(Error::InvalidGameID(game_id))?;
+        let wgame = game.write().unwrap();
+        let players = wgame.get_players();
+        if players[board_id.to_index()][color.to_index()].is_some() {
+            eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
+            return Err(Error::SeatTaken(game_id, board_id, color.to_index()));
+        }
+        Ok(ClientMessage::new(ClientMessageKind::Empty))
+    }
+
     pub fn queue_formation(
         &'static self,
         time_ctrl: TimeControl,
         rated: bool,
         conn_id: &ConnID,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id)?;
         self.loopback.do_send(ServerMessage::new(
             ServerMessageKind::FormTable(time_ctrl, rated, uid),
@@ -356,12 +392,25 @@ impl BughouseServer {
         time_ctrl: TimeControl,
         rated: bool,
         uid: UserID,
-        ) -> Result<ClientMessage, Error> {
+    ) -> Result<ClientMessage, Error> {
+        println!("form_table");
         let user = self.user_from_uid(&uid).await?;
+        println!("user ID: {}", uid);
         let snaps = self.get_table_rating_snapshots(user.clone());
-        let id = self .db.form_game(&time_ctrl, rated, &snaps).await?;
-        let msg = self.games.form_table(id, time_ctrl, user)?;
-        Ok(msg)
+        println!("snaps: {:?}", snaps);
+        let res = self.db.form_table(&time_ctrl, rated, &snaps).await;
+        match res {
+            Ok(id) => {
+                println!("id: {}", id);
+                let msg = self.games.form_table(id, time_ctrl, user)?;
+                Ok(msg)
+            }
+            Err(e) => {
+                eprintln!("err: {}", e);
+                eprintln!("err: {:?}", e);
+                Err(e)
+            }
+        }
     }
 
     pub async fn start_new_game(
@@ -418,7 +467,7 @@ impl BughouseServer {
         println!("Made move. board: {}", board_id.to_index());
         {
             let rgame = game.read().unwrap();
-            let duration = Utc::now() - rgame.get_start();
+            let duration = Utc::now() - rgame.get_start().unwrap();
             let msg = ServerMessage::new(ServerMessageKind::RecordMove(
                 duration,
                 *rgame.get_id(),
@@ -444,7 +493,7 @@ impl BughouseServer {
             let mut game = lgame.write().unwrap();
             game.end_game();
         }
-        self.games.notify_game_observers(lgame);
+        self.games.update_game_observers(lgame);
         eprintln!("end_game!!!");
     }
 
