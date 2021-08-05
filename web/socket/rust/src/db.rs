@@ -383,12 +383,12 @@ impl Db {
         &self,
         game_id: &GameID,
         user_snaps: &TableSnapshot,
-        ) -> Result<(), Error> {
-        let query = "UPDATE bughouse.games SET players = ? WHERE id = ?".to_string();
+    ) -> Result<(), Error> {
+        let query =
+            "UPDATE bughouse.games SET players = ? WHERE id = ?".to_string();
         self.session.query(query, (user_snaps, game_id)).await?;
         Ok(())
     }
-
 
     pub async fn form_table(
         &self,

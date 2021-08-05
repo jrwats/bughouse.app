@@ -2,7 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use actix_web::*;
 use actix_web_actors::ws;
-use bughouse::{ALL_COLORS, BOARD_IDS, BoardID, BughouseMove};
+use bughouse::{BoardID, BughouseMove, ALL_COLORS, BOARD_IDS};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use serde_json::{json, Value};

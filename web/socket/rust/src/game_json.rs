@@ -9,11 +9,11 @@ use crate::game::{Game, GameID, GameResult};
 
 #[derive(Clone, Copy, Debug)]
 pub enum GameJsonKind {
-    End, // Game over
+    End,       // Game over
     FormTable, // Formation of a table
-    Table, // Table updates (sitting/leaving)
-    Start, // Game start
-    Update, // moves
+    Table,     // Table updates (sitting/leaving)
+    Start,     // Game start
+    Update,    // moves
 }
 
 impl std::fmt::Display for GameJsonKind {

@@ -57,7 +57,8 @@ impl Games {
             let mut user_games = self.user_games.write().unwrap();
             user_games.insert(user.read().unwrap().id, id);
         }
-        let game_json = GameJson::new(locked_game.clone(), GameJsonKind::FormTable);
+        let game_json =
+            GameJson::new(locked_game.clone(), GameJsonKind::FormTable);
         self.notify_observers(locked_game, game_json);
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
@@ -141,8 +142,8 @@ impl Games {
     pub fn notify_observers(
         &self,
         ar_game: Arc<RwLock<Game>>,
-        game_json: GameJson
-        ) -> ClientMessage {
+        game_json: GameJson,
+    ) -> ClientMessage {
         let game = ar_game.read().unwrap();
         let players = game.get_players();
         let msg_val = game_json.to_val();
@@ -170,11 +171,11 @@ impl Games {
     }
 
     fn is_table(ar_game: Arc<RwLock<Game>>) -> bool {
-        let game = ar_game.read().unwrap(); 
+        let game = ar_game.read().unwrap();
         for board in game.players.iter() {
             for player in board {
                 if player.is_none() {
-                    return true
+                    return true;
                 }
             }
         }
@@ -194,7 +195,8 @@ impl Games {
     }
 
     pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
-        let game_json = GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
+        let game_json =
+            GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
         println!("Notifying game players {:?}", game_json);
         Self::debug_print_clocks(ar_game.clone());
         let _msg = self.notify_observers(ar_game.clone(), game_json);

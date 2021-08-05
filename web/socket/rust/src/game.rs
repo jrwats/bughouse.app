@@ -70,7 +70,6 @@ pub struct Game {
 }
 
 impl Game {
-
     pub fn start(
         id: GameID,
         start: DateTime<Utc>,
