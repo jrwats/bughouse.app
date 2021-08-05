@@ -147,6 +147,10 @@ class SocketProxy extends EventEmitter {
           this._emit("gameOver", board);
         };
 
+        handlers["table"] = (data) => {
+          this._emit("table", data);
+        }
+
         handlers["game_update"] = (data) => {
           this._emit("gameUpdate", data);
         };

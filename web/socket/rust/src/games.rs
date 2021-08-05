@@ -169,18 +169,36 @@ impl Games {
         println!("");
     }
 
-    pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
-        let result = ar_game.read().unwrap().get_result();
-        let kind = if result.is_none() {
-            GameJsonKind::Update
+    fn is_table(ar_game: Arc<RwLock<Game>>) -> bool {
+        let game = ar_game.read().unwrap(); 
+        for board in game.players.iter() {
+            for player in board {
+                if player.is_none() {
+                    return true
+                }
+            }
+        }
+        false
+    }
+
+    fn get_kind(ar_game: Arc<RwLock<Game>>) -> GameJsonKind {
+        if ar_game.read().unwrap().get_result().is_none() {
+            if Self::is_table(ar_game.clone()) {
+                GameJsonKind::Table
+            } else {
+                GameJsonKind::Update
+            }
         } else {
             GameJsonKind::End
-        };
-        let game_json = GameJson::new(ar_game.clone(), kind);
+        }
+    }
+
+    pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
+        let game_json = GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
         println!("Notifying game players {:?}", game_json);
         Self::debug_print_clocks(ar_game.clone());
-        // let msg = self.notify_observers(ar_game.clone(), game_json);
-        if result.is_some() {
+        let _msg = self.notify_observers(ar_game.clone(), game_json);
+        if ar_game.read().unwrap().get_result().is_some() {
             self.rm_game(ar_game.read().unwrap().get_id());
         }
     }

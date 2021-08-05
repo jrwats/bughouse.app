@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 use actix_web::*;
-use bughouse::{BoardID, BughouseMove, Color};
+use bughouse::{ALL_COLORS, BOARD_IDS, BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
 // use actix_web_actors::ws::WebsocketContext;
@@ -357,6 +357,24 @@ impl BughouseServer {
         Ok(())
     }
 
+    pub fn get_user_seat(
+        players: &GamePlayers,
+        candidate: Arc<RwLock<User>>,
+        ) -> Option<(BoardID, Color)> {
+        let needle = candidate.read().unwrap();
+        for (board_idx, boards) in players.iter().enumerate() {
+            for (color_idx, maybe_user) in boards.iter().enumerate() {
+                if let Some(user) = maybe_user {
+                    let candidate = user.read().unwrap();
+                    if needle.id == candidate.id {
+                        return Some((BOARD_IDS[board_idx], ALL_COLORS[color_idx]));
+                    }
+                }
+            }
+        }
+        None
+    }
+
     pub async fn sit(
         &'static self,
         game_id: GameID,
@@ -365,16 +383,25 @@ impl BughouseServer {
         uid: UserID,
     ) -> Result<ClientMessage, Error> {
         let game = self.get_game(&game_id).ok_or(Error::InvalidGameID(game_id))?;
-        let mut wgame = game.write().unwrap();
-        if wgame.players[board_id.to_index()][color.to_index()].is_some() {
-            eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
-            return Err(Error::SeatTaken(game_id, board_id, color.to_index()));
+        {
+            let mut wgame = game.write().unwrap();
+            if wgame.players[board_id.to_index()][color.to_index()].is_some() {
+                eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
+                return Err(Error::SeatTaken(game_id, board_id, color.to_index()));
+            }
+
+            let user = self.user_from_uid(&uid).await?;
+            if let Some((prev_board, prev_color)) = Self::get_user_seat(&wgame.players, user.clone()) {
+                wgame.players[prev_board.to_index()][prev_color.to_index()] = None;
+            }
+            wgame.players[board_id.to_index()][color.to_index()] = Some(user);
+            println!("sitting: {:?}", wgame.players);
         }
-        let user = self.user_from_uid(&uid).await?;
-        wgame.players[board_id.to_index()][color.to_index()] = Some(user);
-        println!("sitting: {:?}", wgame.players);
-        let rating_snapshots = self.get_rating_snapshots(&wgame.players)?;
+        let rgame = game.read().unwrap();
+        let rating_snapshots = self.get_rating_snapshots(&rgame.players)?;
         self.db.sit(&game_id, &rating_snapshots).await?;
+        self.games.update_game_observers(game.clone());
+        println!("updated game observers");
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 

@@ -370,7 +370,7 @@ impl Db {
         self.session
             .query(
                 "INSERT INTO bughouse.games 
-             (id, start_time, time_ctrl, rated, boards)
+             (id, start_time, time_ctrl, rated, players)
               VALUES (?, ?, ?, ?, ?)"
                     .to_string(),
                 (id, time, time_ctrl, rated, rating_snapshots),

@@ -2,7 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use actix_web::*;
 use actix_web_actors::ws;
-use bughouse::BughouseMove;
+use bughouse::{ALL_COLORS, BOARD_IDS, BoardID, BughouseMove};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use serde_json::{json, Value};
@@ -235,15 +235,15 @@ impl BugWebSock {
         val: &Value,
         field: &str,
         kind: &str,
-    ) -> Result<String, Error> {
-        let str_res = val[field].as_str().ok_or(Error::MalformedClientMsg {
+    ) -> Result<u64, Error> {
+        let u_res = val[field].as_u64().ok_or(Error::MalformedClientMsg {
             reason: format!(
                 "Missing '{}' field for time' field for '{}'",
                 field, kind
             ),
             msg: val.to_string(),
         })?;
-        Ok(str_res.to_string())
+        Ok(u_res)
     }
 
     fn get_uuid(
@@ -304,12 +304,18 @@ impl BugWebSock {
             }
             "sit" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
-                let board_id = Self::get_field_usize(val, "board", kind)?;
-                let color = Self::get_field_usize(val, "color", kind)?;
+                // TODO implement from_str for BoardID / color
+                let board_idx = Self::get_field_usize(val, "board", kind)?;
+                let board_id = BOARD_IDS[board_idx as usize];
+                let color_idx = Self::get_field_usize(val, "color", kind)?;
+                let color = ALL_COLORS[color_idx as usize];
                 let res = self
                     .data
                     .server
-                    .queue_sit(game_id, board_id, color, &self.id);
+                    .queue_sit(&game_id, board_id, color, &self.id);
+                if let Err(e) = res {
+                    eprintln!("sit err: {}", e);
+                }
                 println!("sit: {:?}", val);
             }
             "move" => {
