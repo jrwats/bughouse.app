@@ -43,6 +43,10 @@ class ChessBoard extends EventEmitter {
     return this._game.getBoardA() === this ? 'A' : 'B';
   }
 
+  getBoardIdx() {
+    return this._game.getBoardA() === this ? 0 : 1;
+  }
+
   getHandleColor(handle) {
     if (handle === this._board?.white?.handle) {
       return "white";
@@ -76,10 +80,6 @@ class ChessBoard extends EventEmitter {
 
   getHandles() {
     return [this._board.white.handle, this._board.black.handle];
-  }
-
-  getGame() {
-    return this._game;
   }
 
   getStart() {

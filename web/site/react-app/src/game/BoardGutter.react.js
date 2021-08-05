@@ -32,10 +32,11 @@ const BoardGutter = ({ color,  chessboard, forming }) => {
       variant="contained"
       color="primary"
       onClick={() => {
+        console.log(`id: ${chessboard.getGame().getID()}`);
         socket.sendEvent('sit', { 
           id: chessboard.getGame().getID(),
-          board: chessboard.getBoardID(),
-          color: color
+          board: chessboard.getBoardIdx(),
+          color: color === 'white' ? 0 : 1,
         });
       }}
     >

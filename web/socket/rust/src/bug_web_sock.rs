@@ -216,7 +216,22 @@ impl BugWebSock {
         Ok(())
     }
 
-    fn get_field(
+    fn get_field_str(
+        val: &Value,
+        field: &str,
+        kind: &str,
+    ) -> Result<String, Error> {
+        let str_res = val[field].as_str().ok_or(Error::MalformedClientMsg {
+            reason: format!(
+                "Missing '{}' field for time' field for '{}'",
+                field, kind
+            ),
+            msg: val.to_string(),
+        })?;
+        Ok(str_res.to_string())
+    }
+
+    fn get_field_usize(
         val: &Value,
         field: &str,
         kind: &str,
@@ -236,7 +251,7 @@ impl BugWebSock {
         field: &str,
         kind: &str,
     ) -> Result<uuid::Uuid, Error> {
-        let id_str = Self::get_field(val, field, kind)?;
+        let id_str = Self::get_field_str(val, field, kind)?;
         let game_id = B66::decode_uuid(&id_str).ok_or_else(|| {
             Error::MalformedClientMsg {
                 reason: format!(
@@ -260,7 +275,7 @@ impl BugWebSock {
         let recipient = ctx.address().recipient();
         match kind {
             "seek" => {
-                let time_str = Self::get_field(val, "time", kind)?;
+                let time_str = Self::get_field_str(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
                 let rated = val["rated"].as_bool().or(Some(true)).unwrap();
                 let res =
@@ -270,7 +285,7 @@ impl BugWebSock {
                 }
             }
             "form" => {
-                let time_str = Self::get_field(val, "time", kind)?;
+                let time_str = Self::get_field_str(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
                 let rated = val["rated"].as_bool().ok_or_else(|| {
                     Error::MalformedClientMsg {
@@ -288,12 +303,18 @@ impl BugWebSock {
                 }
             }
             "sit" => {
-
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                let board_id = Self::get_field_usize(val, "board", kind)?;
+                let color = Self::get_field_usize(val, "color", kind)?;
+                let res = self
+                    .data
+                    .server
+                    .queue_sit(game_id, board_id, color, &self.id);
                 println!("sit: {:?}", val);
             }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
-                let mv_str = Self::get_field(val, "move", kind)?;
+                let mv_str = Self::get_field_str(val, "move", kind)?;
                 println!("mv_str: {}", mv_str);
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
                 println!("bug_mv: {:?}", bug_mv);

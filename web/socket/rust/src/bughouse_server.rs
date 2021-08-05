@@ -372,7 +372,7 @@ impl BughouseServer {
         }
         let user = self.user_from_uid(&uid).await?;
         wgame.players[board_id.to_index()][color.to_index()] = Some(user);
-        // let user_snap = self.rating_snapshot_from_uid(&uid).await?;
+        println!("sitting: {:?}", wgame.players);
         let rating_snapshots = self.get_rating_snapshots(&wgame.players)?;
         self.db.sit(&game_id, &rating_snapshots).await?;
         Ok(ClientMessage::new(ClientMessageKind::Empty))

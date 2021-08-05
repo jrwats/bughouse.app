@@ -25,7 +25,7 @@ class BughouseGame extends EventEmitter {
   }
 
   getID() { 
-    return this.id; 
+    return this._id; 
   }
 
   getStart() {
