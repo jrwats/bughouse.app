@@ -99,7 +99,10 @@ class SocketProxy extends EventEmitter {
           this.emit("data", data);
         };
         for (const event of PASSTHRU_EVENTS) {
-          handlers[event] = (data) => this._emit(event, data);
+          handlers[event] = function(data) {
+            // console.log(`${event}: ${JSON.stringify(data, null, ' ')}`);
+            this._emit(event, data);
+          };
         }
 
         handlers["incomingChallenge"] = (challenge) => {
@@ -162,9 +165,11 @@ class SocketProxy extends EventEmitter {
           console.log(`client latency: ${latency}ms`);
         };
 
-        for (const k in handlers) {
-          handlers[k].bind(this);
-        }
+        // debugger;
+        // for (const k in handlers) {
+        //   console.log(`binding ${k}`);
+        //   handlers[k].bind(this);
+        // }
         const url = new URL(WS_URL);
         // url.searchParams.set('token', idToken);
         this._sock = new PhoenixSocket(url);
@@ -189,7 +194,7 @@ class SocketProxy extends EventEmitter {
               console.error("Unrecognized payload: %s", payload);
               return;
             }
-            handler(payload);
+            handler.call(this, payload);
           } catch (e) {
             console.error(e);
           }

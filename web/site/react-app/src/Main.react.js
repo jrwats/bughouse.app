@@ -2,7 +2,7 @@ import React from "react";
 import SideMenu from "./SideMenu.react";
 import Bugwho from "./Bugwho.react";
 import Arena from "./game/Arena.react";
-import GameFormation from "./game/GameFormation.react";
+import Table from "./game/Table.react";
 import { Router } from "@reach/router";
 import FicsTelnetOutput from "./FicsTelnetOutput";
 
@@ -20,7 +20,7 @@ const Main = (props) => {
       >
         <Router>
           <Arena path="/game/:gamePath" />
-          <GameFormation path="/table/:gamePath" />
+          <Table path="/table/:gamePath" />
           <Bugwho path="/" />
           <FicsTelnetOutput path="fics_console" />
         </Router>

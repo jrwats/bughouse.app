@@ -328,7 +328,7 @@ impl BugWebSock {
                 let res = self
                     .data
                     .server
-                    .queue_vacate(&game_id, board_id, color, &self.id);
+                    .queue_vacate(&game_id, board_id, color, ctx.address().recipient());
                 if let Err(e) = res {
                     eprintln!("sit err: {}", e);
                 }
@@ -346,7 +346,7 @@ impl BugWebSock {
                     let game_msg = self
                         .data
                         .server
-                        .get_game_msg(GameJsonKind::Update, game_id)?;
+                        .get_game_msg(game_id)?;
                     ctx.text(game_msg);
                 };
             }
@@ -403,18 +403,12 @@ impl BugWebSock {
                 self.data
                     .server
                     .observe(&game_id, ctx.address().recipient());
-                let game_msg = self
-                    .data
-                    .server
-                    .get_game_msg(GameJsonKind::Update, game_id)?;
+                let game_msg = self.data.server.get_game_msg(game_id)?;
                 ctx.text(game_msg);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                let game_msg = self
-                    .data
-                    .server
-                    .get_game_msg(GameJsonKind::Update, game_id)?;
+                let game_msg = self.data.server.get_game_msg(game_id)?;
                 ctx.text(game_msg);
             }
             "auth" => {

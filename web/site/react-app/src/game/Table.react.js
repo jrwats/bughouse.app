@@ -9,7 +9,7 @@ import { Redirect } from "@reach/router";
 import { opposite } from "chessground/util";
 import ScreenLock from "./ScreenLock";
 
-const GameFormation = ({ gamePath }) => {
+const Table = ({ gamePath }) => {
 
   const [gameID, orientation] = gamePath.split("~");
   const { handle, socket } = useContext(SocketContext);
@@ -17,6 +17,11 @@ const GameFormation = ({ gamePath }) => {
   const game = gamesSrc.getGame(gameID);
   const boardA = game.getBoardA();
   const boardB = game.getBoardB();
+
+  useEffect(() => {
+    console.log(`Table subscribing ${gameID}`);
+    gamesSrc.observe(gameID);
+  }, [gamesSrc, gameID]);
 
   const boards = [
     <Board
@@ -40,4 +45,4 @@ const GameFormation = ({ gamePath }) => {
     </div>
   );
 };
-export default GameFormation ;
+export default Table ;

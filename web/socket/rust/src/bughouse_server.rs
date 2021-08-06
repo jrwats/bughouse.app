@@ -119,8 +119,8 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::Vacate(game_id, board_id, color, uid) => {
-                let fut = self.srv(ctx).vacate(game_id, board_id, color, uid);
+            ServerMessageKind::Vacate(game_id, board_id, color, recip) => {
+                let fut = self.srv(ctx).vacate(game_id, board_id, color, recip);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::CheckGame(game_id) => {
@@ -367,12 +367,11 @@ impl BughouseServer {
         game_id: &GameID,
         board_id: BoardID,
         color: Color,
-        conn_id: &ConnID,
+        recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        let uid = self.uid_from_conn(conn_id)?;
         self.loopback
             .do_send(ServerMessage::new(ServerMessageKind::Vacate(
-                *game_id, board_id, color, uid,
+                *game_id, board_id, color, recipient,
             )))?;
         Ok(())
     }
@@ -405,7 +404,7 @@ impl BughouseServer {
         let rgame = game.read().unwrap();
         let rating_snapshots = self.get_rating_snapshots(&rgame.players)?;
         self.db.sit(rgame.get_id(), &rating_snapshots).await?;
-        self.games.update_game_observers(game.clone());
+        self.update_game_observers(game.clone());
         println!("updated game observers");
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
@@ -441,7 +440,11 @@ impl BughouseServer {
             wgame.players[board_id.to_index()][color.to_index()] = Some(user);
             println!("sitting: {:?}", wgame.players);
         }
-        self.update_seats(game).await
+        let msg = self.update_seats(game.clone()).await?;
+        if !Games::is_table(game.clone()) {
+            self.start_game(game).await?;
+        }
+        Ok(msg)
     }
 
     pub async fn vacate(
@@ -449,8 +452,10 @@ impl BughouseServer {
         game_id: GameID,
         board_id: BoardID,
         color: Color,
-        uid: UserID,
+        recipient: Recipient<ClientMessage>,
     ) -> Result<ClientMessage, Error> {
+        let conn_id = ConnectionMgr::get_conn_id(&recipient);
+        let uid = self.uid_from_conn(&conn_id)?;
         let game = self
             .get_game(&game_id)
             .ok_or(Error::InvalidGameID(game_id))?;
@@ -475,6 +480,7 @@ impl BughouseServer {
                 }
             }
         }
+        self.observe(game.read().unwrap().get_id(), recipient);
         self.update_seats(game).await
     }
 
@@ -517,6 +523,19 @@ impl BughouseServer {
         }
     }
 
+    pub async fn start_game(
+        &'static self,
+        game: Arc<RwLock<Game>>
+        ) -> Result<(), Error> {
+        let start = self.games.start_game(game.clone())?;
+        let rgame = game.read().unwrap();
+        let game_id = rgame.get_id();
+        self.db.start_game(start, game_id).await?;
+        let msg = ServerMessage::new(ServerMessageKind::CheckGame(*game_id));
+        self.loopback.try_send(msg)?;
+        Ok(())
+    }
+
     pub async fn start_new_game(
         &'static self,
         time_ctrl: TimeControl,
@@ -535,7 +554,7 @@ impl BughouseServer {
         println!("id: {}", id);
         let (_game, msg) =
             self.games
-                .start_game(id, start, time_ctrl, players.clone())?;
+                .start_new_game(id, start, time_ctrl, players.clone())?;
         self.loopback
             .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)))?;
         Ok(msg)
@@ -592,25 +611,25 @@ impl BughouseServer {
     }
 
     // Timer handler detected a flag, find the flaggee, record the result, and notify all observers
-    pub fn end_game(&self, lgame: Arc<RwLock<Game>>) {
+    pub fn end_game(&'static self, lgame: Arc<RwLock<Game>>) {
         {
             let mut game = lgame.write().unwrap();
             game.end_game();
         }
-        self.games.update_game_observers(lgame);
+        self.update_game_observers(lgame);
         eprintln!("end_game!!!");
     }
 
     pub fn get_game_msg(
         &self,
-        kind: GameJsonKind,
+        // kind: GameJsonKind,
         game_id: GameID,
     ) -> Result<ByteString, Error> {
         let game = self
             .games
             .get(&game_id)
             .ok_or(Error::InvalidGameID(game_id))?;
-        let game_json = GameJson::new(game, kind);
+        let game_json = GameJson::new(game.clone(), Games::get_kind(game));
         Ok(ByteString::from(game_json.to_val().to_string()))
     }
 

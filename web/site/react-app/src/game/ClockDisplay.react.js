@@ -28,6 +28,7 @@ const ClockDisplay = ({color, chessboard, forming}) => {
     const onTick = () => {
       const board = chessboard.getBoard();
       if (
+        !forming && 
         chessboard.getColorToMove() === color &&
         chessboard.getStart() <= Date.now()
       ) {

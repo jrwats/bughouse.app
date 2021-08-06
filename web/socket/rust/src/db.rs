@@ -8,6 +8,7 @@ use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
 use scylla::transport::session::{IntoTypedRows, Session};
+use scylla::transport::connection::QueryResult;
 use scylla::SessionBuilder;
 use std::env;
 use std::io::prelude::{Read, Write};
@@ -388,6 +389,19 @@ impl Db {
             "UPDATE bughouse.games SET players = ? WHERE id = ?".to_string();
         self.session.query(query, (user_snaps, game_id)).await?;
         Ok(())
+    }
+
+    pub async fn start_game(
+        &self,
+        start: DateTime<Utc>,
+        game_id: &GameID,
+        ) -> Result<QueryResult, Error> {
+        let query = "UPDATE bughouse.games SET start_time = ? WHERE id = ?";
+        let res = self.session
+            .query(query.to_string(),
+             (&Self::to_timestamp(start), game_id),
+            ).await?;
+        Ok(res)
     }
 
     pub async fn form_table(

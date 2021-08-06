@@ -65,6 +65,17 @@ impl Games {
 
     pub fn start_game(
         &self,
+        game: Arc<RwLock<Game>>,
+        ) -> Result<DateTime<Utc>, Error> {
+        let start = game.write().unwrap().start();
+        let game_json = GameJson::new(game.clone(), GameJsonKind::Start);
+        println!("start: {:?}", game_json);
+        self.notify_observers(game, game_json);
+        Ok(start)
+    }
+
+    pub fn start_new_game(
+        &self,
         id: GameID,
         start: DateTime<Utc>,
         time_ctrl: TimeControl,
@@ -72,7 +83,7 @@ impl Games {
     ) -> Result<(Arc<RwLock<Game>>, ClientMessage), Error> {
         println!("Games::start_game");
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
-        let game = Game::start(id, start, time_ctrl, players.clone());
+        let game = Game::start_new(id, start, time_ctrl, players.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
@@ -170,7 +181,7 @@ impl Games {
         println!("");
     }
 
-    fn is_table(ar_game: Arc<RwLock<Game>>) -> bool {
+    pub fn is_table(ar_game: Arc<RwLock<Game>>) -> bool {
         let game = ar_game.read().unwrap();
         for board in game.players.iter() {
             for player in board {
@@ -182,7 +193,7 @@ impl Games {
         false
     }
 
-    fn get_kind(ar_game: Arc<RwLock<Game>>) -> GameJsonKind {
+    pub fn get_kind(ar_game: Arc<RwLock<Game>>) -> GameJsonKind {
         if ar_game.read().unwrap().get_result().is_none() {
             if Self::is_table(ar_game.clone()) {
                 GameJsonKind::Table

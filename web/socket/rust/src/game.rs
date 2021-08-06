@@ -70,7 +70,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn start(
+    pub fn start_new(
         id: GameID,
         start: DateTime<Utc>,
         time_ctrl: TimeControl,
@@ -128,6 +128,12 @@ impl Game {
 
     pub fn get_start(&self) -> Option<DateTime<Utc>> {
         self.start
+    }
+
+    pub fn start(&mut self) -> DateTime<Utc> {
+        let start = Self::new_start();
+        self.start = Some(start);
+        start
     }
 
     pub fn get_id(&self) -> &GameID {
