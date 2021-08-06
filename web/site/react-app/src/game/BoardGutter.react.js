@@ -24,7 +24,6 @@ function getHandleDisplay(handle, canVacate, onSit, onVacate) {
 
 const BoardGutter = ({ color,  chessboard, forming }) => {
   const {socket} = useContext(SocketContext);
-  const {user} = useContext(AuthContext);
   const playerData = chessboard.getBoard()[color];
   const [handle, setHandle] = useState(playerData?.handle);
 
@@ -58,10 +57,10 @@ const BoardGutter = ({ color,  chessboard, forming }) => {
     console.log(`id: ${chessboard.getGame().getID()}`);
     socket.sendEvent('vacate', gameData);
   }
-  const canVacate = forming && handle == user.userN;
+  const canVacate = forming && handle === socket.getHandle();
   return (
     <div className="playerData">
-      {getHandleDisplay(handle, forming, onSit, onVacate)}
+      {getHandleDisplay(handle, canVacate, onSit, onVacate)}
       <ClockDisplay color={color} chessboard={chessboard} forming={forming} />
     </div>
   );

@@ -318,6 +318,22 @@ impl BugWebSock {
                 }
                 println!("sit: {:?}", val);
             }
+            "vacate" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                // TODO implement from_str for BoardID / color
+                let board_idx = Self::get_field_usize(val, "board", kind)?;
+                let board_id = BOARD_IDS[board_idx as usize];
+                let color_idx = Self::get_field_usize(val, "color", kind)?;
+                let color = ALL_COLORS[color_idx as usize];
+                let res = self
+                    .data
+                    .server
+                    .queue_vacate(&game_id, board_id, color, &self.id);
+                if let Err(e) = res {
+                    eprintln!("sit err: {}", e);
+                }
+                println!("vacate: {:?}", val);
+            }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field_str(val, "move", kind)?;

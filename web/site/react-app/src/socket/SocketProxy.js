@@ -21,6 +21,21 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 5000);
 
+const PASSTHRU_EVENTS = [
+  'bugwho', 
+  'form_table',
+  'game_end',
+  'game_start',
+  'game_update',
+  'incomingOffer',
+  'incomingPartnerChallenge',
+  'outgoingOfferCancelled',
+  'partners',
+  'pending',
+  'table',
+  'unpartneredHandles',
+];
+
 /**
  * Proxy to our WebScocket connection that emits raw console output as well as
  * parsed game and environment data.
@@ -83,27 +98,9 @@ class SocketProxy extends EventEmitter {
           console.log(`${this._gcn()}.emit('data'): ${summary}`);
           this.emit("data", data);
         };
-        handlers["bugwho"] = (bug) => {
-          this._emit("bugwho", bug);
-        };
-        handlers["pending"] = (pending) => {
-          this._emit("pending", { user: this._user, pending });
-        };
-        handlers["unpartneredHandles"] = ({ handles }) => {
-          this._emit("unpartneredHandles", handles);
-        };
-        handlers["partners"] = ({ partners }) => {
-          this._emit("partners", partners);
-        };
-
-        handlers["incomingOffer"] = (handle) => {
-          console.log(`${this._gcn()}.incomingOffer(${handle})`);
-          this._emit("incomingOffer", { user: this._user, handle });
-        };
-        handlers["outgoingOfferCancelled"] = (handle) => {
-          console.log(`${this._gcn()}.outgoingOfferCancelled(${handle})`);
-          this._emit("outgoingOfferCancelled", { user: this._user, handle });
-        };
+        for (const event of PASSTHRU_EVENTS) {
+          handlers[event] = (data) => this._emit(event, data);
+        }
 
         handlers["incomingChallenge"] = (challenge) => {
           this._emit("incomingChallenge", { user: this._user, challenge });
@@ -133,26 +130,6 @@ class SocketProxy extends EventEmitter {
         // FICS
         handlers["games"] = ({ games }) => {
           this._emit("games", { user: this._user, games });
-        };
-
-        handlers["form_table"] = (game) => {
-          this._emit("formTable", game);
-        }
-
-        handlers["game_start"] = (game) => {
-          this._emit("gameStart", game);
-        };
-
-        handlers["game_end"] = (board) => {
-          this._emit("gameOver", board);
-        };
-
-        handlers["table"] = (data) => {
-          this._emit("table", data);
-        }
-
-        handlers["game_update"] = (data) => {
-          this._emit("gameUpdate", data);
         };
 
         handlers["boardUpdate"] = (board) => {

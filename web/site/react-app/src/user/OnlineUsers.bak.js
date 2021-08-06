@@ -2,12 +2,18 @@ import firebase from "firebase/app";
 import { EventEmitter } from "events";
 import SocketProxy from "../socket/SocketProxy";
 
+const proxy = SocketProxy.singleton();
+
 /**
- * Listens to the relevant socket events from the server for maintaining list
- * of online users.
+ * TODO: Delete
+ * Left around as a reference for now.  Ditching firebase for anything other
+ * than auth, and letting the server be the source of truth.
+ *
+ * Listens to the firebase DB 'online' table, and then individual listens to
+ * each user to get their FICS data, display info, etc.
  */
 class OnlineUsers extends EventEmitter {
-  constructor(socket) {
+  constructor(db) {
     super();
     this._uids = {};
     this._users = {};
@@ -20,7 +26,8 @@ class OnlineUsers extends EventEmitter {
     this._incomingOffers = {};
 
     console.log(`OnlineUsers ${Date.now()}`);
-    this._socket = socket;
+    this._db = db;
+    const onlineUsers = db.ref("online");
 
     const onBugwho = (bug) => {
       console.log(`onBugwho ${bug}`);
@@ -62,17 +69,17 @@ class OnlineUsers extends EventEmitter {
       delete this._outgoingOffers[handle];
       this.emit("outgoingOffers", this._outgoingOffers);
     };
-    socket.on("bugwho", onBugwho);
-    socket.on("unpartneredHandles", (handles) => {
+    proxy.on("bugwho", onBugwho);
+    proxy.on("unpartneredHandles", (handles) => {
       this._onUnpartneredHandles(handles);
     });
-    socket.on("partners", onPartners);
-    socket.on("partnerAccepted", (data) => this._formPartner(data));
-    socket.on("incomingOffer", onIncomingOffer);
-    socket.on("outgoingOfferCancelled", onOutgoingCancelled);
-    socket.on("pending", onPending);
-    socket.on("logout", onLogout);
-    socket.on("unpartnered", ({ user }) => {
+    proxy.on("partners", onPartners);
+    proxy.on("partnerAccepted", (data) => this._formPartner(data));
+    proxy.on("incomingOffer", onIncomingOffer);
+    proxy.on("outgoingOfferCancelled", onOutgoingCancelled);
+    proxy.on("pending", onPending);
+    proxy.on("logout", onLogout);
+    proxy.on("unpartnered", ({ user }) => {
       if (!(user.uid in this._users)) {
         return;
       }
@@ -88,8 +95,30 @@ class OnlineUsers extends EventEmitter {
       console.error(`Unpartnered ${handle} not found?`);
     });
 
-    socket.on("online_users", (snapshot) => {
-      // TODO
+    onlineUsers.once("value", (snapshot) => {
+      console.log(`OnlineUsers online snapshot`);
+      this._uids = snapshot.val() || {};
+      for (const uid in this._uids) {
+        this._listenToUser(uid);
+      }
+      console.log(this._uids);
+
+      onlineUsers.on("child_added", (data) => {
+        // console.log(`OnlineUsers online.child_added ${data.key}`);
+        this._uids[data.key] = data.val();
+        this._users[data.key] = {};
+        this._listenToUser(data.key);
+        this.emit("value", this._users);
+      });
+      onlineUsers.on("child_changed", (data) => {
+        // console.log(`OnlineUsers online.child_changed ${data.key}`);
+        this._uids[data.key] = data.val();
+      });
+      onlineUsers.on("child_removed", (data) => {
+        // console.log(`OnlineUsers online.child_removed ${data.key}`);
+        this._unsubscribeFromUser(data.key);
+        this.emit("value", this._users);
+      });
     });
   }
 
@@ -152,6 +181,83 @@ class OnlineUsers extends EventEmitter {
     this.emit("unpartneredHandles", this._unpartnered);
   }
 
+  _listenToUser(uid) {
+    console.log(`OnlineUsers listening to ${uid}`);
+    if (uid in this._subscriptions) {
+      console.log("already listening");
+      return;
+    }
+    this._subscriptions[uid] = 1;
+    const user = this._db.ref(`users/${uid}`);
+    user.once("value", (snapshot) => {
+      this._users[uid] = snapshot.val();
+      console.log(`OnlineUsers users/${uid} snapshot`);
+      console.log(this._users[uid]);
+      this.emit("value", this._users);
+
+      this._listen(user, "child_added", (data) => {
+        // console.log(`OnlineUsers user.child_added ${data.key}`);
+        if (this._users[uid] != null) {
+          this._users[uid][data.key] = data.val();
+          if (data.key === "handle") {
+            this._handle2uid[data.val()] = uid;
+            this._mergeUserHandles();
+            this._mergePartnerHandles();
+            this.emit("unpartneredHandles", this._unpartnered);
+          }
+          this.emit("value", this._users);
+        }
+      });
+      this._listen(user, "child_changed", (data) => {
+        // console.log(`OnlineUsers user.child_changed ${data.key}`);
+        if (this._users[uid] != null) {
+          if (data.key === "handle") {
+            this._handle2uid[data.val()] = uid;
+          }
+          this._users[uid][data.key] = data.val();
+        }
+        this.emit("value", this._users);
+      });
+      this._listen(user, "child_removed", (data) => {
+        // console.log(`OnlineUsers user.child_removed ${data.key}`);
+        if (!(uid in this._users)) {
+          console.error(`${uid} already gone?`);
+          return;
+        }
+        if (data.key === "handle") {
+          const oldHandle = this._users[uid][data.key];
+          delete this._handle2uid[oldHandle];
+          this._users[uid].handle = null;
+        }
+        this.emit("value", this._users);
+      });
+      this._listen(user, "child_moved", (data) => {
+        console.log(`OnlineUsers user.child_moved ${data.key}`);
+      });
+    });
+  }
+
+  _listen(ref, eventName, listener) {
+    const key = ref.getKey();
+    if (!(key in this._listeners)) {
+      this._listeners[key] = {};
+    }
+    this._listeners[key][eventName] = listener;
+    ref.on(eventName, listener);
+  }
+
+  _unsubscribeFromUser(uid) {
+    const refKey = `users/${uid}`;
+    for (const eventName in this._listeners[refKey]) {
+      this._db.ref(refKey).off(this._listeners[refKey][eventName]);
+    }
+    if (this._users[uid].handle != null) {
+      delete this._handle2uid[this._users[uid].handle];
+    }
+    delete this._users[uid];
+    delete this._subscriptions[uid];
+  }
+
   offerTo({ user, handle }) {
     if (this._incomingOffers[handle]) {
       this._formPartner({ user, handle });
@@ -206,7 +312,7 @@ class OnlineUsers extends EventEmitter {
   }
 }
 
-const singleton = new OnlineUsers(SocketProxy.singleton());
+const singleton = new OnlineUsers(firebase.database());
 window.__onlineUsers = singleton;
 
 const OnlineUsersGetter = {

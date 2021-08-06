@@ -15,10 +15,10 @@ class GameStatusSource extends EventEmitter {
     });
     this._games = {};
 
-    this._socket.on("gameUpdate", (data) => this._onGameUpdate(data));
-    this._socket.on("gameOver", (data) => this._onGameOver(data));
-    this._socket.on("gameStart", (data) => this._onGameStart(data));
-    this._socket.on("formTable", (data) => this._onTable(data));
+    this._socket.on("game_update", (data) => this._onGameUpdate(data));
+    this._socket.on("game_over", (data) => this._onGameOver(data));
+    this._socket.on("game_start", (data) => this._onGameStart(data));
+    this._socket.on("form_table", (data) => this._onTable(data));
     this._socket.on("table", (data) => this._onTable(data));
   }
 

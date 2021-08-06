@@ -81,6 +81,12 @@ pub enum Error {
     #[error("Can't sit - already taken: {0}, {1}, {2}")]
     SeatTaken(GameID, BoardID, usize),
 
+    #[error("Can't vacate vacant seat: {0}, {1}, {2}")]
+    SeatEmpty(GameID, BoardID, usize),
+
+    #[error("Can only vacate self: {0}, {1}, {2}")]
+    SeatUnowned(GameID, BoardID, usize),
+
     #[error("mpsc::SendError: {0}")]
     SendError(std::sync::mpsc::SendError<String>),
 

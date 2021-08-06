@@ -42,6 +42,7 @@ pub enum ServerMessageKind {
     CheckGame(GameID),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
     Sit(GameID, BoardID, Color, UserID),
+    Vacate(GameID, BoardID, Color, UserID),
 }
 
 #[derive(Message)]

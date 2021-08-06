@@ -119,6 +119,10 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
                 Box::pin(async move { fut.await })
             }
+            ServerMessageKind::Vacate(game_id, board_id, color, uid) => {
+                let fut = self.srv(ctx).vacate(game_id, board_id, color, uid);
+                Box::pin(async move { fut.await })
+            }
             ServerMessageKind::CheckGame(game_id) => {
                 println!("checking game_id: {}", game_id);
                 let srv = self.srv(ctx);
@@ -358,6 +362,21 @@ impl BughouseServer {
         Ok(())
     }
 
+    pub fn queue_vacate(
+        &'static self,
+        game_id: &GameID,
+        board_id: BoardID,
+        color: Color,
+        conn_id: &ConnID,
+    ) -> Result<(), Error> {
+        let uid = self.uid_from_conn(conn_id)?;
+        self.loopback
+            .do_send(ServerMessage::new(ServerMessageKind::Vacate(
+                *game_id, board_id, color, uid,
+            )))?;
+        Ok(())
+    }
+
     pub fn get_user_seat(
         players: &GamePlayers,
         candidate: Arc<RwLock<User>>,
@@ -377,6 +396,18 @@ impl BughouseServer {
             }
         }
         None
+    }
+
+    async fn update_seats(
+        &'static self,
+        game: Arc<RwLock<Game>>, 
+    ) -> Result<ClientMessage, Error> {
+        let rgame = game.read().unwrap();
+        let rating_snapshots = self.get_rating_snapshots(&rgame.players)?;
+        self.db.sit(rgame.get_id(), &rating_snapshots).await?;
+        self.games.update_game_observers(game.clone());
+        println!("updated game observers");
+        Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
     pub async fn sit(
@@ -410,12 +441,41 @@ impl BughouseServer {
             wgame.players[board_id.to_index()][color.to_index()] = Some(user);
             println!("sitting: {:?}", wgame.players);
         }
-        let rgame = game.read().unwrap();
-        let rating_snapshots = self.get_rating_snapshots(&rgame.players)?;
-        self.db.sit(&game_id, &rating_snapshots).await?;
-        self.games.update_game_observers(game.clone());
-        println!("updated game observers");
-        Ok(ClientMessage::new(ClientMessageKind::Empty))
+        self.update_seats(game).await
+    }
+
+    pub async fn vacate(
+        &'static self,
+        game_id: GameID,
+        board_id: BoardID,
+        color: Color,
+        uid: UserID,
+    ) -> Result<ClientMessage, Error> {
+        let game = self
+            .get_game(&game_id)
+            .ok_or(Error::InvalidGameID(game_id))?;
+        {
+            let mut wgame = game.write().unwrap();
+            let bidx = board_id.to_index();
+            let cidx = color.to_index();
+            let seat = wgame.players[bidx][cidx].clone();
+            match seat {
+                None => {
+                    eprintln!("Seat already empty: {}, {}, {:?}", game_id, board_id, color);
+                    return Err(Error::SeatEmpty(game_id, board_id, cidx));
+                }
+                Some(user) => {
+                    let ruser = user.read().unwrap();
+                    if uid != ruser.id {
+                        eprintln!("Can only vacate self: {}, {}, {:?}", game_id, board_id, color);
+                        return Err(Error::SeatUnowned( game_id, board_id, cidx));
+                    } else {
+                        wgame.players[bidx][cidx] = None;
+                    }
+                }
+            }
+        }
+        self.update_seats(game).await
     }
 
     pub fn queue_formation(
