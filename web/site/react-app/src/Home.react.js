@@ -10,7 +10,7 @@ import { AuthContext } from "./auth/AuthProvider";
 
 const HomeRouter = (props) => {
   const { socket } = useContext(SocketContext);
-  if (socket == null || !socket.isInitialized()) {
+  if (socket == null || !socket.isAuthed()) {
     console.log(`HomeRouter initializing socket ${socket}`);
     return <Loading path="loading" />;
   } else if (socket.isLoggedIn()) {

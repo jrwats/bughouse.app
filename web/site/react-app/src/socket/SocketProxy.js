@@ -48,7 +48,7 @@ class SocketProxy extends EventEmitter {
     super();
     console.log(`new SocketProxy ${user.uid}`);
     this._user = user;
-    this._initialized = false;
+    this._authenticated = false;
     this._loggedOut = true;
     this._connect();
     GamesStatusSource.get(this); // instantiate a listener
@@ -74,7 +74,7 @@ class SocketProxy extends EventEmitter {
           console.log(`${this._gcn()}  authenticated!`);
           this.onTick = this._onTick.bind(this);
           _ticker.on("tick", this.onTick);
-          this._initialized = true;
+          this._authenticated = true;
         };
 
         handlers["login"] = ({ handle }) => {
@@ -165,13 +165,7 @@ class SocketProxy extends EventEmitter {
           console.log(`client latency: ${latency}ms`);
         };
 
-        // debugger;
-        // for (const k in handlers) {
-        //   console.log(`binding ${k}`);
-        //   handlers[k].bind(this);
-        // }
         const url = new URL(WS_URL);
-        // url.searchParams.set('token', idToken);
         this._sock = new PhoenixSocket(url);
         this._sock.on("open", (evt) => {
           this._send("auth", { token: this._idToken });
@@ -180,7 +174,6 @@ class SocketProxy extends EventEmitter {
           console.error("Socket error: %o", evt);
         });
         this._sock.on("message", (evt) => {
-          // debugger;
           if (!/"kind":"(ack|enq|latency)"/.test(evt.data)) {
             console.debug(evt);
           }
@@ -268,8 +261,8 @@ class SocketProxy extends EventEmitter {
     return this._loggedOut && this._handle == null;
   }
 
-  isInitialized() {
-    return this._initialized;
+  isAuthed() {
+    return this._authenticated;
   }
 
   getUid() {
@@ -286,7 +279,8 @@ class SocketProxy extends EventEmitter {
   }
 
   static get(user) {
-    return _cache[user.uid] || (_cache[user.uid] = new SocketProxy(user));
+    const uid = user.uid || 'anonymous';
+    return _cache[uid] || (_cache[uid] = new SocketProxy(user));
   }
 
   static singleton() {
