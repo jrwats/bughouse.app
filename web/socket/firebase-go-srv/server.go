@@ -51,7 +51,7 @@ func user_info(uid string, conn net.Conn, app *firebase.App, ctx context.Context
 		log.Print(err)
 		writer.WriteString(fmt.Sprintf("err:%v\n", err))
 	} else {
-		values := []string{user.DisplayName, user.Email, user.PhotoURL, user.ProviderID}
+		values := []string{user.DisplayName, user.Email, user.PhotoURL, user.UserInfo.ProviderID}
 		val_str:= strings.Join(values, "\x1e" /* record separator */)
 		log.Printf("Got user, sending: %s\n", val_str)
 		writer.WriteString("user:" + val_str + "\n")

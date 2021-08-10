@@ -20,6 +20,7 @@ class AuthListener extends EventEmitter {
     this._needsEmailVerified = needsEmailVerification(this._user);
 
     auth.onAuthStateChanged((userAuth) => {
+      console.log(`AuthListener.onAuthStateChanged`);
       this._user = userAuth;
       this._needsEmailVerified = needsEmailVerification(userAuth);
       this._pendingInit = false;

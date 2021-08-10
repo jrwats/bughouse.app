@@ -184,7 +184,7 @@ impl Db {
 
     pub async fn mk_user_for_fid(&self, fid: &str) -> Result<User, Error> {
         println!("mk_user_for_fid {}", fid);
-        let firebase_data = Db::fetch_firebase_data(fid)?;
+        let firebase_data = Self::fetch_firebase_data(fid)?;
         let (id, handle) = self.new_guest_handle().await?;
         let rating = Rating::default();
         self.session

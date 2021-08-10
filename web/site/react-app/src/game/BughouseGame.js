@@ -45,7 +45,6 @@ class BughouseGame extends EventEmitter {
       data.id === this._id,
       `Mismatched board IDs? ${data.id} ${this._id}`
     );
-    let { board, color, kind } = data.result;
     console.log(data.result);
     this._finished = true;
     this._reason = data.reason;

@@ -32,6 +32,10 @@ class PhoenixSocket extends EventEmitter {
     this._createSocket();
   }
 
+  readyState() {
+    return this._socket?.readyState;
+  }
+
   destroy() {
     clearInterval(this._tickerID);
     this._socket.close();

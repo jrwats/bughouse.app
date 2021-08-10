@@ -94,6 +94,7 @@ impl Handler<ClientMessage> for BugWebSock {
                 let user = self.data.server.user_from_conn(conn_id);
                 ctx.text("authenticated".to_string());
 
+                println!("Sending 'login'");
                 // TODO - rethink - emulating old FICS login auth
                 let msg = json!({
                     "kind": "login",
@@ -271,8 +272,8 @@ impl BugWebSock {
         ctx: &mut <Self as Actor>::Context,
     ) -> Result<(), Error> {
         self.ensure_authed()?;
-        println!("handling: {}", kind);
         let recipient = ctx.address().recipient();
+        println!("handling: {}", kind);
         match kind {
             "seek" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;
@@ -379,7 +380,9 @@ impl BugWebSock {
                 msg: text.to_string(),
             }
         })?;
-        // println!("handling, {}", kind);
+        if kind != "ack" && kind != "enq" {
+            println!("handling: {}", kind);
+        }
         match kind {
             "enq" => {
                 let ack = json!({"kind": "ack", "timestamp": val["timestamp"]});

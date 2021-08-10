@@ -78,7 +78,7 @@ const Arena = ({ gamePath }) => {
     );
     let newOrientation =
       (handleColorB === "black" ? Orientation.BLACK : 0) | Orientation.FLIPPED;
-    if (orientation != newOrientation) {
+    if (orientation !== newOrientation) {
       return (
         <Redirect 
           noThrow={process.env.NODE_ENV !== "production"}

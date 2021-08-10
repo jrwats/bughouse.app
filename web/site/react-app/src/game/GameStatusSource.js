@@ -1,18 +1,17 @@
 import { EventEmitter } from "events";
-import ChessBoard from "./ChessBoard";
 import BughouseGame from "./BughouseGame";
 import { navigate } from "@reach/router";
-import GamesListSource from "./GamesListSource";
 
+let _singleton = null;
 class GameStatusSource extends EventEmitter {
   constructor(socket) {
     super();
     this._socket = socket;
     this._observing = {};
-    const uid = this._socket.getUid();
-    this._socket.on("logout", () => {
-      this._destroy(uid);
-    });
+    // const uid = this._socket.getUid();
+    // this._socket.on("logout", () => {
+    //   this._destroy();
+    // });
     this._games = {};
 
     this._socket.on("game_update", (data) => this._onGameUpdate(data));
@@ -42,7 +41,7 @@ class GameStatusSource extends EventEmitter {
       this._games[data.id].update(data)
     } else {
       this._games[data.id] = BughouseGame.init(data);
-      navigate(`/home/table/${data.id}`);
+      navigate(`/table/${data.id}`);
     }
   }
 
@@ -51,9 +50,9 @@ class GameStatusSource extends EventEmitter {
     navigate(`/home/game/${data.id}`);
   }
 
-  _destroy(uid) {
-    delete _cache[uid];
-  }
+  // _destroy(uid) {
+  //   _singleton = null;
+  // }
 
   getGame(id) {
     if (id == null) {
@@ -71,6 +70,7 @@ class GameStatusSource extends EventEmitter {
   }
 
   observe(id) {
+    console.log(`Observing ${id}`);
     if (!(id in this._observing)) {
       this._socket.sendEvent("observe", { id });
       this._observing[id] = 1;
@@ -80,11 +80,12 @@ class GameStatusSource extends EventEmitter {
   }
 }
 
-const _cache = {};
 const GameStatusSourceGetter = {
   get(socket) {
-    const uid = socket.getUid();
-    return _cache[uid] || (_cache[uid] = new GameStatusSource(socket));
+    if (_singleton == null) {
+      _singleton = new GameStatusSource(socket);
+    }
+    return _singleton;
   },
 };
 export default GameStatusSourceGetter;

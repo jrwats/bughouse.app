@@ -42,7 +42,25 @@
   }
 }
 
-#login.row {
+#loginContainer {
+  position: relative;
+  left: 50%;
+  top: 50%;
+  height: 100%;
+}
+
+#looseLogin {
+  position: relative;
+  left: -25%;
+  top: -25%;
+  border-radius: 2rem;
+  box-shadow: "10px 5px 5px #404040";
+  max-width: 800px;
+  background-color: #282c34;
+  opacity: 100%;
+}
+
+#looseLogin.row, #login.row {
   display: flex;
   flex-wrap: wrap;
   width: 100%;

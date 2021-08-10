@@ -1,5 +1,4 @@
-import Button from "@material-ui/core/Button";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { EventEmitter } from "events";
 
 const _ticker = new EventEmitter();
@@ -26,7 +25,6 @@ const ClockDisplay = ({color, chessboard, forming}) => {
     }
 
     const onTick = () => {
-      const board = chessboard.getBoard();
       if (
         !forming && 
         chessboard.getColorToMove() === color &&
@@ -45,7 +43,7 @@ const ClockDisplay = ({color, chessboard, forming}) => {
       chessboard.off('update', onUpdate);
       _ticker.off('tick', onTick);
     };
-  }, [color, chessboard, forming]);
+  }, [color, chessboard, forming, playerData.ms]);
 
   const mins = Math.floor(ms / 1000.0 / 60.0);
   const secs = Math.floor((ms / 1000.0) % 60);

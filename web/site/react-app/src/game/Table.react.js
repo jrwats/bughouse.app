@@ -1,17 +1,12 @@
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import Board from "./Board.react";
-import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
-import invariant from "invariant";
-import { Redirect } from "@reach/router";
-import { opposite } from "chessground/util";
-import ScreenLock from "./ScreenLock";
 
 const Table = ({ gamePath }) => {
 
-  const [gameID, orientation] = gamePath.split("~");
+  const [gameID] = gamePath.split("~");
   const { handle, socket } = useContext(SocketContext);
   const gamesSrc = GameStatusSource.get(socket);
   const game = gamesSrc.getGame(gameID);
@@ -39,8 +34,12 @@ const Table = ({ gamePath }) => {
       orientation="black"
     />,
   ];
+  let variStyle = {};
+  if (handle == null) {
+    variStyle.opacity = '40%'
+  }
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%", ...variStyle}}>
       {boards}
     </div>
   );

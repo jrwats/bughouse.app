@@ -32,7 +32,7 @@ const UsersProvider = (props) => {
   const [partners, setPartners] = useState(src.getPartners());
   const [partnerMap, setPartnerMap] = useState(_mapPartners(partners));
   const [unpartnered, setUnpartnered] = useState(src.getUnpartnered());
-  const [viewingUser, setViewingUser] = useState(onlineUsers[user.uid]);
+  const [viewingUser, setViewingUser] = useState(onlineUsers[user?.uid]);
 
   useEffect(() => {
     const usersListener = (users) => {

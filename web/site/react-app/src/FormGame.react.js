@@ -1,7 +1,6 @@
-import React, { setState, useContext } from "react";
+import React, { useContext } from "react";
 import Button from "@material-ui/core/Button";
 import CloseIcon from '@material-ui/icons/Close';
-import FileCopyIcon from '@material-ui/icons/FileCopy';
 import Grid from '@material-ui/core/Grid';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';

@@ -1,4 +1,3 @@
-import firebase from "firebase/app";
 import { EventEmitter } from "events";
 import SocketProxy from "../socket/SocketProxy";
 
@@ -188,6 +187,7 @@ class OnlineUsers extends EventEmitter {
       const uid = this._handle2uid[handle];
       handle2user[handle] = this._users[uid];
     }
+    console.log(`handleToUser: ${JSON.stringify(handle2user)}`);
     return handle2user;
   }
 

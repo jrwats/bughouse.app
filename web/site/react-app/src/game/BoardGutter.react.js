@@ -1,5 +1,5 @@
 import Button from "@material-ui/core/Button";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import HandleDisplay from "./HandleDisplay.react";
 import ClockDisplay from "./ClockDisplay.react";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
@@ -23,9 +23,9 @@ function getHandleDisplay(handle, canVacate, onSit, onVacate) {
 }
 
 const BoardGutter = ({ color,  chessboard, forming }) => {
-  const {socket} = useContext(SocketContext);
+  const {socket, handle: viewerHandle} = useContext(SocketContext);
   const playerData = chessboard.getBoard()[color];
-  const [handle, setHandle] = useState(playerData?.handle);
+  const [playerHandle, setHandle] = useState(playerData?.handle);
 
   useEffect(() => {
     const onUpdate = () => {
@@ -34,7 +34,7 @@ const BoardGutter = ({ color,  chessboard, forming }) => {
         console.log(`BoardGutter NULL for ${chessboard.getID()} ${color}`);
         return;
       }
-      if (playerData.handle !== handle) {
+      if (playerData.handle !== playerHandle) {
         setHandle(playerData.handle);
       }
     };
@@ -42,8 +42,7 @@ const BoardGutter = ({ color,  chessboard, forming }) => {
     return () => {
       chessboard.off("update", onUpdate);
     };
-  }, [forming, handle]);
-  console.log(`forming: ${forming}`);
+  }, [forming, playerHandle, chessboard, color]);
   const gameData = { 
     id: chessboard.getGame().getID(),
     board: chessboard.getBoardIdx(),
@@ -57,10 +56,10 @@ const BoardGutter = ({ color,  chessboard, forming }) => {
     console.log(`id: ${chessboard.getGame().getID()}`);
     socket.sendEvent('vacate', gameData);
   }
-  const canVacate = forming && handle === socket.getHandle();
+  const canVacate = forming && playerHandle === viewerHandle;
   return (
     <div className="playerData">
-      {getHandleDisplay(handle, canVacate, onSit, onVacate)}
+      {getHandleDisplay(playerHandle, canVacate, onSit, onVacate)}
       <ClockDisplay color={color} chessboard={chessboard} forming={forming} />
     </div>
   );

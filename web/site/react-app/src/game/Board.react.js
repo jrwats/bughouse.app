@@ -10,20 +10,20 @@ import invariant from "invariant";
 
 const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
-  const [viewOnly, setViewOnly] = useState(false);
+  const [viewOnly, setViewOnly] = useState(forming);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
 
   useEffect(() => {
     const onUpdate = (_) => {
-      console.log(`update holdings: ${chessboard.getHoldings()}`);
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       setFEN(board.fen);
       setHoldings(holdings);
       setViewOnly(
-        chessboard.isInitialized() && chessboard.getHandleColor(handle) == null
+        forming || 
+        (chessboard.isInitialized() && chessboard.getHandleColor(handle) == null)
       );
     };
     const onGameOver = () => {
@@ -37,7 +37,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       chessboard.off("update", onUpdate);
       chessboard.off("gameOver", onGameOver);
     };
-  }, [handle, chessboard]);
+  }, [forming, handle, chessboard]);
 
   useEffect(() => {
     const onGameOver = ({ board }) => {

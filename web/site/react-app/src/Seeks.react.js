@@ -1,6 +1,4 @@
-import React, { useContext } from "react";
-import Button from "@material-ui/core/Button";
-import { SocketContext } from "./socket/SocketProvider";
+import React from "react";
 import Seek from "./Seek.react";
 
 const Seeks = () => {

@@ -15,7 +15,7 @@ const normalize = (msg) => msg.split("\n\r").join("\n");
 
 const SocketProvider = (props) => {
   const { user } = props;
-  const proxy = SocketProxy.get(user);
+  const proxy = SocketProxy.get();
 
   const [socket, setSocket] = useState(proxy);
   const [handle, setHandle] = useState(proxy.getHandle());
@@ -25,9 +25,10 @@ const SocketProvider = (props) => {
 
   useEffect(() => {
     console.log(
-      `${Date.now()}: SocketProvider creating SocketProxy. ${user.uid}`
+      `${Date.now()}: SocketProvider creating SocketProxy. ${user?.uid}`
     );
-    const proxy = SocketProxy.get(user);
+    const proxy = SocketProxy.get();
+    proxy.setUser(user);
     console.log(`SocketProvider.setSocket`);
     setSocket(proxy);
     window.__socket = proxy;

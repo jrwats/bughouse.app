@@ -4,8 +4,8 @@ import auth from "../auth/firebase-init";
 class Presence {
   static init() {
     auth.onAuthStateChanged((userAuth) => {
-      console.log("Presence registering presence");
-      console.log(`Presence ${userAuth}`);
+      // console.log("Presence registering presence");
+      // console.log(`Presence ${userAuth}`);
       if (userAuth == null) {
         return;
       }
@@ -24,7 +24,7 @@ class Presence {
 
       connectedRef.on("value", (snap) => {
         const isOnline = snap.val();
-        console.log(`Presence is ${isOnline} for ${uid}`);
+        // console.log(`Presence is ${isOnline} for ${uid}`);
         if (isOnline) {
           lastOnlineRef
             .onDisconnect()

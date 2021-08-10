@@ -1,12 +1,12 @@
 import Button from "@material-ui/core/Button";
-import React, { useState, useContext } from "react";
-import Unpartnered from "./Unpartnered.react";
-import Teams from "./Teams.react";
-import Offers from "./Offers.react";
+import React, { useState } from "react";
+// import Unpartnered from "./Unpartnered.react";
+// import Teams from "./Teams.react";
+// import Offers from "./Offers.react";
 import FormGame from "./FormGame.react";
-import GamesList from "./GamesList.react";
-import Challenges from "./Challenges.react";
-import { UsersContext } from "./user/UsersProvider";
+// import GamesList from "./GamesList.react";
+// import Challenges from "./Challenges.react";
+// import { UsersContext } from "./user/UsersProvider";
 import ChallengesProvider from "./game/ChallengesProvider";
 import GamesListProvider from "./game/GamesListProvider";
 import Seeks from "./Seeks.react";
@@ -54,14 +54,14 @@ function getExpansionDisplay(expansion, setExpansion) {
 }
 
 const Bugwho = (props) => {
-  const {
-    incomingOffers,
-    onlineUsers,
-    // outgoingOffers,
-    partnerMap,
-    partners,
-    unpartnered,
-  } = useContext(UsersContext);
+  // const {
+  //   incomingOffers,
+  //   onlineUsers,
+  //   outgoingOffers,
+  //   partnerMap,
+  //   partners,
+  //   unpartnered,
+  // } = useContext(UsersContext);
 
   let [expansion, setExpansion] = useState(ActionExpansion.NONE);
   return (
