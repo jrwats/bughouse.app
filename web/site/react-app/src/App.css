@@ -57,7 +57,7 @@
   box-shadow: "10px 5px 5px #404040";
   max-width: 800px;
   background-color: #282c34;
-  opacity: 100%;
+  /* opacity: 100%; */
 }
 
 #looseLogin.row, #login.row {

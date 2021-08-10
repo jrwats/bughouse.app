@@ -21,6 +21,11 @@ const LooseLogin = ({ navigate }) => {
       });
   };
   return (
+    <div style={{
+      position: "absolute",
+      height: "min(100%, 50vw)",
+      width: "100%",
+      zIndex: 999}}>
     <div id="loginContainer">
       <div id="looseLogin" className="row">
         <div className="column" style={{ padding: "30px" }} >
@@ -32,6 +37,7 @@ const LooseLogin = ({ navigate }) => {
           <FirebaseLogin allowGuest={true} />
         </div>
       </div>
+    </div>
     </div>
   );
 };

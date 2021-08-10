@@ -52,7 +52,6 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const chessgroundRef = React.useRef(null);
 
   let alert = null;
-  console.log(`Board ${chessboard.getID()} finished: ${finished}`);
   if (finished) {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
