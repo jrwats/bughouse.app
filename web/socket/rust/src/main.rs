@@ -23,6 +23,7 @@ mod firebase;
 mod game;
 mod game_json;
 mod games;
+mod guest_handle;
 mod hash;
 mod messages;
 mod nouns;

@@ -32,8 +32,9 @@ func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Co
 		log.Print(err)
 		writer.WriteString(fmt.Sprintf("err:%v\n", err))
 	} else {
+    provider := token.Firebase.SignInProvider
 		log.Printf("Verified ID token: %v\n", token)
-		writer.WriteString("uid:" + token.UID + "\n")
+		writer.WriteString("uid:" + token.UID + "\x1e" + provider + "\n")
 	}
 	if werr := writer.Flush(); werr != nil {
 		log.Fatal(werr)
@@ -51,7 +52,13 @@ func user_info(uid string, conn net.Conn, app *firebase.App, ctx context.Context
 		log.Print(err)
 		writer.WriteString(fmt.Sprintf("err:%v\n", err))
 	} else {
-		values := []string{user.DisplayName, user.Email, user.PhotoURL, user.UserInfo.ProviderID}
+    provider_id := "anonymous"
+    if len(user.ProviderUserInfo) > 0 {
+      provider_id = user.ProviderUserInfo[0].ProviderID;
+    }
+    log.Printf("USER_INFO %v, %v, %v, %v, %v\n", 
+      user.DisplayName, provider_id, user.ProviderID, user.UserInfo.ProviderID, len(user.ProviderUserInfo))
+		values := []string{user.DisplayName, user.Email, user.PhotoURL, provider_id}
 		val_str:= strings.Join(values, "\x1e" /* record separator */)
 		log.Printf("Got user, sending: %s\n", val_str)
 		writer.WriteString("user:" + val_str + "\n")

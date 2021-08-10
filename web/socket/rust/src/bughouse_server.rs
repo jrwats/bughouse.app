@@ -258,23 +258,26 @@ impl BughouseServer {
         write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
         let mut resp = String::new();
         stream.read_to_string(&mut resp)?;
-        let (label, payload) = resp.split_once(':').unwrap();
+        let (label, payload) = resp.trim_end().split_once(':').unwrap();
         match label {
             "uid" => {
-                let fid = payload.trim_end();
-                println!("auth.uid: {}", fid);
-                let conn_id = self.add_conn(recipient.clone(), fid).await?;
-                println!("conn_id: {}", conn_id);
-
-                let send_res = recipient
-                    .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
-                    .await;
-                if let Err(e) = send_res {
-                    eprintln!("Couldn't send AUTH message: {}", e);
+                let parts: Vec<&str> = payload.split('\x1e').collect();
+                if let [fid, provider_id] = parts[..] {
+                    println!("auth.uid: {}, provider_id: {}", fid, provider_id);
+                    let conn_id = self.add_conn(recipient.clone(), fid).await?;
+                    println!("conn_id: {}", conn_id);
+                    let send_res = recipient
+                        .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
+                        .await;
+                    if let Err(e) = send_res {
+                        eprintln!("Couldn't send AUTH message: {}", e);
+                    }
+                    return Ok(ClientMessage::new(ClientMessageKind::Auth(
+                                conn_id,
+                                )));
                 }
-                return Ok(ClientMessage::new(ClientMessageKind::Auth(
-                    conn_id,
-                )));
+                eprintln!("Couldn't parse response: {}", payload);
+                Err(Error::Unexpected("Couldn't parse response".to_string()))
             }
             "err" => {
                 return Err(Error::AuthError {

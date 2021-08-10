@@ -56,13 +56,14 @@ CREATE TABLE IF NOT EXISTS photos (
 CREATE TABLE IF NOT EXISTS users (
   id timeuuid,
   firebase_id text,
-  name text,
   handle text,
-  rating smallint,
   deviation smallint,
   email text,
-  photo_url text,
+  guest boolean,
+  name text,
   photo blob,
+  photo_url text,
+  rating smallint,
   PRIMARY KEY ((id), firebase_id, handle)
 );
 

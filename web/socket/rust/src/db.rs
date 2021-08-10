@@ -20,8 +20,9 @@ use uuid::Uuid;
 use crate::b66::B66;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
+use crate::guest_handle::GuestHandle;
 use crate::firebase::*;
-use crate::game::{GameID, GamePlayers};
+use crate::game::GameID;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -101,14 +102,17 @@ impl Db {
     //
     // cqlsh:bughouse> INSERT INTO handles (id, handle) VALUES (now(), 'Guest_XYZ') IF NOT EXISTS;
     //
-    //  [applied] | handle    | id
-    // -----------+-----------+--------------------------------------
-    //      False | Guest_XYZ | 8ac88980-d963-11eb-bb7e-000000000002
+    //  [applied] | handle     | id
+    // -----------+------------+--------------------------------------
+    //      False | Player_XYZ | 8ac88980-d963-11eb-bb7e-000000000002
     //
-    async fn new_guest_handle(&self) -> Result<(Uuid, String), Error> {
+    async fn new_player_handle(&self, is_guest: bool) -> Result<(Uuid, String), Error> {
         let uuid = self.now()?;
-        let handle =
-            format!("Player_{}", B66::encode_num(uuid.as_fields().0 as u128));
+        let handle = if is_guest {
+            GuestHandle::generate(&uuid)
+        } else {
+            format!("Player_{}", B66::encode_num(uuid.as_fields().0 as u128))
+        };
         let mut query = Query::new(
             "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
@@ -165,7 +169,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT (id, firebase_id, handle, deviation, email, name, photo_url, rating)
+                "SELECT (id, firebase_id, handle, deviation, email, guest, name, photo_url, rating)
             FROM bughouse.users
             WHERE id = ?"
                     .to_string(),
@@ -185,34 +189,40 @@ impl Db {
     pub async fn mk_user_for_fid(&self, fid: &str) -> Result<User, Error> {
         println!("mk_user_for_fid {}", fid);
         let firebase_data = Self::fetch_firebase_data(fid)?;
-        let (id, handle) = self.new_guest_handle().await?;
+        let is_guest = firebase_data.provider_id == Some("anonymous".to_string());
+        println!("firebase_data:\n{:?}", firebase_data);
+        let (id, handle) = self.new_player_handle(is_guest).await?;
         let rating = Rating::default();
+        println!("Inserting into users...");
         self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, handle, deviation, email, name, rating)
-               VALUES (?, ?, ?, ?, ?, ?, ?)",
+               (id, firebase_id, handle, deviation, email, guest, name, rating)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     id,
                     &firebase_data.fid,
                     &handle,
                     rating.get_deviation(),
                     &firebase_data.email,
+                    is_guest,
                     &firebase_data.display_name,
                     rating.get_rating(),
                 ),
             )
             .await?;
+        println!("Inserted");
         self.add_rating(id, &rating).await?;
         Ok(User {
             id,
             firebase_id: firebase_data.fid,
-            name: firebase_data.display_name,
             handle,
-            rating: rating.get_rating(),
             deviation: rating.get_deviation(),
-            photo_url: firebase_data.photo_url,
             email: firebase_data.email,
+            guest: is_guest,
+            name: firebase_data.display_name,
+            photo_url: firebase_data.photo_url,
+            rating: rating.get_rating(),
         })
     }
 
@@ -223,7 +233,7 @@ impl Db {
         let mut resp = String::new();
         stream.read_to_string(&mut resp)?;
         println!("Response: {}", resp);
-        let (kind, payload) = resp.split_once(':').unwrap();
+        let (kind, payload) = resp.trim_end().split_once(':').unwrap();
         match kind {
             "user" => {
                 let parts: Vec<&str> = payload.split('\x1e').collect();
@@ -261,7 +271,7 @@ impl Db {
     ) -> Result<User, Error> {
         println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
-            "SELECT id, firebase_id, handle, deviation, email, name, photo_url, rating
+            "SELECT id, firebase_id, handle, deviation, email, guest, name, photo_url, rating
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );
