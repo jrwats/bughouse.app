@@ -326,10 +326,12 @@ impl BugWebSock {
                 let board_id = BOARD_IDS[board_idx as usize];
                 let color_idx = Self::get_field_usize(val, "color", kind)?;
                 let color = ALL_COLORS[color_idx as usize];
-                let res = self
-                    .data
-                    .server
-                    .queue_vacate(&game_id, board_id, color, ctx.address().recipient());
+                let res = self.data.server.queue_vacate(
+                    &game_id,
+                    board_id,
+                    color,
+                    ctx.address().recipient(),
+                );
                 if let Err(e) = res {
                     eprintln!("sit err: {}", e);
                 }
@@ -344,10 +346,7 @@ impl BugWebSock {
                 let res = self.data.server.make_move(game_id, &bug_mv, self.id);
                 if let Err(e) = res {
                     eprintln!("move err: {}", e);
-                    let game_msg = self
-                        .data
-                        .server
-                        .get_game_msg(game_id)?;
+                    let game_msg = self.data.server.get_game_msg(game_id)?;
                     ctx.text(game_msg);
                 };
             }

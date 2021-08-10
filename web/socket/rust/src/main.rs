@@ -12,6 +12,7 @@ use web::Data;
 
 use timer::Timer;
 
+mod adjectives;
 mod b66;
 mod bug_web_sock;
 mod bughouse_server;
@@ -24,6 +25,7 @@ mod game_json;
 mod games;
 mod hash;
 mod messages;
+mod nouns;
 mod observers;
 mod players;
 mod rating;

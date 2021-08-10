@@ -66,7 +66,7 @@ impl Games {
     pub fn start_game(
         &self,
         game: Arc<RwLock<Game>>,
-        ) -> Result<DateTime<Utc>, Error> {
+    ) -> Result<DateTime<Utc>, Error> {
         let start = game.write().unwrap().start();
         let game_json = GameJson::new(game.clone(), GameJsonKind::Start);
         println!("start: {:?}", game_json);

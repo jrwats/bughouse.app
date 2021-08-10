@@ -7,8 +7,8 @@ use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
-use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::transport::connection::QueryResult;
+use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
 use std::env;
 use std::io::prelude::{Read, Write};
@@ -395,12 +395,12 @@ impl Db {
         &self,
         start: DateTime<Utc>,
         game_id: &GameID,
-        ) -> Result<QueryResult, Error> {
+    ) -> Result<QueryResult, Error> {
         let query = "UPDATE bughouse.games SET start_time = ? WHERE id = ?";
-        let res = self.session
-            .query(query.to_string(),
-             (&Self::to_timestamp(start), game_id),
-            ).await?;
+        let res = self
+            .session
+            .query(query.to_string(), (&Self::to_timestamp(start), game_id))
+            .await?;
         Ok(res)
     }
 
