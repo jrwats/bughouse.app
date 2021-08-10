@@ -3,10 +3,10 @@ import auth from "./firebase-init";
 import { EventEmitter } from "events";
 
 function needsEmailVerification(user) {
-  const nonPass = ({ providerId }) => providerId !== "password";
+  const needsPass = ({ providerId }) => providerId === "password";
   return (
     user &&
-    user.providerData.filter(nonPass).length === 0 &&
+    user.providerData.filter(needsPass).length >= 1 &&
     !user.emailVerified
   );
 }
@@ -18,11 +18,13 @@ class AuthListener extends EventEmitter {
     this._claims = {};
     this._pendingInit = true;
     this._needsEmailVerified = needsEmailVerification(this._user);
+    console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
 
     auth.onAuthStateChanged((userAuth) => {
       console.log(`AuthListener.onAuthStateChanged`);
       this._user = userAuth;
       this._needsEmailVerified = needsEmailVerification(userAuth);
+      console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
       this._pendingInit = false;
       if (userAuth != null) {
         userAuth

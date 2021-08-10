@@ -29,6 +29,7 @@ const Home = (props) => {
     navigate("/", true);
     return null;
   } else if (needsEmailVerified) {
+    debugger;
     navigate("/verify", true);
     return null;
   }
