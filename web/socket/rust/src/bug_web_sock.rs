@@ -352,9 +352,9 @@ impl BugWebSock {
                 };
             }
             _ => {
-                eprintln!("Unkonwn kind: {}", kind);
+                eprintln!("Unknown kind: {}", kind);
                 return Err(Error::MalformedClientMsg {
-                    reason: "Missing 'time' field for 'seek'".to_string(),
+                    reason: "Unknown  'kind'".to_string(),
                     msg: val.to_string(),
                 });
             }
