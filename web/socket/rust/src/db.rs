@@ -20,9 +20,9 @@ use uuid::Uuid;
 use crate::b66::B66;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::guest_handle::GuestHandle;
 use crate::firebase::*;
 use crate::game::GameID;
+use crate::guest_handle::GuestHandle;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -106,7 +106,10 @@ impl Db {
     // -----------+------------+--------------------------------------
     //      False | Player_XYZ | 8ac88980-d963-11eb-bb7e-000000000002
     //
-    async fn new_player_handle(&self, is_guest: bool) -> Result<(Uuid, String), Error> {
+    async fn new_player_handle(
+        &self,
+        is_guest: bool,
+    ) -> Result<(Uuid, String), Error> {
         let uuid = self.now()?;
         let handle = if is_guest {
             GuestHandle::generate(&uuid)
@@ -189,7 +192,8 @@ impl Db {
     pub async fn mk_user_for_fid(&self, fid: &str) -> Result<User, Error> {
         println!("mk_user_for_fid {}", fid);
         let firebase_data = Self::fetch_firebase_data(fid)?;
-        let is_guest = firebase_data.provider_id == Some("anonymous".to_string());
+        let is_guest =
+            firebase_data.provider_id == Some("anonymous".to_string());
         println!("firebase_data:\n{:?}", firebase_data);
         let (id, handle) = self.new_player_handle(is_guest).await?;
         let rating = Rating::default();

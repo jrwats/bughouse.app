@@ -267,14 +267,16 @@ impl BughouseServer {
                     let conn_id = self.add_conn(recipient.clone(), fid).await?;
                     println!("conn_id: {}", conn_id);
                     let send_res = recipient
-                        .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
+                        .send(ClientMessage::new(ClientMessageKind::Auth(
+                            conn_id,
+                        )))
                         .await;
                     if let Err(e) = send_res {
                         eprintln!("Couldn't send AUTH message: {}", e);
                     }
                     return Ok(ClientMessage::new(ClientMessageKind::Auth(
-                                conn_id,
-                                )));
+                        conn_id,
+                    )));
                 }
                 eprintln!("Couldn't parse response: {}", payload);
                 Err(Error::Unexpected("Couldn't parse response".to_string()))
@@ -519,9 +521,13 @@ impl BughouseServer {
             .create_game(start, &time_ctrl, rated, &rating_snapshots)
             .await?;
         println!("id: {}", id);
-        let (_game, msg) =
-            self.games
-                .start_new_game(id, start, time_ctrl, rated, players.clone())?;
+        let (_game, msg) = self.games.start_new_game(
+            id,
+            start,
+            time_ctrl,
+            rated,
+            players.clone(),
+        )?;
         self.loopback
             .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)))?;
         Ok(msg)

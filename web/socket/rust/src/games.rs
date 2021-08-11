@@ -94,7 +94,7 @@ impl Games {
         board_id: BoardID,
         color: Color,
         user: Arc<RwLock<User>>,
-        ) -> Result<Arc<RwLock<Game>>, Error> {
+    ) -> Result<Arc<RwLock<Game>>, Error> {
         let game = self.get(&game_id).ok_or(Error::InvalidGameID(game_id))?;
         let game_clone = game.clone();
         let clone = user.clone();
@@ -104,20 +104,21 @@ impl Games {
             if wgame.players[board_id.to_index()][color.to_index()].is_some() {
                 eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
                 return Err(Error::SeatTaken(
-                        game_id,
-                        board_id,
-                        color.to_index(),
-                        ));
+                    game_id,
+                    board_id,
+                    color.to_index(),
+                ));
             } else if ruser.guest && wgame.rated {
                 return Err(Error::SeatGuestAtRatedGame(ruser.id, game_id));
             }
             if let Some((prev_board, prev_color)) =
                 Self::get_user_seat(&wgame.players, user.clone())
-                {
-                    wgame.players[prev_board.to_index()][prev_color.to_index()] =
-                        None;
-                }
-            wgame.players[board_id.to_index()][color.to_index()] = Some(user.clone());
+            {
+                wgame.players[prev_board.to_index()][prev_color.to_index()] =
+                    None;
+            }
+            wgame.players[board_id.to_index()][color.to_index()] =
+                Some(user.clone());
         }
         self.set_user_game(user.clone(), game_id);
         println!("sitting: {:?}", game.read().unwrap().players);
@@ -145,7 +146,8 @@ impl Games {
     ) -> Result<(Arc<RwLock<Game>>, ClientMessage), Error> {
         println!("Games::start_game");
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
-        let game = Game::start_new(id, start, time_ctrl, rated, players.clone());
+        let game =
+            Game::start_new(id, start, time_ctrl, rated, players.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
