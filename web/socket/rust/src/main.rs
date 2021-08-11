@@ -49,8 +49,6 @@ pub async fn ws_route(
         stream,
     )
 }
-/// websocket connection is long running connection, it easier
-/// to handle with an actor
 
 fn env_or(env_var: &str, alt: &str) -> String {
     std::env::var(env_var).unwrap_or(alt.to_string())

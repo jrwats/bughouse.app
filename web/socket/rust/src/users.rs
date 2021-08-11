@@ -10,10 +10,10 @@ use crate::db::Db;
 pub struct User {
     pub id: UserID,
     pub firebase_id: String,
-    pub handle: String,
     pub deviation: i16,
     pub email: Option<String>,
     pub guest: bool,
+    pub handle: String,
     pub name: Option<String>,
     pub photo_url: Option<String>,
     pub rating: i16,

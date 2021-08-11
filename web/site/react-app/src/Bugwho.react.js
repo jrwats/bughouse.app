@@ -18,10 +18,11 @@ const ActionExpansion = {
 };
 
 function getExpansionDisplay(expansion, setExpansion) {
+  const onCancel = () => setExpansion(ActionExpansion.None);
   if (expansion === ActionExpansion.SEEKS) {
-    return <Seeks />;
+    return <Seeks onCancel={onCancel} />;
   } else if (expansion === ActionExpansion.FORM_GAME) {
-    return <FormGame onCancel={() => setExpansion(ActionExpansion.NONE)} />;
+    return <FormGame onCancel={onCancel} />;
   }
   return (
     <>

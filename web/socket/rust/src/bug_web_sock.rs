@@ -292,6 +292,11 @@ impl BugWebSock {
                     eprintln!("add_seek err: {}", e);
                 }
             }
+            "setHandle" => {
+                let handle_str = Self::get_field_str(val, "handle", kind)?;
+                let res =
+                    self.data.server.queue_set_handle(handle_str, &self.id);
+            }
             "form" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;

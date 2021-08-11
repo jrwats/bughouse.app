@@ -211,8 +211,10 @@ class SocketProxy extends EventEmitter {
         const key = payload.kind || evt.data;
         const handler = handlers[key];
         if (handler == null) {
+          debugger;
           console.error("Unrecognized event: %s", evt);
-          console.error("Unrecognized payload: %s", payload);
+          console.error("Unrecognized payload: %s", 
+            JSON.stringify(payload, null, ' '));
           return;
         }
         handler.call(this, payload);

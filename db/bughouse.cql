@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
   photo blob,
   photo_url text,
   rating smallint,
-  PRIMARY KEY ((id), firebase_id, handle)
+  PRIMARY KEY (id)
 );
 
 CREATE INDEX ON users(firebase_id);
@@ -76,10 +76,12 @@ CREATE TABLE IF NOT EXISTS handles(
 );
 CREATE INDEX ON handles(id);
 
-CREATE TABLE IF NOT EXISTS firebase(
+CREATE TABLE IF NOT EXISTS firebase_users(
   firebase_id text PRIMARY KEY,
-  display_name text,
-  email text,
-  photo_url text,
-  provider_id text,
-);
+  uid timeuuid,
+  );
+//   display_name text,
+//   email text,
+//   photo_url text,
+//   provider_id text,
+// );

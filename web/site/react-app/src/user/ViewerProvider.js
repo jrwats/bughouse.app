@@ -25,16 +25,8 @@ const ViewerProvider = (props) => {
   });
 
   useEffect(() => {
-    const onLogin = ({fid, handle, isGuest, uid, rating, deviation}) => {
-      setState({
-        ...state,
-        fid,
-        handle,
-        isGuest,
-        uid,
-        rating,
-        deviation,
-      });
+    const onLogin = (data) => {
+      setState({...state, ...data});
     };
 
     socket && socket.on("login", onLogin);  

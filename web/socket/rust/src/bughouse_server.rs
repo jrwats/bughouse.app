@@ -4,6 +4,7 @@ use actix_web::*;
 use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
+use serde_json::json;
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
@@ -117,6 +118,10 @@ impl Handler<ServerMessage> for ServerHandler {
             }
             ServerMessageKind::Sit(game_id, board_id, color, uid) => {
                 let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
+                Box::pin(async move { fut.await })
+            }
+            ServerMessageKind::SetHandle(handle, uid) => {
+                let fut = self.srv(ctx).set_handle(handle, uid);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::Vacate(game_id, board_id, color, recip) => {
@@ -350,6 +355,41 @@ impl BughouseServer {
         let user_snap = UserRatingSnapshot::from(user);
         let nil = UserRatingSnapshot::nil();
         ((user_snap, nil.clone()), (nil.clone(), nil))
+    }
+
+    pub fn queue_set_handle(
+        &'static self,
+        handle: String,
+        conn_id: &ConnID,
+    ) -> Result<(), Error> {
+        let uid = self.uid_from_conn(conn_id)?;
+        self.loopback.do_send(ServerMessage::new(
+            ServerMessageKind::SetHandle(handle, uid),
+        ))?;
+        Ok(())
+    }
+
+    pub async fn set_handle(
+        &'static self,
+        handle: String,
+        uid: UserID,
+    ) -> Result<ClientMessage, Error> {
+        let user = self.user_from_uid(&uid).await?;
+        self.db.set_handle(&handle, user.clone()).await?;
+        {
+            let mut wuser = user.write().unwrap();
+            wuser.handle = handle;
+        }
+        let ruser = user.read().unwrap();
+        let json = json!({
+            "kind": "login",
+            "uid": ruser.id,
+            "handle": ruser.handle,
+        });
+        let bytestr = Arc::new(ByteString::from(json.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        self.conns.send_to_user(ruser.id, &msg);
+        Ok(msg)
     }
 
     pub fn queue_sit(

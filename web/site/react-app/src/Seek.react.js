@@ -7,7 +7,7 @@ const Seek = ({ time }) => {
 
   return (
     <Button
-      style={{ marginTop: "10px" }}
+      style={{ marginLeft: "1em", marginTop: "1em" }}
       variant="contained"
       color="primary"
       onClick={() => {

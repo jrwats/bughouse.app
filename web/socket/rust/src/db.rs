@@ -116,13 +116,55 @@ impl Db {
         } else {
             format!("Player_{}", B66::encode_num(uuid.as_fields().0 as u128))
         };
+        self.insert_handle(&handle, &uuid).await?;
+        Ok((uuid, handle))
+    }
+
+    async fn insert_handle(
+        &self,
+        handle: &str,
+        uid: &UserID,
+    ) -> Result<(), Error> {
         let mut query = Query::new(
             "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
         query.set_consistency(Consistency::One);
         query.set_serial_consistency(Some(Consistency::Serial));
-        self.session.query(query, (&handle, uuid)).await?;
-        Ok((uuid, handle))
+        self.session.query(query, (handle, uid)).await?;
+        Ok(())
+    }
+
+    async fn update_handle(
+        &self,
+        handle: &str,
+        uid: &UserID,
+    ) -> Result<(), Error> {
+        // Delete old handles periodically.
+        // Don't let people "steal" recently abandoned handles
+        self.insert_handle(handle, uid).await?;
+        self.session
+            .query(
+                "UPDATE bughouse.users SET handle = ? WHERE id = ?",
+                (handle, uid),
+            )
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_handle(
+        &self,
+        handle: &str,
+        user: Arc<RwLock<User>>,
+    ) -> Result<(), Error> {
+        println!("db.set_handle");
+        let uid = user.read().unwrap().id;
+        let res = self.update_handle(handle, &uid).await;
+        if let Err(e) = res {
+            eprintln!("err: {:?}", e);
+            return Err(e);
+        }
+        println!("db.set_handle SUCCESS");
+        Ok(())
     }
 
     pub fn uuid_from_time(
@@ -172,10 +214,9 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT (id, firebase_id, handle, deviation, email, guest, name, photo_url, rating)
+                "SELECT (id, firebase_id, deviation, email, guest, handle, name, photo_url, rating)
             FROM bughouse.users
-            WHERE id = ?"
-                    .to_string(),
+            WHERE id = ?",
                 (uid,),
             )
             .await
@@ -197,19 +238,28 @@ impl Db {
         println!("firebase_data:\n{:?}", firebase_data);
         let (id, handle) = self.new_player_handle(is_guest).await?;
         let rating = Rating::default();
+        println!("Inserting into firebase_user...");
+        self.session
+            .query(
+                "INSERT INTO bughouse.firebase_users
+               (firebase_id, uid)
+               VALUES (?, ?)",
+                (&firebase_data.fid, id),
+            )
+            .await?;
         println!("Inserting into users...");
         self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, handle, deviation, email, guest, name, rating)
+               (id, firebase_id, deviation, email, guest, handle, name, rating)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     id,
                     &firebase_data.fid,
-                    &handle,
                     rating.get_deviation(),
                     &firebase_data.email,
                     is_guest,
+                    &handle,
                     &firebase_data.display_name,
                     rating.get_rating(),
                 ),
@@ -275,7 +325,7 @@ impl Db {
     ) -> Result<User, Error> {
         println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
-            "SELECT id, firebase_id, handle, deviation, email, guest, name, photo_url, rating
+            "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );
