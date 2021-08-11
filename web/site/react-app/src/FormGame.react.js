@@ -31,18 +31,23 @@ function getMark(val, suffix) {
   }
 }
 
+const DEFAULT_BASE = 3;
+const DEFAULT_INC = 0;
 const FormGame = ({onCancel}) => {
   const { socket } = useContext(SocketContext);
   const [state, setState] = React.useState({
     rated: true,
-    base: 3,
-    inc: 0,
+    base: DEFAULT_BASE,
+    inc: DEFAULT_INC,
   });
 
-  const onCreate = () => socket.sendEvent('form', {
-    time: `${state.base}|${state.inc}`,
-    rated: state.rated,
-  });
+  const onCreate = () => {
+    console.log(`Creating ${state.base}|${state.inc}`);
+    socket.sendEvent('form', {
+      time: `${state.base}|${state.inc}`,
+      rated: state.rated,
+    });
+  };
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.checked });
   };
@@ -73,10 +78,11 @@ const FormGame = ({onCancel}) => {
           </Grid>
           <Grid item xs={4}>
             <Slider
-              defaultValue={state.base}
+              defaultValue={DEFAULT_BASE}
               getAriaValueText={(val) => `${val} minutes`}
               aria-labelledby="discrete-slider"
               valueLabelDisplay="auto"
+              onChangeCommitted={(_e, val) => { setState({...state, base: val}); }}
               step={null}
               max={mins[mins.length - 1]}
               marks={baseMarks}
@@ -91,10 +97,11 @@ const FormGame = ({onCancel}) => {
           </Grid>
           <Grid item xs={4}>
             <Slider
-              defaultValue={state.inc}
+              defaultValue={DEFAULT_INC}
               getAriaValueText={(val) => `${val} seconds`}
               aria-labelledby="discrete-slider-inc"
               valueLabelDisplay="auto"
+              onChangeCommitted={(_e, val) => { setState({...state, inc: val}); }}
               step={null}
               max={secs[secs.length - 1]}
               marks={baseSeconds}

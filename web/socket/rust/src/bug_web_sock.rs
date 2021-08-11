@@ -91,16 +91,23 @@ impl Handler<ClientMessage> for BugWebSock {
         match msg.kind {
             ClientMessageKind::Auth(conn_id) => {
                 self.id = conn_id;
-                let user = self.data.server.user_from_conn(conn_id);
+                let maybe_user = self.data.server.user_from_conn(conn_id);
                 ctx.text("authenticated".to_string());
-
-                println!("Sending 'login'");
-                // TODO - rethink - emulating old FICS login auth
-                let msg = json!({
-                    "kind": "login",
-                    "handle": user.unwrap().read().unwrap().handle,
-                });
-                ctx.text(msg.to_string());
+                if let Some(user) = maybe_user {
+                    let ruser = user.read().unwrap();
+                    // TODO - rethink - emulating old FICS login auth
+                    let msg = json!({
+                        "kind": "login",
+                        "uid": ruser.id,
+                        "fid": ruser.firebase_id,
+                        "handle": ruser.handle,
+                        "rating": ruser.rating,
+                        "deviation": ruser.deviation,
+                        "guest": ruser.guest,
+                    });
+                    println!("Sending 'login': {}", msg);
+                    ctx.text(msg.to_string());
+                }
             }
             // ClientMessageKind::GameStart(game_id) => {
             //     let msg = json!({

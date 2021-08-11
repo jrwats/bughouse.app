@@ -61,7 +61,7 @@ class GameStatusSource extends EventEmitter {
 
   _onGameStart({ game }) {
     if (game.path != null) {
-      navigate(`/home/game/${game.path}`);
+      navigate(`/arena/${game.path}`);
     } else {
       // At one point I thoughth about trying to ALSO host FICS games, but... meh
       const gamePair = `${game.viewer.id}~${game.partner.id}`;

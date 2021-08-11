@@ -3,6 +3,7 @@ import Board from "./Board.react";
 import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
+import { ViewerContext } from "../user/ViewerProvider";
 import invariant from "invariant";
 import { Redirect } from "@reach/router";
 import { opposite } from "chessground/util";
@@ -17,7 +18,8 @@ const Orientation = {
 const Arena = ({ gamePath }) => {
   const [gameID, orientation] = gamePath.split("~");
   // const gameID = gamePath;
-  const { handle, socket } = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
+  const { handle } = useContext(ViewerContext);
   const gamesSrc = GameStatusSource.get(socket);
 
   const game = gamesSrc.getGame(gameID);
@@ -51,7 +53,6 @@ const Arena = ({ gamePath }) => {
       );
       invariant(boardB != null, "wtf");
       console.log(`setHandleColorB(${newHC2})`);
-      debugger;
       setHandleColorB(newHC2);
     };
     onboardB();
@@ -82,7 +83,7 @@ const Arena = ({ gamePath }) => {
       return (
         <Redirect 
           noThrow={process.env.NODE_ENV !== "production"}
-          to={`/home/game/${gameID}~${newOrientation}`} />
+          to={`/arena/${gameID}~${newOrientation}`} />
       );
     }
   }
@@ -121,7 +122,7 @@ const Arena = ({ gamePath }) => {
     boards.reverse();
   }
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div id="arena" style={{ position: "relative", width: "100%" }}>
       {boards}
       {countdown}
     </div>

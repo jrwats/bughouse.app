@@ -4,14 +4,14 @@ import { useNavigate } from "@reach/router";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
 import AppSignOut from "./AppSignOut";
-import Profile from "./user/Profile";
+import UserProfile from "./user/UserProfile.react";
 
 const VerifyEmail = (props) => {
   const { user, needsEmailVerified } = useContext(AuthContext);
   const navigate = useNavigate();
 
   if (user == null) {
-    navigate("/", true);
+    navigate("/login", true);
     return null;
   } else if (!needsEmailVerified) {
     navigate("/", true);
@@ -61,7 +61,7 @@ const VerifyEmail = (props) => {
         </div>
       </Paper>
       <div style={{ marginTop: "80px" }}>
-        <Profile
+        <UserProfile
           user={user}
           style={{
             position: "relative",

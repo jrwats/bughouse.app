@@ -5,7 +5,7 @@ import { AuthContext } from "./auth/AuthProvider";
 const Login = ({ navigate }) => {
   const { pendingInit, user } = useContext(AuthContext);
   if (user != null) {
-    navigate("/home", { replace: true });
+    navigate("/", { replace: true });
   }
   if (pendingInit || user != null) {
     console.log(`Login: pendingInit: ${pendingInit}`);

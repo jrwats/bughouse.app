@@ -5,6 +5,7 @@ import Loading from "./Loading.react";
 import Main from "./Main.react";
 import SocketProvider, { SocketContext } from "./socket/SocketProvider";
 import UsersProvider from "./user/UsersProvider";
+import ViewerProvider from "./user/ViewerProvider";
 import { useNavigate } from "@reach/router";
 import { AuthContext } from "./auth/AuthProvider";
 
@@ -26,20 +27,15 @@ const Home = (props) => {
   const navigate = useNavigate();
   if (user == null) {
     console.log(`Home user is null, navigating to login`);
-    navigate("/", true);
+    navigate("/login", true);
     return null;
   } else if (needsEmailVerified) {
-    debugger;
     navigate("/verify", true);
     return null;
   }
 
   return (
-    <SocketProvider user={user}>
-      <UsersProvider>
-        <HomeRouter />
-      </UsersProvider>
-    </SocketProvider>
+    <HomeRouter />
   );
 };
 

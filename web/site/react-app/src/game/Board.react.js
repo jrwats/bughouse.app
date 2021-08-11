@@ -14,7 +14,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
-
+  const game = chessboard.getGame();
   useEffect(() => {
     const onUpdate = (_) => {
       const board = chessboard.getBoard();
@@ -40,14 +40,14 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   }, [forming, handle, chessboard]);
 
   useEffect(() => {
-    const onGameOver = ({ board }) => {
+    const onGameOver = (_dat) => {
       setFinished(true);
     };
-    chessboard.on("gameOver", onGameOver);
+    game.on("gameOver", onGameOver);
     return () => {
-      chessboard.off("gameOver", onGameOver);
+      game.off("gameOver", onGameOver);
     };
-  }, [chessboard]);
+  }, [game]);
 
   const chessgroundRef = React.useRef(null);
 

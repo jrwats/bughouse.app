@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 const GameStartCountdown = ({start}) => {
+  let [now, setNow] = useState(Date.now());
   const getSecsTilStart = () => Math.round((start - Date.now()) / 1000);
   let [count, setCount] = useState(getSecsTilStart);
   const msTilStart = start - Date.now();
@@ -8,6 +9,7 @@ const GameStartCountdown = ({start}) => {
   }
   setTimeout(() => {
     setCount(getSecsTilStart());
+    setNow(Date.now());
   }, (msTilStart % 1000) || 1000);
 
   return (

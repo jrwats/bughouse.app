@@ -42,7 +42,7 @@ const FirebaseLogin = ({ navigate }) => {
   const uiConfig = {
     // Popup on web, redirect on mobile
     signInFlow: isMobile ? "redirect" : "popup",
-    signInSuccessUrl: "/home",
+    signInSuccessUrl: "/",
     callbacks: {
       signInSuccessWithAuthResult: function (authResult, redirectUrl) {
         // TODO: this should go serverside...

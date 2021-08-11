@@ -47,6 +47,8 @@ class SocketProxy extends EventEmitter {
     super();
     this._authenticated = false;
     this._loggedOut = true;
+    this._handle = null;
+    this._isGuest = false;
     this._msgQueue = [];
     this._connect();
     GamesStatusSource.get(this); // instantiate a listener
@@ -96,14 +98,15 @@ class SocketProxy extends EventEmitter {
       this._authenticated = true;
     };
 
-    handlers["login"] = ({ handle }) => {
+    handlers["login"] = (data) => {
       console.log(`${this._gcn()}  login`);
-      this._handle = handle;
-      if (handle == null) {
+      this._handle = data.handle;
+      this._isGuest = data.guest;
+      if (data.handle == null) {
         this._logout();
         return;
       }
-      this._emit("login", { uid: this._user?.uid, handle: handle });
+      this._emit("login", data);
       // TODO: delete old FICS logic
       // this._sock.send("bugwho"); // request bughouse state from server
       this._sock.send("pending"); // request pending offers from server
@@ -295,6 +298,10 @@ class SocketProxy extends EventEmitter {
 
   getUid() {
     return this._user?.uid;
+  }
+
+  isGuest() {
+    return this._isGuest;
   }
 
   getHandle() {

@@ -6,7 +6,7 @@ import React, { useContext, useRef } from "react";
 import { SocketContext } from "./socket/SocketProvider";
 import Typography from "@material-ui/core/Typography";
 import AppSignOut from "./AppSignOut";
-import Profile from "./user/Profile";
+import UserProfile from "./user/UserProfile.react";
 import { AuthContext } from "./auth/AuthProvider";
 
 const FicsLogin = () => {
@@ -113,7 +113,7 @@ const FicsLogin = () => {
           </form>
         </Box>
         <div style={{ marginTop: "80px" }}>
-          <Profile
+          <UserProfile
             user={user}
             style={{
               position: "relative",

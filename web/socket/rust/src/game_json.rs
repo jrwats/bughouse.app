@@ -67,6 +67,7 @@ pub struct BoardJson {
 pub struct GameJson {
     id: GameID,
     kind: GameJsonKind,
+    rated: bool,
     result: Option<GameResult>,
     start_in_ms: i32,
     a: BoardJson,
@@ -92,6 +93,7 @@ impl GameJson {
         GameJson {
             kind,
             id: *game.get_id(),
+            rated: game.rated,
             result: game.get_result(),
             start_in_ms: Self::start_in_ms(game.get_start()),
             a: get_board_json(&game, BoardID::A), // kind),
@@ -103,6 +105,7 @@ impl GameJson {
         json!({
             "kind": self.kind,
             "id": B66::encode_uuid(self.id),
+            "rated": self.rated,
             "result": self.result,
             "delayStartMillis": self.start_in_ms,
             "a": {

@@ -42,8 +42,8 @@ pub enum Error {
     #[error("BugError: {0}")]
     BugError(BugError),
 
-    #[error("InvalidMove User not in game: {0}")]
-    InvalidMoveNotPlaying(UserID),
+    #[error("InvalidMove User not in game: {0}, {1}")]
+    InvalidMoveNotPlaying(UserID, GameID),
 
     #[error("InvalidMove InvalidUser: {0}")]
     InvalidMoveUser(UserID),
@@ -77,6 +77,9 @@ pub enum Error {
 
     #[error("Firebase err {0}")]
     FirebaseError(String),
+
+    #[error("Can't sit guest at rated game: {0}, {1}")]
+    SeatGuestAtRatedGame(UserID, GameID),
 
     #[error("Can't sit - already taken: {0}, {1}, {2}")]
     SeatTaken(GameID, BoardID, usize),

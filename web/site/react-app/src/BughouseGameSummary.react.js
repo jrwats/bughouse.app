@@ -9,7 +9,7 @@ const BughouseGameSummary = ({ bughouseGame }) => {
 
   return (
     <Link
-      to={`/home/fics_arena/${board1.id}~${board2.id}`}
+      to={`/fics_arena/${board1.id}~${board2.id}`}
       style={{ textDecoration: "none" }}
     >
       <span

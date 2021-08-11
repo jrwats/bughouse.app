@@ -10,8 +10,9 @@ import { Link } from "@reach/router";
 const GameOverMessage = ({ chessboard }) => {
   const { handle } = useContext(SocketContext);
   const board = chessboard.getBoard();
+  const game = chessboard.getGame();
   const winnerColor = chessboard.getWinner();
-  console.log(`GameOverMessage ${chessboard.id}`);
+  console.log(`GameOverMessage ${chessboard.getID()}`);
 
   if (board[winnerColor] == null) {
     return null;
@@ -44,7 +45,7 @@ const GameOverMessage = ({ chessboard }) => {
         >
           <div className="h6">{msg}</div>
           <div style={{ paddingTop: "8px" }}>{chessboard.getReason()}</div>
-          <Link to="/home" style={{ marginTop: "min(3vw, 7vh)" }}>
+          <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
             <Button variant="contained" color="primary">
               <PeopleIcon fontSize="small" style={{ paddingRight: ".8em" }} />
               Return to Dashboard

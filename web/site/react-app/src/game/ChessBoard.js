@@ -92,15 +92,20 @@ class ChessBoard extends EventEmitter {
   }
 
   isFinished() {
-    return this._finished;
+    return this._finished || this._game.isFinished();
   }
 
   getWinner() {
     return this._winner;
   }
 
+  setWinner(winnerColor) {
+    this._winner = winnerColor;
+    this.emit("update", this);
+  }
+
   getReason() {
-    return this._reason;
+    return this._reason || this._game.getReason();
   }
 
   static init(game, id) {

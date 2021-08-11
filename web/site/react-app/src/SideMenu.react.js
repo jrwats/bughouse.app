@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
+import FeaturedVideoIcon from '@material-ui/icons/FeaturedVideo';
+import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
@@ -81,15 +83,24 @@ const SideMenu = ({ style }) => {
         open={Boolean(anchorEl)}
         onClose={handleClose}
       >
-        <Link to="/home">
+        <Link to="/">
           <StyledMenuItem>
             <ListItemIcon>
-              <PeopleIcon fontSize="small" />
+              <FeaturedVideoIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText primary="Dashboard" />
           </StyledMenuItem>
         </Link>
-        <Link to="/home/fics_console">
+        <Link to="/profile">
+          <StyledMenuItem>
+            <ListItemIcon>
+              <AccountCircleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Profile" />
+          </StyledMenuItem>
+        </Link>
+        {/*
+        <Link to="/fics_console">
           <StyledMenuItem>
             <ListItemIcon>
               <img alt="console" src="/Octicons-terminal.svg" width="18px" />
@@ -97,7 +108,6 @@ const SideMenu = ({ style }) => {
             <ListItemText primary="Console" />
           </StyledMenuItem>
         </Link>
-        {/*
         <StyledMenuItem>
           <ListItemIcon>
             <img alt="console" style={{backgroundColor: "black"}} src="/favicon.ico" width="18px" />
@@ -105,6 +115,7 @@ const SideMenu = ({ style }) => {
           <ListItemText primary="Game" />
         </StyledMenuItem>
         */}
+        {/*
         <StyledMenuItem
           onClick={(e) => {
             socket.logout();
@@ -115,6 +126,7 @@ const SideMenu = ({ style }) => {
           </ListItemIcon>
           <ListItemText primary={`Logout as ${handle}`} />
         </StyledMenuItem>
+        */}
         <StyledMenuItem
           onClick={(e) => {
             logout(socket);

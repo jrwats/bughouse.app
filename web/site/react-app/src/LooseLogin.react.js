@@ -1,13 +1,32 @@
 import Button from "@material-ui/core/Button";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import auth from "./auth/firebase-init";
 import FirebaseLogin from "./FirebaseLogin.react";
+import GameStatusSource from "./game/GameStatusSource";
 import { AuthContext } from "./auth/AuthProvider";
+import { SocketContext } from "./socket/SocketProvider";
+import { ViewerContext } from "./user/ViewerProvider";
 
-const LooseLogin = ({ navigate }) => {
+const LooseLogin = ({ gamePath }) => {
   const { pendingInit, user } = useContext(AuthContext);
-  if (pendingInit || user != null) {
-    console.log(`Login: pendingInit: ${pendingInit}`);
+  const { socket } = useContext(SocketContext);
+  const { isGuest } = useContext(ViewerContext);
+  const gamesSrc = GameStatusSource.get(socket);
+  const [gameID] = gamePath.split("~");
+  const game = gamesSrc.getGame(gameID);
+  const [rated, setRated] = useState(game.isRated());
+  useEffect(() => {
+    const onUpdate = (game) => {
+      setRated(game.isRated());
+    }
+    game.on("update", onUpdate);
+    return () => {
+      game.off("update", onUpdate);
+    }
+  }, [game]);
+  console.log(`LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket.isGuest()}`);
+  // user is non-null AND game is either unrated OR the user is not a guest
+  if (pendingInit || user != null && (!rated || !isGuest)) {
     return null;
   }
   console.log(`Login displaying login`);
@@ -29,12 +48,17 @@ const LooseLogin = ({ navigate }) => {
     <div id="loginContainer">
       <div id="looseLogin" className="row">
         <div className="column" style={{ padding: "30px" }} >
-          <Button variant="contained" color="primary" onClick={playAsGuest} >
+          <Button 
+            disabled={rated}
+            variant="contained"
+            color="primary"
+            onClick={playAsGuest} >
             Play as Guest
           </Button>
+          {rated ? <div>Rated games require sign-in</div> : null}
         </div>
         <div className="column">
-          <FirebaseLogin allowGuest={true} />
+          <FirebaseLogin />
         </div>
       </div>
     </div>

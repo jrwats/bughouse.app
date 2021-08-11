@@ -1,6 +1,6 @@
 import React from "react";
 
-const Profile = ({ user, ...rest }) => {
+const UserProfile = ({ user, ...rest }) => {
   const name = user.displayName || user.email;
   let picture = null;
   if (user.photoURL) {
@@ -30,4 +30,4 @@ const Profile = ({ user, ...rest }) => {
   );
 };
 
-export default Profile;
+export default UserProfile;

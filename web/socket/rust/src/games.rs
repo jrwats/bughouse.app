@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use bughouse::{BoardID, BughouseMove};
+use bughouse::{BoardID, BughouseMove, Color, ALL_COLORS, BOARD_IDS};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use num_integer::div_rem;
@@ -45,22 +45,83 @@ impl Games {
         &self,
         id: GameID,
         time_ctrl: TimeControl,
+        rated: bool,
         user: Arc<RwLock<User>>,
     ) -> Result<ClientMessage, Error> {
-        let game = Game::table(id, time_ctrl, user.clone());
+        let game = Game::table(id, time_ctrl, rated, user.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
             games.insert(id, locked_game.clone());
         }
-        {
-            let mut user_games = self.user_games.write().unwrap();
-            user_games.insert(user.read().unwrap().id, id);
-        }
+        self.set_user_game(user, id);
         let game_json =
             GameJson::new(locked_game.clone(), GameJsonKind::FormTable);
         self.notify_observers(locked_game, game_json);
         Ok(ClientMessage::new(ClientMessageKind::Empty))
+    }
+
+    pub fn get_user_seat(
+        players: &GamePlayers,
+        candidate: Arc<RwLock<User>>,
+    ) -> Option<(BoardID, Color)> {
+        let needle = candidate.read().unwrap();
+        for (board_idx, boards) in players.iter().enumerate() {
+            for (color_idx, maybe_user) in boards.iter().enumerate() {
+                if let Some(user) = maybe_user {
+                    let candidate = user.read().unwrap();
+                    if needle.id == candidate.id {
+                        return Some((
+                            BOARD_IDS[board_idx],
+                            ALL_COLORS[color_idx],
+                        ));
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    fn set_user_game(&self, user: Arc<RwLock<User>>, game_id: GameID) {
+        let uid = user.read().unwrap().id;
+        let mut user_games = self.user_games.write().unwrap();
+        user_games.insert(uid, game_id);
+    }
+
+    pub fn sit(
+        &self,
+        game_id: GameID,
+        board_id: BoardID,
+        color: Color,
+        user: Arc<RwLock<User>>,
+        ) -> Result<Arc<RwLock<Game>>, Error> {
+        let game = self.get(&game_id).ok_or(Error::InvalidGameID(game_id))?;
+        let game_clone = game.clone();
+        let clone = user.clone();
+        let ruser = clone.read().unwrap();
+        {
+            let mut wgame = game_clone.write().unwrap();
+            if wgame.players[board_id.to_index()][color.to_index()].is_some() {
+                eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
+                return Err(Error::SeatTaken(
+                        game_id,
+                        board_id,
+                        color.to_index(),
+                        ));
+            } else if ruser.guest && wgame.rated {
+                return Err(Error::SeatGuestAtRatedGame(ruser.id, game_id));
+            }
+            if let Some((prev_board, prev_color)) =
+                Self::get_user_seat(&wgame.players, user.clone())
+                {
+                    wgame.players[prev_board.to_index()][prev_color.to_index()] =
+                        None;
+                }
+            wgame.players[board_id.to_index()][color.to_index()] = Some(user.clone());
+        }
+        self.set_user_game(user.clone(), game_id);
+        println!("sitting: {:?}", game.read().unwrap().players);
+        Ok(game)
     }
 
     pub fn start_game(
@@ -79,11 +140,12 @@ impl Games {
         id: GameID,
         start: DateTime<Utc>,
         time_ctrl: TimeControl,
+        rated: bool,
         players: GamePlayers,
     ) -> Result<(Arc<RwLock<Game>>, ClientMessage), Error> {
         println!("Games::start_game");
         // let (id, start) = self.server.insert_game(&time_ctrl, &players).await?;
-        let game = Game::start_new(id, start, time_ctrl, players.clone());
+        let game = Game::start_new(id, start, time_ctrl, rated, players.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
@@ -132,7 +194,7 @@ impl Games {
     ) -> Result<(Arc<RwLock<Game>>, BoardID), Error> {
         let game = self
             .get_user_game(&uid)
-            .ok_or(Error::InvalidMoveNotPlaying(uid))?;
+            .ok_or(Error::InvalidMoveNotPlaying(uid, game_id))?;
         {
             let user_game = game.read().unwrap();
             let user_game_id = user_game.get_id();
@@ -256,6 +318,7 @@ impl Games {
     pub fn get_user_game(&self, uid: &UserID) -> Option<Arc<RwLock<Game>>> {
         let games = self.user_games.read().unwrap();
         if let Some(game_id) = games.get(uid) {
+            println!("Got game {} for uid: {}", game_id, uid);
             Some(self.games.read().unwrap().get(game_id).unwrap().clone())
         } else {
             None

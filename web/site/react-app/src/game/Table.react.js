@@ -1,8 +1,8 @@
-
 import React, { useContext, useEffect } from "react";
 import Board from "./Board.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
+import { navigate } from "@reach/router";
 
 const Table = ({ gamePath }) => {
 
@@ -13,6 +13,15 @@ const Table = ({ gamePath }) => {
   const boardA = game.getBoardA();
   const boardB = game.getBoardB();
 
+  const onGame = (data) => { navigate(`/arena/${data.id}`); }
+  useEffect(() => {
+    socket.on("game_update", onGame);
+    socket.on("game_start", onGame);
+    return () => {
+      socket.off("game_update", onGame);
+      socket.off("game_start", onGame);
+    }
+  }, [socket]);
   useEffect(() => {
     console.log(`Table subscribing ${gameID}`);
     gamesSrc.observe(gameID);

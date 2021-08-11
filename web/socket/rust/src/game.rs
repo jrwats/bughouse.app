@@ -65,6 +65,7 @@ pub struct Game {
     time_ctrl: TimeControl,
     pub players: GamePlayers,
     clocks: GameClocks,
+    pub rated: bool,
     result: Option<GameResult>,
     last_move: [DateTime<Utc>; 2], // Time of last move on either board
 }
@@ -74,6 +75,7 @@ impl Game {
         id: GameID,
         start: DateTime<Utc>,
         time_ctrl: TimeControl,
+        rated: bool,
         players: GamePlayers,
     ) -> Self {
         let base = time_ctrl.get_base_ms();
@@ -85,6 +87,7 @@ impl Game {
             players,
             clocks: [[base; 2]; 2],
             last_move: [start; 2],
+            rated,
             result: None,
         }
     }
@@ -93,6 +96,7 @@ impl Game {
     pub fn table(
         id: GameID,
         time_ctrl: TimeControl,
+        rated: bool,
         user: Arc<RwLock<User>>,
     ) -> Self {
         let base = time_ctrl.get_base_ms();
@@ -105,6 +109,7 @@ impl Game {
             players: [[Some(user), None], [None, None]],
             clocks: [[base; 2]; 2],
             last_move: [nil_date; 2],
+            rated,
             result: None,
         }
     }
@@ -133,6 +138,7 @@ impl Game {
     pub fn start(&mut self) -> DateTime<Utc> {
         let start = Self::new_start();
         self.start = Some(start);
+        self.last_move = [start; 2];
         start
     }
 

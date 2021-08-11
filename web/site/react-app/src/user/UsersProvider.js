@@ -3,7 +3,6 @@ import OnlineUsers from "./OnlineUsers";
 import { AuthContext } from "../auth/AuthProvider";
 
 export const UsersContext = createContext({
-  viewingUser: null,
   onlineUsers: {},
   incomingOffers: {},
   outgoingOffers: {},
@@ -32,12 +31,10 @@ const UsersProvider = (props) => {
   const [partners, setPartners] = useState(src.getPartners());
   const [partnerMap, setPartnerMap] = useState(_mapPartners(partners));
   const [unpartnered, setUnpartnered] = useState(src.getUnpartnered());
-  const [viewingUser, setViewingUser] = useState(onlineUsers[user?.uid]);
 
   useEffect(() => {
     const usersListener = (users) => {
       setOnlineUsers({ ...users });
-      setViewingUser(users[user.uid]);
       setHandleToUser(src.getHandleToUsers());
     };
     const unpartneredListener = (users) => {
@@ -70,7 +67,6 @@ const UsersProvider = (props) => {
   return (
     <UsersContext.Provider
       value={{
-        viewingUser,
         onlineUsers,
         handleToUser,
         incomingOffers,

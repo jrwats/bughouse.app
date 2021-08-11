@@ -3,10 +3,20 @@ import invariant from "invariant";
 import ScreenLock from "./ScreenLock";
 import ChessBoard from "./ChessBoard";
 
+const ResultKind = {
+  FLAGGED: 0,
+  CHECKMAGE: 0,
+};
+
+function _getColor(idx) {
+  return idx === 0 ? 'white' : 'black';
+}
+
 class BughouseGame extends EventEmitter {
-  constructor({ id, delayStartMillis, a, b }) {
+  constructor({ id, rated, delayStartMillis, a, b }) {
     super();
-    this._startTime = Date.now() + delayStartMillis;
+    this._rated = rated;
+    this._setStart(delayStartMillis);
     this._id = id;
 
     let idA = id + "/a";
@@ -19,13 +29,30 @@ class BughouseGame extends EventEmitter {
       : ChessBoard.init(this, idB);
   }
 
-  update({ id, a, b }) {
+  _setStart(delayStartMillis) {
+    if (delayStartMillis > 0) {
+      this._startTime = Date.now() + delayStartMillis;
+    }
+  }
+
+  update({ id, rated, delayStartMillis, a, b }) {
+    this._rated = rated;
+    this._setStart(delayStartMillis);
     this._a.update(a);
     this._b.update(b);
+    this.emit("update", this);
+  }
+
+  isFinished() { 
+    return this._finished;
   }
 
   getID() { 
     return this._id; 
+  }
+
+  isRated() {
+    return this._rated;
   }
 
   getStart() {
@@ -40,6 +67,31 @@ class BughouseGame extends EventEmitter {
     return this._b;
   }
 
+  _getBoards() {
+    return [this._a, this._b];
+  }
+
+  _deriveReason(board, kind, winnerColor) {
+    const boardLabel = board === 0 ? 'A' : 'B';
+    const boards = this._getBoards();
+    const srcBoard = boards[board];
+    const handles = srcBoard.getHandles();
+    const loser = handles[1 - winnerColor];
+    if (kind === ResultKind.FLAGGED) {
+      return `${loser} flagged on board ${boardLabel}`;
+    }
+    const winner = handles[winnerColor];
+    return `${winner} checkmated ${loser}`;
+  }
+
+  getReason() {
+    return this._reason;
+  }
+
+  getResult() {
+    return this._result;
+  }
+
   onGameOver(data) {
     invariant(
       data.id === this._id,
@@ -47,7 +99,12 @@ class BughouseGame extends EventEmitter {
     );
     console.log(data.result);
     this._finished = true;
-    this._reason = data.reason;
+    const {board, kind, winner} = data.result;
+    const boards = this._getBoards();
+    boards[board].setWinner(_getColor(winner));
+    boards[1 - board].setWinner(_getColor(1 - winner));
+    this._reason = this._deriveReason(board, kind, winner)
+    this._result = data.result;
     this._winner = data.result[0] === "1" ? "white" : "black";
     ScreenLock.release();
     this.emit("gameOver", data);

@@ -187,7 +187,7 @@ class OnlineUsers extends EventEmitter {
       const uid = this._handle2uid[handle];
       handle2user[handle] = this._users[uid];
     }
-    console.log(`handleToUser: ${JSON.stringify(handle2user)}`);
+    // console.log(`handleToUser: ${JSON.stringify(handle2user)}`);
     return handle2user;
   }
 

@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix::{Actor, Context, Handler, ResponseFuture};
 use actix_web::*;
-use bughouse::{BoardID, BughouseMove, Color, ALL_COLORS, BOARD_IDS};
+use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
 // use actix_web_actors::ws::WebsocketContext;
@@ -17,7 +17,7 @@ use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers, GameResult};
-use crate::game_json::{GameJson, GameJsonKind};
+use crate::game_json::GameJson;
 use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
@@ -378,27 +378,6 @@ impl BughouseServer {
         Ok(())
     }
 
-    pub fn get_user_seat(
-        players: &GamePlayers,
-        candidate: Arc<RwLock<User>>,
-    ) -> Option<(BoardID, Color)> {
-        let needle = candidate.read().unwrap();
-        for (board_idx, boards) in players.iter().enumerate() {
-            for (color_idx, maybe_user) in boards.iter().enumerate() {
-                if let Some(user) = maybe_user {
-                    let candidate = user.read().unwrap();
-                    if needle.id == candidate.id {
-                        return Some((
-                            BOARD_IDS[board_idx],
-                            ALL_COLORS[color_idx],
-                        ));
-                    }
-                }
-            }
-        }
-        None
-    }
-
     async fn update_seats(
         &'static self,
         game: Arc<RwLock<Game>>,
@@ -418,30 +397,8 @@ impl BughouseServer {
         color: Color,
         uid: UserID,
     ) -> Result<ClientMessage, Error> {
-        let game = self
-            .get_game(&game_id)
-            .ok_or(Error::InvalidGameID(game_id))?;
-        {
-            let mut wgame = game.write().unwrap();
-            if wgame.players[board_id.to_index()][color.to_index()].is_some() {
-                eprintln!("Seat taken: {}, {}, {:?}", game_id, board_id, color);
-                return Err(Error::SeatTaken(
-                    game_id,
-                    board_id,
-                    color.to_index(),
-                ));
-            }
-
-            let user = self.user_from_uid(&uid).await?;
-            if let Some((prev_board, prev_color)) =
-                Self::get_user_seat(&wgame.players, user.clone())
-            {
-                wgame.players[prev_board.to_index()][prev_color.to_index()] =
-                    None;
-            }
-            wgame.players[board_id.to_index()][color.to_index()] = Some(user);
-            println!("sitting: {:?}", wgame.players);
-        }
+        let user = self.user_from_uid(&uid).await?;
+        let game = self.games.sit(game_id, board_id, color, user)?;
         let msg = self.update_seats(game.clone()).await?;
         if !Games::is_table(game.clone()) {
             self.start_game(game).await?;
@@ -522,7 +479,7 @@ impl BughouseServer {
         match res {
             Ok(id) => {
                 println!("id: {}", id);
-                let msg = self.games.form_table(id, time_ctrl, user)?;
+                let msg = self.games.form_table(id, time_ctrl, rated, user)?;
                 Ok(msg)
             }
             Err(e) => {
@@ -564,7 +521,7 @@ impl BughouseServer {
         println!("id: {}", id);
         let (_game, msg) =
             self.games
-                .start_new_game(id, start, time_ctrl, players.clone())?;
+                .start_new_game(id, start, time_ctrl, rated, players.clone())?;
         self.loopback
             .try_send(ServerMessage::new(ServerMessageKind::CheckGame(id)))?;
         Ok(msg)
