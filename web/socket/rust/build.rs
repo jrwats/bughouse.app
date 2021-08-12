@@ -27,7 +27,7 @@ fn write_file(
         "const WORDS: [&'static str; {}] = [\n{}];\npub fn {}() -> &'static [&'static str; {}] {{\n    return &WORDS;\n}}",
         count, array_body, fn_name, count,
         );
-    fs::write(Path::new("src").join(dest_file), def).unwrap();
+    fs::write(Path::new("src/guest").join(dest_file), def).unwrap();
     Ok(())
 }
 

@@ -10,9 +10,7 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
-use timer::Timer;
-
-mod adjectives;
+mod guest;
 mod b66;
 mod bug_web_sock;
 mod bughouse_server;
@@ -23,10 +21,11 @@ mod firebase;
 mod game;
 mod game_json;
 mod games;
-mod guest_handle;
+// mod adjectives;
+// mod guest;
+// mod nouns;
 mod hash;
 mod messages;
-mod nouns;
 mod observers;
 mod players;
 mod rating;
@@ -62,12 +61,10 @@ async fn main() -> Result<(), io::Error> {
     let db = Db::new().await.expect("Could not start DB");
     // let _db = Db::new();
     let adb = Arc::new(db);
-    // let timer = Arc::new(Timer::new());
     let addr = ServerHandler::new(adb.clone()).start();
     let server = BughouseServer::get(
         adb.clone(),
         addr.clone().recipient(),
-        // timer
     );
 
     // server.start();

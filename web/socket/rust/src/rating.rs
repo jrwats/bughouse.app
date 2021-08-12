@@ -1,3 +1,9 @@
+use std::sync::{Arc, RwLock};
+
+use crate::db::{TableSnapshot, UserRatingSnapshot};
+use crate::error::Error;
+use crate::game::Game;
+
 /// Glicko
 pub struct Rating {
     rating: i16,
@@ -13,6 +19,14 @@ impl Rating {
     }
     pub fn get_deviation(&self) -> i16 {
         self.deviation
+    }
+
+    /// See ratings.md in top-level docs folder in this repo
+    pub fn get_updated_ratings(
+        game: Arc<RwLock<Game>>
+        ) -> Result<TableSnapshot, Error> {
+        let nil = UserRatingSnapshot::nil();
+        Ok(((nil.clone(), nil.clone()), (nil.clone(), nil)))
     }
 }
 

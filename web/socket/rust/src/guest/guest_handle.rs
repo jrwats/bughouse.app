@@ -1,5 +1,5 @@
-use crate::adjectives;
-use crate::nouns;
+use super::adjectives;
+use super::nouns;
 use uuid::Uuid;
 
 pub struct GuestHandle {}

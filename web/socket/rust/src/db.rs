@@ -22,7 +22,7 @@ use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::GameID;
-use crate::guest_handle::GuestHandle;
+use crate::guest::guest_handle::GuestHandle;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;

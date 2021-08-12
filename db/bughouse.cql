@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS rating_history (
 );
 
 // Local secondary index optimized for
-// SELECT rating FROM user_ratings WHERE uuid = '...' AND timestamp ...;
+// SELECT rating FROM rating_history WHERE uuid = '...' AND timestamp ...;
 // CREATE INDEX ON rating_history((id), time);
 
 CREATE TABLE IF NOT EXISTS photos (
