@@ -13,7 +13,10 @@ const Table = ({ gamePath }) => {
   const boardA = game.getBoardA();
   const boardB = game.getBoardB();
 
-  const onGame = (data) => { navigate(`/arena/${data.id}`); }
+  const onGame = (data) => {
+    console.log(`Table.onGame navigating to arena ${data.id}`);
+    navigate(`/arena/${data.id}`);
+  }
   useEffect(() => {
     socket.on("game_update", onGame);
     socket.on("game_start", onGame);

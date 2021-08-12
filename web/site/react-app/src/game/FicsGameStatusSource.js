@@ -61,6 +61,7 @@ class GameStatusSource extends EventEmitter {
 
   _onGameStart({ game }) {
     if (game.path != null) {
+      console.log(`FicsGSS.start navigating to /arena/${game.path}`);
       navigate(`/arena/${game.path}`);
     } else {
       // At one point I thoughth about trying to ALSO host FICS games, but... meh

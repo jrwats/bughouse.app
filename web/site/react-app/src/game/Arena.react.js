@@ -16,8 +16,9 @@ const Orientation = {
 };
 
 const Arena = ({ gamePath }) => {
-  const [gameID, orientation] = gamePath.split("~");
-  // const gameID = gamePath;
+  const paths = gamePath.split("~");
+  const gameID = paths[0];
+  let orientation = paths[1];
   const { socket } = useContext(SocketContext);
   const { handle } = useContext(ViewerContext);
   const gamesSrc = GameStatusSource.get(socket);
@@ -72,35 +73,25 @@ const Arena = ({ gamePath }) => {
   }, []);
 
   // TODO make this user-controlled/editable (for observers etc)
-  if (handleColorB != null) {
-    invariant(
-      handleColorA == null,
-      `Viewer can't be on both boards: ${handleColorA} ${handleColorB}`
-    );
-    let newOrientation =
-      (handleColorB === "black" ? Orientation.BLACK : 0) | Orientation.FLIPPED;
-    if (orientation !== newOrientation) {
-      console.log(`Arena redirecting: ${newOrientation}`)
-      return (
-        <Redirect 
-          noThrow={process.env.NODE_ENV !== "production"}
-          to={`/arena/${gameID}~${newOrientation}`} />
-      );
-    }
+  if (orientation == null || orientation === '') {
+    orientation = handleColorB ? Orientation.FLIPPED : Orientation.DEFAULT;
+    const color = handleColorA || handleColorB;
+    orientation |= color === 'black' ? Orientation.BLACK : 0;
+  } else {
+    orientation = parseInt(orientation);
   }
 
   // let orientation = null;
   let viewerOrientation =
-    orientation != null
-      ? orientation & Orientation.BLACK
+    orientation & Orientation.BLACK
         ? "black"
         : "white"
-      : handleColorA || "white";
   let orientationA =
     orientation & Orientation.FLIPPED
       ? opposite(viewerOrientation)
       : viewerOrientation;
 
+  console.log(`hca: ${handleColorA}, hcb: ${handleColorB}, orientation: ${orientation}`);
   const boards = [
     <Board
       id="boardA"

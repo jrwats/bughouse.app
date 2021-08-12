@@ -14,6 +14,7 @@ import PeopleIcon from "@material-ui/icons/People";
 import { Link } from "@reach/router";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import { SocketContext } from "./socket/SocketProvider";
+import { ViewerContext } from "./user/ViewerProvider";
 import logout from "./logout";
 
 const StyledMenu = withStyles({
@@ -50,6 +51,7 @@ const StyledMenuItem = withStyles((theme) => ({
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { socket, handle } = useContext(SocketContext);
+  const { isGuest } = useContext(ViewerContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -91,6 +93,7 @@ const SideMenu = ({ style }) => {
             <ListItemText primary="Dashboard" />
           </StyledMenuItem>
         </Link>
+        {isGuest ? null :
         <Link to="/profile">
           <StyledMenuItem>
             <ListItemIcon>
@@ -98,7 +101,7 @@ const SideMenu = ({ style }) => {
             </ListItemIcon>
             <ListItemText primary="Profile" />
           </StyledMenuItem>
-        </Link>
+        </Link>}
         {/*
         <Link to="/fics_console">
           <StyledMenuItem>
