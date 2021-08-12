@@ -2,11 +2,13 @@ use bughouse::{BoardID, BughouseMove};
 use chrono::prelude::*;
 use chrono::Duration;
 use noneifempty::NoneIfEmpty;
+use scylla::batch::Batch;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::query::Query;
 use scylla::statement::Consistency;
+use scylla::prepared_statement::PreparedStatement;
 use scylla::transport::connection::QueryResult;
 use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
@@ -21,7 +23,7 @@ use crate::b66::B66;
 use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
-use crate::game::GameID;
+use crate::game::{Game, GameID};
 use crate::guest::guest_handle::GuestHandle;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
@@ -33,6 +35,14 @@ pub struct Db {
     session: Session,
     ctx: Context,
 }
+
+// #[derive(Clone, FromRow, IntoUserType, FromUserType)]
+// pub struct UserRatingRow {
+//     pub uid: UserID,
+//     pub time: DateTime<Utc>,
+//     pub deviation: i16,
+//     pub rating: i16,
+// }
 
 #[derive(Debug, FromRow)]
 pub struct FirebaseRowData {
@@ -46,14 +56,20 @@ pub struct FirebaseRowData {
 // User's GLICKO rating snapshot before game start
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
-    user_id: UserID,
+    uid: UserID,
     pub rating: i16,
     pub deviation: i16,
 }
 
 impl UserRatingSnapshot {
-    pub fn nil() -> UserRatingSnapshot {
+    pub fn nil() -> Self {
         UserRatingSnapshot::from(None)
+    }
+}
+
+impl Default for UserRatingSnapshot {
+    fn default() -> Self {
+        UserRatingSnapshot::nil()
     }
 }
 
@@ -61,7 +77,7 @@ impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
     fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
         match maybe_user {
             None => UserRatingSnapshot {
-                user_id: Uuid::nil(),
+                uid: Uuid::nil(),
                 rating: 0,
                 deviation: 0,
             },
@@ -74,7 +90,7 @@ impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
     fn from(user_lock: Arc<RwLock<User>>) -> Self {
         let user = user_lock.read().unwrap();
         UserRatingSnapshot {
-            user_id: *user.get_uid(),
+            uid: *user.get_uid(),
             rating: user.rating,
             deviation: user.deviation,
         }
@@ -194,7 +210,7 @@ impl Db {
             .session
             .query(
                 "INSERT INTO bughouse.rating_history
-                (user_id, time, rating, deviation) VALUES (?, ?, ?, ?)",
+                (uid, time, rating, deviation) VALUES (?, ?, ?, ?)",
                 (
                     id,
                     Self::to_timestamp(Utc::now()),
@@ -348,7 +364,7 @@ impl Db {
     //     let res = self
     //         .session
     //         .query(
-    //             "SELECT user_id, rating, deviation FROM bughouse.users
+    //             "SELECT id, rating, deviation FROM bughouse.users
     //           WHERE id = '?'"
     //                 .to_string(),
     //             (&player,),
@@ -400,6 +416,71 @@ impl Db {
         }
     }
 
+    pub async fn record_game_result(
+        &self,
+        game: Arc<RwLock<Game>>,
+        ) -> Result<(), Error> {
+        let rgame = game.read().unwrap();
+        let result = rgame.get_result().unwrap();
+        // TODO implement serialization
+        let val: i16 = result.board as i16 | ((result.winner as i16) << 1) | ((result.kind as i16) << 2);
+        let res = self
+            .session
+            .query(
+                "UPDATE bughouse.games SET result = ? WHERE id = ?",
+                (val, rgame.get_id()),
+            )
+            .await;
+        if let Err(e) = res {
+            eprintln!("Error writing result to DB: {:?}", e);
+            Err(e)?;
+        }
+        Ok(())
+    }
+
+    pub async fn record_ratings(
+        &self,
+        ratings: &[UserRatingSnapshot; 4],
+        ) -> Result<(), Error> {
+        println!("new ratings: {:?}", ratings);
+
+        let now = Self::to_timestamp(Utc::now());
+        let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] = [(UserID::nil(), now, 0, 0); 4];
+        for (i, snap) in ratings.iter().enumerate() {
+            rows[i] = (snap.uid, now, snap.rating, snap.deviation);
+        }
+        // Add a prepared query to the batch
+        let mut batch: Batch = Default::default();
+        let prepared: PreparedStatement = self.session.prepare(
+            "INSERT INTO bughouse.rating_history (uid, time, rating, deviation) VALUES (?, ?, ?, ?)"
+            ).await?;
+        for _i in 0..4 {
+            batch.append_statement(prepared.clone());
+        }
+        let res = self.session.batch(&batch, ( &rows[0..3],)).await;
+        if let Err(e) = res {
+            eprintln!("batch error rating_history: {:?}", e);
+        }
+
+        let mut batch2: Batch = Default::default();
+        let prepared2: PreparedStatement = self.session.prepare(
+            "UPDATE bughouse.users SET rating = ?, deviation = ? WHERE id = ?"
+            ).await?;
+        for _i in 0..4 {
+            batch2.append_statement(prepared2.clone());
+        }
+        let res2 = self.session.batch(&batch2, (
+                (ratings[0].rating, ratings[0].deviation, ratings[0].uid),
+                (ratings[1].rating, ratings[1].deviation, ratings[1].uid),
+                (ratings[2].rating, ratings[2].deviation, ratings[2].uid),
+                (ratings[3].rating, ratings[3].deviation, ratings[3].uid),
+                )).await;
+        if let Err(e) = res2 {
+            eprintln!("batch error users: {:?}", e);
+        }
+        Ok(())
+    }
+
     pub async fn record_move(
         &self,
         duration: &Duration,
@@ -434,7 +515,7 @@ impl Db {
     ) -> Result<GameID, Error> {
         self.session
             .query(
-                "INSERT INTO bughouse.games 
+                "INSERT INTO bughouse.games
              (id, start_time, time_ctrl, rated, players)
               VALUES (?, ?, ?, ?, ?)"
                     .to_string(),

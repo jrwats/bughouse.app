@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS games (
   time_ctrl time_control,
   rated boolean,
   players tuple<
-    tuple<rating_snapshot, rating_snapshot>, 
+    tuple<rating_snapshot, rating_snapshot>,
     tuple<rating_snapshot, rating_snapshot>
   >,
   moves map<int, smallint>,
@@ -37,11 +37,11 @@ CREATE TABLE IF NOT EXISTS user_games (
 );
 
 CREATE TABLE IF NOT EXISTS rating_history (
-  user_id timeuuid,
+  uid timeuuid,
   time timestamp,
   rating smallint,
   deviation smallint,
-  PRIMARY KEY ((user_id), time)
+  PRIMARY KEY ((uid), time)
 );
 
 // Local secondary index optimized for

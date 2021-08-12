@@ -275,9 +275,9 @@ impl Games {
         println!("Notifying game players {:?}", game_json);
         Self::debug_print_clocks(ar_game.clone());
         let _msg = self.notify_observers(ar_game.clone(), game_json);
-        if ar_game.read().unwrap().get_result().is_some() {
-            self.rm_game(ar_game.read().unwrap().get_id());
-        }
+        // if ar_game.read().unwrap().get_result().is_some() {
+        //     self.rm_game(ar_game.read().unwrap().get_id());
+        // }
     }
 
     pub fn is_in_game(&self, uid: &UserID) -> bool {

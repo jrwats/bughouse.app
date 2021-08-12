@@ -23,6 +23,7 @@ use crate::games::Games;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
+use crate::rating::Rating;
 use crate::seeks::{SeekMap, Seeks};
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
@@ -147,10 +148,19 @@ impl Handler<ServerMessage> for ServerHandler {
                             ));
                         });
                         checkers.insert(game_id, checker);
-                        srv.update_game_observers(lgame);
                     } else if result.is_none() {
-                        srv.end_game(lgame);
+                        // Timer handler detected a flag, find the flaggee,
+                        // record the result, and notify all observers
+                        let mut game = lgame.write().unwrap();
+                        game.end_game();
                     }
+                    srv.update_game_observers(lgame.clone());
+                    if get_result(lgame.clone()).is_some() {
+                        let fut = self.srv(ctx).record_game(lgame);
+                        return Box::pin(async move { fut.await });
+                    }
+                } else {
+                    println!("Game {} is gone", game_id);
                 }
                 Box::pin(async {
                     Ok(ClientMessage::new(ClientMessageKind::Empty))
@@ -580,9 +590,16 @@ impl BughouseServer {
         board_id: BoardID,
         mv: BughouseMove,
     ) -> Result<ClientMessage, Error> {
+        println!("server.record_move");
         self.db
             .record_move(&duration, &game_id, board_id, &mv)
             .await?;
+        if let Some(game) = self.get_game(&game_id) {
+            if game.read().unwrap().get_result().is_some() {
+                println!("Detected checkmate in {}", game_id);
+                self.record_game(game).await?;
+            }
+        }
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
@@ -623,14 +640,21 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
-    // Timer handler detected a flag, find the flaggee, record the result, and notify all observers
-    pub fn end_game(&'static self, lgame: Arc<RwLock<Game>>) {
-        {
-            let mut game = lgame.write().unwrap();
-            game.end_game();
+    async fn record_game(
+        &'static self,
+        game: Arc<RwLock<Game>>,
+        ) -> Result<ClientMessage, Error> {
+        println!("record_game");
+        self.db.record_game_result(game.clone()).await?;
+        println!("updated result");
+        if game.read().unwrap().rated {
+            println!("updating ratings...");
+            let snaps = Rating::get_updated_ratings(game.clone());
+            self.db.record_ratings(&snaps).await?;
+            println!("updated ratings.");
         }
-        self.update_game_observers(lgame);
-        eprintln!("end_game!!!");
+        self.games.rm_game(game.read().unwrap().get_id());
+        Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
     pub fn get_game_msg(
