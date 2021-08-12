@@ -47,8 +47,8 @@ pub struct FirebaseRowData {
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
     user_id: UserID,
-    rating: i16,
-    deviation: i16,
+    pub rating: i16,
+    pub deviation: i16,
 }
 
 impl UserRatingSnapshot {

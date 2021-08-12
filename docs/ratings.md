@@ -36,7 +36,8 @@ Algorithm to calculate ratings change for a game against a given opponent:
                Note that this is between 0 and 1 - if RD is very big,
                then f will be closer to 0.
 
- 3. r1 <- your rating,
+ 3. Get E (expected outcome?)
+      r1 <- your rating,
 
       r2 <- opponent's rating,
           (in bughouse, r1 is the average of your rating and your
