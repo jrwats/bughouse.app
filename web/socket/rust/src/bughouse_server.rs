@@ -643,7 +643,7 @@ impl BughouseServer {
     async fn record_game(
         &'static self,
         game: Arc<RwLock<Game>>,
-        ) -> Result<ClientMessage, Error> {
+    ) -> Result<ClientMessage, Error> {
         println!("record_game");
         self.db.record_game_result(game.clone()).await?;
         println!("updated result");

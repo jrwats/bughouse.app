@@ -6,9 +6,9 @@ use scylla::batch::Batch;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
+use scylla::prepared_statement::PreparedStatement;
 use scylla::query::Query;
 use scylla::statement::Consistency;
-use scylla::prepared_statement::PreparedStatement;
 use scylla::transport::connection::QueryResult;
 use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
@@ -419,11 +419,13 @@ impl Db {
     pub async fn record_game_result(
         &self,
         game: Arc<RwLock<Game>>,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         let rgame = game.read().unwrap();
         let result = rgame.get_result().unwrap();
         // TODO implement serialization
-        let val: i16 = result.board as i16 | ((result.winner as i16) << 1) | ((result.kind as i16) << 2);
+        let val: i16 = result.board as i16
+            | ((result.winner as i16) << 1)
+            | ((result.kind as i16) << 2);
         let res = self
             .session
             .query(
@@ -441,11 +443,12 @@ impl Db {
     pub async fn record_ratings(
         &self,
         ratings: &[UserRatingSnapshot; 4],
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         println!("new ratings: {:?}", ratings);
 
         let now = Self::to_timestamp(Utc::now());
-        let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] = [(UserID::nil(), now, 0, 0); 4];
+        let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] =
+            [(UserID::nil(), now, 0, 0); 4];
         for (i, snap) in ratings.iter().enumerate() {
             rows[i] = (snap.uid, now, snap.rating, snap.deviation);
         }
@@ -457,7 +460,7 @@ impl Db {
         for _i in 0..4 {
             batch.append_statement(prepared.clone());
         }
-        let res = self.session.batch(&batch, ( &rows[0..3],)).await;
+        let res = self.session.batch(&batch, (&rows[0..3],)).await;
         if let Err(e) = res {
             eprintln!("batch error rating_history: {:?}", e);
         }
@@ -469,12 +472,18 @@ impl Db {
         for _i in 0..4 {
             batch2.append_statement(prepared2.clone());
         }
-        let res2 = self.session.batch(&batch2, (
-                (ratings[0].rating, ratings[0].deviation, ratings[0].uid),
-                (ratings[1].rating, ratings[1].deviation, ratings[1].uid),
-                (ratings[2].rating, ratings[2].deviation, ratings[2].uid),
-                (ratings[3].rating, ratings[3].deviation, ratings[3].uid),
-                )).await;
+        let res2 = self
+            .session
+            .batch(
+                &batch2,
+                (
+                    (ratings[0].rating, ratings[0].deviation, ratings[0].uid),
+                    (ratings[1].rating, ratings[1].deviation, ratings[1].uid),
+                    (ratings[2].rating, ratings[2].deviation, ratings[2].uid),
+                    (ratings[3].rating, ratings[3].deviation, ratings[3].uid),
+                ),
+            )
+            .await;
         if let Err(e) = res2 {
             eprintln!("batch error users: {:?}", e);
         }

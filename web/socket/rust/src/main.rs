@@ -10,7 +10,6 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
-mod guest;
 mod b66;
 mod bug_web_sock;
 mod bughouse_server;
@@ -21,6 +20,7 @@ mod firebase;
 mod game;
 mod game_json;
 mod games;
+mod guest;
 // mod adjectives;
 // mod guest;
 // mod nouns;
@@ -62,10 +62,7 @@ async fn main() -> Result<(), io::Error> {
     // let _db = Db::new();
     let adb = Arc::new(db);
     let addr = ServerHandler::new(adb.clone()).start();
-    let server = BughouseServer::get(
-        adb.clone(),
-        addr.clone().recipient(),
-    );
+    let server = BughouseServer::get(adb.clone(), addr.clone().recipient());
 
     // server.start();
     // let addr = (&server).start();
