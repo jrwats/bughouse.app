@@ -25,7 +25,7 @@ const Q: f64 = 0.00287823136624255730697807820206435280852019786834716796875;
 // p =  -------------
 //       Pi^2 400^2   .
 const P: f64 =
-    0.00001007239860196398089828805078038698184172972105443477630615234375;
+  0.0000025180996504909952245720126950967454604324302636086940765380859375;
 
 // #[cached]
 // fn p() -> f64 {
@@ -56,7 +56,7 @@ impl Rating {
                 }
                 sum += (other.deviation as f64).powi(2);
             }
-            attenuating_factors[i] = (P * sum).sqrt().powi(-1);
+            attenuating_factors[i] = (P * sum + 1f64).sqrt().powi(-1);
         }
         attenuating_factors
     }
@@ -93,15 +93,15 @@ impl Rating {
             let f = attenuating_factors[i];
             let e = expecteds[i];
             let denom = (snap.deviation as f64).powi(-2)
-                + Q.powi(2)
-                + f.powi(2) * e * (1f64 - e);
-            let k_factor = Q * f / denom;
+                + (Q.powi(2) * f.powi(2) * e * (1f64 - e));
+            let k_factor = (Q * f / denom).max(16_f64);
             let w = if (i == 0 || i == 3) == (winners == Team::A) {
                 1f64
             } else {
                 0f64
             };
-            snap.rating = snap.rating + (k_factor * (w - e)).round() as i16;
+            let delta = (k_factor * (w - e)).round() as i16;
+            snap.rating = snap.rating + ((k_factor * (w - e)).round() as i16);
             snap.deviation = denom.sqrt().powi(-1).round() as i16;
         }
     }
@@ -132,7 +132,6 @@ impl Rating {
         }
         Self::update_snapshots(&mut snaps, winning_team);
         snaps
-        // ((snaps[0].clone(), snaps[1].clone()), (snaps[2].clone(), snaps[3].clone()))
     }
 }
 

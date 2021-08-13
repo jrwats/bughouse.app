@@ -40,11 +40,9 @@ const HandleEdit = ({handle}) => {
     )
   }
   const onSubmit = (evt) => {
-    debugger;
     const newHandle = textInput.current.querySelector('input').value;
     socket.sendEvent('setHandle', {handle: newHandle});
     evt.preventDefault();
-    // return true;
   };
   return (
     <form onSubmit={onSubmit} noValidate autoComplete="off">

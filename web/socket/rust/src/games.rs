@@ -272,12 +272,8 @@ impl Games {
     pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
         let game_json =
             GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
-        println!("Notifying game players {:?}", game_json);
         Self::debug_print_clocks(ar_game.clone());
-        let _msg = self.notify_observers(ar_game.clone(), game_json);
-        // if ar_game.read().unwrap().get_result().is_some() {
-        //     self.rm_game(ar_game.read().unwrap().get_id());
-        // }
+        self.notify_observers(ar_game.clone(), game_json);
     }
 
     pub fn is_in_game(&self, uid: &UserID) -> bool {

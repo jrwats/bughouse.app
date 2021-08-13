@@ -56,7 +56,7 @@ pub struct FirebaseRowData {
 // User's GLICKO rating snapshot before game start
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
-    uid: UserID,
+    pub uid: UserID,
     pub rating: i16,
     pub deviation: i16,
 }
@@ -445,7 +445,6 @@ impl Db {
         ratings: &[UserRatingSnapshot; 4],
     ) -> Result<(), Error> {
         println!("new ratings: {:?}", ratings);
-
         let now = Self::to_timestamp(Utc::now());
         let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] =
             [(UserID::nil(), now, 0, 0); 4];
@@ -460,7 +459,7 @@ impl Db {
         for _i in 0..4 {
             batch.append_statement(prepared.clone());
         }
-        let res = self.session.batch(&batch, (&rows[0..3],)).await;
+        let res = self.session.batch(&batch, &rows[0..4]).await;
         if let Err(e) = res {
             eprintln!("batch error rating_history: {:?}", e);
         }

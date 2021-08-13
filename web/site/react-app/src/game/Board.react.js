@@ -17,9 +17,11 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const game = chessboard.getGame();
   useEffect(() => {
     const onUpdate = (_) => {
+      console.log(`board.react.update(...)`);
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       setFEN(board.fen);
+      console.log(`fen: ${board.fen}`);
       setHoldings(holdings);
       setViewOnly(
         forming || 
@@ -56,6 +58,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
 
+  console.log(`board.react fen: ${fen}`);
+  // animation={{ enabled: false, duration: 150 }} 
   return (
     <div style={{ display: "inline-block", width: "50%" }}>
       <BoardGutter forming={forming} color={opposite(orientation)} chessboard={chessboard} />
@@ -85,8 +89,10 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             console.log(`onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`);
             // Send UCI formatted move
             socket.sendEvent("move", { id: gameID, move: `${from}${to}` });
+            // Done so that a gameUpdate will trigger a re-render if the move was illegal
+            setFEN(null); 
           }}
-          animation={{ enabled: true, duration: 150 }}
+          animation={{ enabled: false }} 
           viewOnly={viewOnly}
           orientation={orientation}
           pieceKey={true}

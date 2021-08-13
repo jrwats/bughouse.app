@@ -147,15 +147,16 @@ impl Handler<ServerMessage> for ServerHandler {
                                 ServerMessageKind::CheckGame(game_id),
                             ));
                         });
+                        srv.update_game_observers(lgame);
                         checkers.insert(game_id, checker);
                     } else if result.is_none() {
                         // Timer handler detected a flag, find the flaggee,
                         // record the result, and notify all observers
-                        let mut game = lgame.write().unwrap();
-                        game.end_game();
-                    }
-                    srv.update_game_observers(lgame.clone());
-                    if get_result(lgame.clone()).is_some() {
+                        {
+                            let mut game = lgame.write().unwrap();
+                            game.end_game();
+                        }
+                        srv.update_game_observers(lgame.clone());
                         let fut = self.srv(ctx).record_game(lgame);
                         return Box::pin(async move { fut.await });
                     }
@@ -640,6 +641,19 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
+    fn update_user_rating(
+        &self, 
+        rating_snapshot: &UserRatingSnapshot,
+        ) -> Result<(), Error> {
+        let maybe_user = self.users.get(&rating_snapshot.uid);
+        if let Some(user) = maybe_user {
+            let mut wuser = user.write().unwrap();
+            wuser.rating = rating_snapshot.rating;
+            wuser.deviation = rating_snapshot.deviation;
+        }
+        Ok(())
+    }
+
     async fn record_game(
         &'static self,
         game: Arc<RwLock<Game>>,
@@ -651,6 +665,11 @@ impl BughouseServer {
             println!("updating ratings...");
             let snaps = Rating::get_updated_ratings(game.clone());
             self.db.record_ratings(&snaps).await?;
+            for rating_snapshot in snaps.iter() {
+                if self.update_user_rating(rating_snapshot).is_err() {
+                    eprintln!("Failed updating in-memory user rating {}", rating_snapshot.uid)
+                }
+            }
             println!("updated ratings.");
         }
         self.games.rm_game(game.read().unwrap().get_id());

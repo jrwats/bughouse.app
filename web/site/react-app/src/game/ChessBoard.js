@@ -14,6 +14,7 @@ class ChessBoard extends EventEmitter {
   }
 
   update({ board, holdings }) {
+    console.log(`ChessBoard.update(...)`);
     // invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     this._board = board;
     this._holdings = holdings;

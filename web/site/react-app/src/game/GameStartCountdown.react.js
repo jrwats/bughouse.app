@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 const GameStartCountdown = ({start}) => {
+  const getSecsTilStart = () => Math.round(((start || 0) - Date.now()) / 1000);
   let [now, setNow] = useState(Date.now());
-  const getSecsTilStart = () => Math.round((start - Date.now()) / 1000);
-  let [count, setCount] = useState(getSecsTilStart);
+  let [count, setCount] = useState(getSecsTilStart());
   const msTilStart = start - Date.now();
   if (msTilStart < 0 || isNaN(msTilStart)) {
     return null;
+  }
+  if (isNaN(count)) {
+    debugger;
   }
   setTimeout(() => {
     setCount(getSecsTilStart());

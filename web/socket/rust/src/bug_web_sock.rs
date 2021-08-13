@@ -359,6 +359,7 @@ impl BugWebSock {
                 if let Err(e) = res {
                     eprintln!("move err: {}", e);
                     let game_msg = self.data.server.get_game_msg(game_id)?;
+                    eprintln!("sending: {}", game_msg);
                     ctx.text(game_msg);
                 };
             }
