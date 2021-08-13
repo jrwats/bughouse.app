@@ -641,15 +641,36 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
+
+    fn send_new_rating(
+        &self,
+        user: Arc<RwLock<User>>,
+        ) {
+        let ruser = user.read().unwrap();
+        let json = json!({
+            "kind": "login",
+            "handle": ruser.handle, // TODO only needed for hacky SocketProxy.js logic
+            "uid": ruser.id,
+            "rating": ruser.rating,
+            "deviation": ruser.deviation,
+        });
+        let bytestr = Arc::new(ByteString::from(json.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        self.conns.send_to_user(ruser.id, &msg);
+    }
+
     fn update_user_rating(
         &self, 
         rating_snapshot: &UserRatingSnapshot,
         ) -> Result<(), Error> {
         let maybe_user = self.users.get(&rating_snapshot.uid);
         if let Some(user) = maybe_user {
-            let mut wuser = user.write().unwrap();
-            wuser.rating = rating_snapshot.rating;
-            wuser.deviation = rating_snapshot.deviation;
+            {
+                let mut wuser = user.write().unwrap();
+                wuser.rating = rating_snapshot.rating;
+                wuser.deviation = rating_snapshot.deviation;
+            }
+            self.send_new_rating(user);
         }
         Ok(())
     }
