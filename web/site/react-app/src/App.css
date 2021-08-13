@@ -176,6 +176,10 @@ body .dark {
   min-width: 220px;
 }
 
+#promoDialog {
+  overflow: hidden
+}
+
 .challenge {
   display: flex;
   justify-content: space-evenly;

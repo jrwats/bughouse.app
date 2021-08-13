@@ -1,12 +1,15 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Chessground from "react-chessground";
 import Holdings from "./Holdings.react";
 import BoardGutter from "./BoardGutter.react";
+import PromotionDialog from "./PromotionDialog.react";
 import "./chessground.css";
 import { SocketContext } from "../socket/SocketProvider";
 import { opposite } from "chessground/util";
 import GameOverMessage from "./GameOverMessage.react";
 import invariant from "invariant";
+import { PIECES } from "./Piece";
+
 
 const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
@@ -14,6 +17,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
+  const [promoVisible, setPromoVisible] = useState(false);
+  const pendingMove = useRef({});
   const game = chessboard.getGame();
   useEffect(() => {
     const onUpdate = (_) => {
@@ -57,7 +62,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   if (finished) {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
-
+  console.log(`orientation: ${orientation}`);
   console.log(`board.react fen: ${fen}`);
   // animation={{ enabled: false, duration: 150 }} 
   return (
@@ -85,7 +90,13 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           ref={chessgroundRef}
           key={chessboard.getID()}
           fen={fen}
-          onMove={(from, to) => {
+          onMove={(from, to, e) => {
+            const pieces = chessgroundRef.current.cg.state.pieces;
+            if (/[18]$/.test(to) && pieces.get(to)?.role === PIECES.PAWN) {
+              setPromoVisible(true);
+              pendingMove.current = {from, to};
+              return;
+            }
             console.log(`onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`);
             // Send UCI formatted move
             socket.sendEvent("move", { id: gameID, move: `${from}${to}` });
@@ -103,6 +114,19 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           }}
           style={{ display: "inline-block" }}
         />
+        <PromotionDialog 
+          color={orientation}
+          open={promoVisible}
+          onClose={(piece) => { 
+            let {from, to} = pendingMove.current;
+            if (to != null && piece !== 'x') {
+              socket.sendEvent("move", {id: gameID, move: `${from}${to}${piece}` });
+            } else if (piece === 'x') {
+              console.error(`How was promotion dialog open?`);
+            }
+            setPromoVisible(false);
+          }}
+          selectedValue={'x'} />
       </div>
       <BoardGutter forming={forming} color={orientation} chessboard={chessboard} />
     </div>

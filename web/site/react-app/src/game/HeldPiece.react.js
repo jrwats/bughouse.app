@@ -1,15 +1,8 @@
 import React, { useContext, useState } from "react";
 import Draggable from "react-draggable";
+import { NAMES } from "./Piece";
 import { pos2key } from "chessground/util";
 import { SocketContext } from "../socket/SocketProvider";
-
-const roles = {
-  P: "pawn",
-  R: "rook",
-  N: "knight",
-  B: "bishop",
-  Q: "queen",
-};
 
 const HeldPiece = ({
   boardID,
@@ -58,7 +51,7 @@ const HeldPiece = ({
     if (key == null || chessboard.getColorToMove() !== color) {
       return;
     }
-    chessground.cg.newPiece({ role: roles[piece], color: color }, key);
+    chessground.cg.newPiece({ role: NAMES[piece], color: color }, key);
     chessboard.decrHolding({ color, piece });
     socket.sendEvent("move", { id: gameID, move: `${piece}@${key}` });
   }
@@ -90,7 +83,7 @@ const HeldPiece = ({
         <piece
           data-piece={piece}
           ref={pieceRef}
-          className={`${color} ${roles[piece]}${viewOnly ? " disabled" : ""}`}
+          className={`${color} ${NAMES[piece]}${viewOnly ? " disabled" : ""}`}
           style={{
             position: "absolute",
             visibility: visibility,
