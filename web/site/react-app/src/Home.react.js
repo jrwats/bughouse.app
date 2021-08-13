@@ -17,6 +17,8 @@ const HomeRouter = (props) => {
   } else if (socket.isLoggedIn()) {
     console.log("HomeRouter isLogged in rendering main...");
     return <Main path="/" />;
+  } else {
+    debugger;
   }
   console.log("rendering FICS login...");
   return <FicsLogin path="fics_login" />;

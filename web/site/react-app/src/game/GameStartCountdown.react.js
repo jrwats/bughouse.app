@@ -4,11 +4,8 @@ const GameStartCountdown = ({start}) => {
   let [now, setNow] = useState(Date.now());
   let [count, setCount] = useState(getSecsTilStart());
   const msTilStart = start - Date.now();
-  if (msTilStart < 0 || isNaN(msTilStart)) {
+  if (count < 0 || msTilStart < 0 || isNaN(msTilStart)) {
     return null;
-  }
-  if (isNaN(count)) {
-    debugger;
   }
   setTimeout(() => {
     setCount(getSecsTilStart());
