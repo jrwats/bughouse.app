@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import OnlineUsers from "./OnlineUsers";
-import { AuthContext } from "../auth/AuthProvider";
 
 export const UsersContext = createContext({
   onlineUsers: {},
@@ -23,7 +22,6 @@ const _mapPartners = (partners) => {
 
 const UsersProvider = (props) => {
   const src = OnlineUsers.get();
-  const { user } = useContext(AuthContext);
   const [handleToUser, setHandleToUser] = useState(src.getHandleToUsers());
   const [incomingOffers, setIncomingOffers] = useState(src.getIncomingOffers());
   const [onlineUsers, setOnlineUsers] = useState(src.getUsers());

@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 
 import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
@@ -7,7 +6,7 @@ import firebase from "firebase/app";
 import { AuthContext } from "./auth/AuthProvider";
 
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-const FirebaseLogin = ({ navigate }) => {
+const FirebaseLogin = () => {
   const { pendingInit, user } = useContext(AuthContext);
   if (pendingInit || user != null) {
     console.log(`FirebaseLogin: pendingInit: ${pendingInit}`);
@@ -41,7 +40,7 @@ const FirebaseLogin = ({ navigate }) => {
   // https://github.com/firebase/firebaseui-web
   const uiConfig = {
     // Popup on web, redirect on mobile
-    signInFlow: isMobile ? "redirect" : "popup",
+    signInFlow: "redirect", // isMobile ? "redirect" : "popup",
     signInSuccessUrl: "/",
     callbacks: {
       signInSuccessWithAuthResult: function (authResult, redirectUrl) {
@@ -61,6 +60,14 @@ const FirebaseLogin = ({ navigate }) => {
         // or whether we leave that to developer to handle.
         return isMobile;
       },
+      uiShown: function() {
+        console.log('firebase UI shown');
+        console.log(`currentUser: ${firebase.auth().currentUser}`);
+      },
+      signInFailure: function(err) {
+        debugger;
+        console.error(err);
+      }
     },
     signInOptions,
     // Privacy policy url.

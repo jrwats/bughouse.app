@@ -46,7 +46,7 @@ const ClockDisplay = ({color, chessboard, forming}) => {
       chessboard.off('update', onUpdate);
       _ticker.off('tick', onTick);
     };
-  }, [color, chessboard, forming]);
+  }, [state, color, chessboard, forming]);
 
   if (Number.isNaN(state.ms)) {
     debugger;

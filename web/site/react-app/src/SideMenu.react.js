@@ -10,7 +10,6 @@ import ListItemText from "@material-ui/core/ListItemText";
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
 import MenuIcon from "@material-ui/icons/Menu";
-import PeopleIcon from "@material-ui/icons/People";
 import { Link } from "@reach/router";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import { SocketContext } from "./socket/SocketProvider";
@@ -50,8 +49,8 @@ const StyledMenuItem = withStyles((theme) => ({
 
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const { socket, handle } = useContext(SocketContext);
-  const { isGuest } = useContext(ViewerContext);
+  const { socket } = useContext(SocketContext);
+  const { isGuest, handle } = useContext(ViewerContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -62,7 +61,7 @@ const SideMenu = ({ style }) => {
   };
 
   return (
-    <div style={{ zIndex: "99", ...style }}>
+    <div style={{ zIndex: "50", ...style }}>
       <Button
         style={{
           padding: "2px 2px",
@@ -138,7 +137,7 @@ const SideMenu = ({ style }) => {
           <ListItemIcon>
             <ExitToAppIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary="Sign out" />
+          <ListItemText primary={`Sign out ${handle}`} />
         </StyledMenuItem>
       </StyledMenu>
     </div>

@@ -5,7 +5,7 @@ import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "../user/ViewerProvider";
 import invariant from "invariant";
-import { Redirect } from "@reach/router";
+// import { Redirect } from "@reach/router";
 import { opposite } from "chessground/util";
 import ScreenLock from "./ScreenLock";
 

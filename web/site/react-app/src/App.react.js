@@ -17,8 +17,6 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 Presence.init();
 
 const GuestTable = ({gamePath}) => {
-  const { user } = useContext(AuthContext);
-  // console.log(`user: ${JSON.stringify(user)}`);
   return (
     <>
       <LooseLogin gamePath={gamePath} />

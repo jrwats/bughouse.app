@@ -3,9 +3,7 @@ import React, { useContext } from "react";
 import FicsLogin from "./FicsLogin.react";
 import Loading from "./Loading.react";
 import Main from "./Main.react";
-import SocketProvider, { SocketContext } from "./socket/SocketProvider";
-import UsersProvider from "./user/UsersProvider";
-import ViewerProvider from "./user/ViewerProvider";
+import { SocketContext } from "./socket/SocketProvider";
 import { useNavigate } from "@reach/router";
 import { AuthContext } from "./auth/AuthProvider";
 

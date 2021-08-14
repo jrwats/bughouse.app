@@ -2,7 +2,6 @@ import React from "react";
 import SideMenu from "./SideMenu.react";
 import Bugwho from "./Bugwho.react";
 import Profile from "./user/Profile.react";
-import Arena from "./game/Arena.react";
 import Table from "./game/Table.react";
 
 import { Router } from "@reach/router";

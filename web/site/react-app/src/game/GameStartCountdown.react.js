@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 const GameStartCountdown = ({start}) => {
   const getSecsTilStart = () => Math.round(((start || 0) - Date.now()) / 1000);
-  let [now, setNow] = useState(Date.now());
+  // let [now, setNow] = useState(Date.now());
   let [count, setCount] = useState(getSecsTilStart());
   const msTilStart = start - Date.now();
 
@@ -9,7 +9,7 @@ const GameStartCountdown = ({start}) => {
     setTimeout(() => {
       setCount(getSecsTilStart());
       console.log(`count: ${getSecsTilStart()}`);
-      setNow(Date.now());
+      // setNow(Date.now());
     }, (msTilStart % 1000) || 1000);
   }
 
@@ -32,7 +32,7 @@ const GameStartCountdown = ({start}) => {
       minWidth: "1em",
       textAlign: "center",
       transform: "translate(-50%, -50%)",
-      zIndex: 999,
+      zIndex: 100,
       }}>
       {count}
     </div>

@@ -26,7 +26,8 @@ const LooseLogin = ({ gamePath }) => {
   }, [game]);
   console.log(`LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket.isGuest()}`);
   // user is non-null AND game is either unrated OR the user is not a guest
-  if (pendingInit || user != null && (!rated || !isGuest)) {
+  // eslint-disable no-mixed-operators
+  if (pendingInit || (user != null && (!rated || !isGuest))) {
     return null;
   }
   console.log(`Login displaying login`);
@@ -44,7 +45,7 @@ const LooseLogin = ({ gamePath }) => {
       position: "absolute",
       height: "min(100%, 50vw)",
       width: "100%",
-      zIndex: 999}}>
+      zIndex: 10}}>
     <div id="loginContainer">
       <div id="looseLogin" className="row">
         <div className="column" style={{ padding: "30px" }} >

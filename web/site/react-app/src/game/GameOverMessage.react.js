@@ -10,7 +10,6 @@ import { Link } from "@reach/router";
 const GameOverMessage = ({ chessboard }) => {
   const { handle } = useContext(SocketContext);
   const board = chessboard.getBoard();
-  const game = chessboard.getGame();
   const winnerColor = chessboard.getWinner();
   console.log(`GameOverMessage ${chessboard.getID()}`);
 

@@ -67,7 +67,7 @@ const Team = ({ partnerMap, team }) => {
       e.preventDefault();
     };
     cancel = (
-      <div style={{ zIndex: 99 }}>
+      <div style={{ zIndex: 40 }}>
         <Link
           to="#disband"
           className="hoverExpose"
