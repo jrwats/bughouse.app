@@ -1,0 +1,216 @@
+@font-face {
+  font-family: 'SpaceMono';
+  src: url('fonts/SpaceMono-Regular.ttf') format('truetype');
+}
+
+.App {
+  /* text-align: center; */
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#loginContainer {
+  position: relative;
+  left: 50%;
+  top: 50%;
+  height: 100%;
+}
+
+#looseLogin {
+  position: relative;
+  left: -25%;
+  top: -25%;
+  border-radius: 2rem;
+  box-shadow: "10px 5px 5px #404040";
+  max-width: 800px;
+  background-color: #282c34;
+  /* opacity: 100%; */
+}
+
+#looseLogin.row, #login.row {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.column {
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.hoverExpose {
+  opacity: 80%;
+}
+
+.hoverExpose:hover {
+  opacity: 100%;
+}
+
+body {
+  background-color: #606170;
+  color: #e9e9e9;
+}
+
+.leftBuffer {
+  margin-left: max(2em, 3vw);
+}
+
+.leftPad {
+  padding-left: max(2em, 3vw);
+}
+
+body .mono {
+  font-family: 'SpaceMono', Courier, Roboto;
+}
+
+.med-text {
+  font-size: 1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  /* line-height: 1.6; */
+  letter-spacing: 0.0075em;
+}
+
+.h5 {
+  color: #d0cfe5;
+  text-overflow: ellipsis;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.playerData {
+  display: flex;
+  width: min(100%, 90vh);
+  justify-content: space-around;
+}
+
+.h6 {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  /* font-size: clamp(.5rem, min(2vw, 3vh), 1.5rem); */
+  font-size: 1.2rem;
+  font-weight: 500;
+  /* line-height: 1.6; */
+  letter-spacing: 0.0075em;
+}
+
+.clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
+  font-size: clamp(.5em, min(2vw, 3vh), 1.5em);
+}
+
+
+.roboto {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+body .light {
+  color: #dfdfdf;
+}
+
+body .light label {
+  color: #dfdfdf;
+}
+
+body .dark {
+  color: #303030;
+}
+
+.bold {
+  font-weight: 600;
+}
+
+.grid {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cell {
+  padding: 4px;
+  flex-grow: 0;
+  min-width: 220px;
+}
+
+#promoDialog {
+  overflow: hidden
+}
+
+.challenge {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+body .firebaseui-tos {
+  color: #c0c0e0;
+}
+
+a {
+ text-decoration: none;
+}
+a:link, a:visited {
+  color: #dfdfdf;
+}
+a:hover {
+  color: #ffffff;
+}
+
+a.firebaseui-link, a.firebaseui-link:visited {
+  color: #4255f4;
+}
+
+p a.firebaseui-link, p a.firebaseui-link:visited {
+  color: #dfdfdf;
+}
+
+body .makeStyles-paper-161 {
+  color: #dfdfdf;
+}
+
+.shadow {
+  boxShadow: 10px 5px 5px #404040;
+}

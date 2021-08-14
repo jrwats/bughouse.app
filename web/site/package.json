@@ -1,0 +1,13 @@
+{
+  "name": "bughouse.app",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "serve": "^11.3.2"
+  },
+  "scripts": {
+    "deploy": "gcloud app deploy app.yaml",
+    "build": "cd react-app && yarn build",
+    "start": "serve --cors -s react-app/build"
+  }
+}

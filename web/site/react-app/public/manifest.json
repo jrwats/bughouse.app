@@ -1,0 +1,22 @@
+{
+  "short_name": "Bughouse",
+  "name": "buhouse.app",
+  "description": "Play 2v2 Chess",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "knight_on_board.png",
+      "type": "image/png",
+      "sizes": "84x84"
+    }
+  ],
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "theme_color": "#2a2a2a",
+  "background_color": "#ffffff"
+}

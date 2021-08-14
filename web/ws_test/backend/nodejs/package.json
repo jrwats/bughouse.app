@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "Websocket backend",
+  "main": "index.js",
+  "repository": "https://github.com/jrwats/bughouse",
+  "author": "jrwats",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "ws": "^7.4.6"
+  },
+  "scripts": {
+    "start": "PORT=8090 node index.js"
+  }
+}
