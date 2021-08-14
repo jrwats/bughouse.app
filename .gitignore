@@ -5,3 +5,5 @@ website/env
 
 **/node_modules/
 **.log
+
+.localhost-ssl
