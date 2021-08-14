@@ -3,7 +3,24 @@ Make sure you have `yarn` and `node` (version 12.x.x) available.  [NVM](https://
 
 # Make localhost SSL certs
 * This will enable you to host an `https` (SSL) webserver locally.
-* **For MacOS** Run [these commands](https://github.com/jrwats/bughouse/blob/3f1d2eecf4b3dc0580f71892f4b27021aed935a0/web/socket/app.js#L31-L37)
+```
+ mkdir -p .localhost-ssl
+ sudo openssl genrsa -out .localhost-ssl/localhost.key 2048
+ sudo openssl req -new -x509 -key .localhost-ssl/localhost.key \
+   -out .localhost-ssl/localhost.crt -days 1024 -subj /CN=localhost
+ sudo chmod a+r .localhost-ssl/localhost.key
+```
+## Linx/WSL**
+```
+ sudo cp .localhost-ssl/localhost.crt /usr/local/share/ca-certificats/
+ sudo update-ca-certificates
+```
+
+## Mac
+```
+ sudo security add-trusted-cert -d -r trustRoot -k \
+   /Library/Keychains/System.keychain .localhost-ssl/localhost.crt
+ ```
 in your home directory (`~`)
 * In the `bughouse/web/socket` folder make a symlink to that folder (`.localhost-ssl`)
 ```
