@@ -380,6 +380,20 @@ impl BughouseServer {
         Ok(())
     }
 
+    pub fn get_online_players_msg(
+        &'static self,
+        cursor: Option<UserID>,
+        count: u64,
+        order_by: Option<&str>,
+    ) -> Result<ByteString, Error> {
+
+        let json = json!({
+            "kind": "online_players",
+            "players": [],
+        });
+        Ok(ByteString::from(json.to_string()))
+    }
+
     pub async fn set_handle(
         &'static self,
         handle: String,

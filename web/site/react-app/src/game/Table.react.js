@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from "react";
+import SideMenu from "../SideMenu.react";
 import Board from "./Board.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
@@ -51,7 +52,8 @@ const Table = ({ gamePath }) => {
     variStyle.opacity = '40%'
   }
   return (
-    <div style={{ position: "relative", width: "100%", ...variStyle}}>
+    <div style={{ position: "relative", height: "100%", width: "100%", ...variStyle}}>
+      <SideMenu style={{ position: "absolute" }} />
       {boards}
     </div>
   );

@@ -239,7 +239,7 @@ impl BugWebSock {
         Ok(str_res.to_string())
     }
 
-    fn get_field_usize(
+    fn get_field_u64(
         val: &Value,
         field: &str,
         kind: &str,
@@ -292,7 +292,7 @@ impl BugWebSock {
                     eprintln!("add_seek err: {}", e);
                 }
             }
-            "setHandle" => {
+            "set_handle" => {
                 let handle_str = Self::get_field_str(val, "handle", kind)?;
                 let res =
                     self.data.server.queue_set_handle(handle_str, &self.id);
@@ -318,9 +318,9 @@ impl BugWebSock {
             "sit" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 // TODO implement from_str for BoardID / color
-                let board_idx = Self::get_field_usize(val, "board", kind)?;
+                let board_idx = Self::get_field_u64(val, "board", kind)?;
                 let board_id = BOARD_IDS[board_idx as usize];
-                let color_idx = Self::get_field_usize(val, "color", kind)?;
+                let color_idx = Self::get_field_u64(val, "color", kind)?;
                 let color = ALL_COLORS[color_idx as usize];
                 let res = self
                     .data
@@ -334,9 +334,9 @@ impl BugWebSock {
             "vacate" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 // TODO implement from_str for BoardID / color
-                let board_idx = Self::get_field_usize(val, "board", kind)?;
+                let board_idx = Self::get_field_u64(val, "board", kind)?;
                 let board_id = BOARD_IDS[board_idx as usize];
-                let color_idx = Self::get_field_usize(val, "color", kind)?;
+                let color_idx = Self::get_field_u64(val, "color", kind)?;
                 let color = ALL_COLORS[color_idx as usize];
                 let res = self.data.server.queue_vacate(
                     &game_id,
@@ -348,6 +348,22 @@ impl BugWebSock {
                     eprintln!("sit err: {}", e);
                 }
                 println!("vacate: {:?}", val);
+            }
+            "online_players" => {
+                let cursor = if let Some(uid_str) = val["cursor"].as_str() {
+                    Some(B66::decode_uuid(&uid_str).ok_or_else(|| {
+                        Error::MalformedClientMsg {
+                            reason: "Malformed 'online_players'".to_string(),
+                            msg: "cursor not uuid".to_string(),
+                        }
+                    })?)
+                } else {
+                    None
+                };
+                let count: u64 = Self::get_field_u64(val, "count", kind)?;
+                let order_by = val["order_by"].as_str();
+                let players_msg = self.data.server.get_online_players_msg(cursor, count, order_by)?;
+                ctx.text(players_msg);
             }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;

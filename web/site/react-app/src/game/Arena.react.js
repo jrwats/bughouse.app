@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Board from "./Board.react";
 import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
+import SideMenu from "../SideMenu.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "../user/ViewerProvider";
 import invariant from "invariant";
@@ -114,7 +115,8 @@ const Arena = ({ gamePath }) => {
     boards.reverse();
   }
   return (
-    <div id="arena" style={{ position: "relative", width: "100%" }}>
+    <div id="arena" style={{ position: "relative", height: "100%", width: "100%" }}>
+      <SideMenu style={{ position: "absolute" }} />
       {boards}
       {countdown}
     </div>

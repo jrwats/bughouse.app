@@ -41,7 +41,7 @@ const HandleEdit = ({handle}) => {
   }
   const onSubmit = (evt) => {
     const newHandle = textInput.current.querySelector('input').value;
-    socket.sendEvent('setHandle', {handle: newHandle});
+    socket.sendEvent('set_handle', {handle: newHandle});
     evt.preventDefault();
   };
   return (
