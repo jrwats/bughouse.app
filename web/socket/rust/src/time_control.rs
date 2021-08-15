@@ -8,17 +8,17 @@ pub type TimeID = String;
 
 #[derive(Hash, Debug, PartialEq, FromUserType, IntoUserType)]
 pub struct TimeControl {
-    base: i32, // Base time (in minutes) each player starts with
+    base: i16, // Base time (in minutes) each player starts with
     inc: i16,  // increment in seconds
 }
 
 impl TimeControl {
-    pub fn new(base: i32, inc: i16) -> Self {
+    pub fn new(base: i16, inc: i16) -> Self {
         TimeControl { base, inc }
     }
 
     pub fn get_base_ms(&self) -> i32 {
-        self.base * 60 * 1000
+        (self.base as i32) * 60 * 1000
     }
 
     pub fn get_inc_ms(&self) -> i16 {
@@ -43,10 +43,10 @@ impl std::str::FromStr for TimeControl {
         let (base_str, inc_str) = s
             .split_once('|')
             .ok_or_else(|| TimeControlParseError::new(s))?;
-        let base: i32 = base_str
-            .parse::<i32>()
+        let base = base_str
+            .parse::<i16>()
             .or_else(|_e| Err(TimeControlParseError::new(s)))?;
-        let inc: i16 = inc_str
+        let inc = inc_str
             .parse::<i16>()
             .or_else(|_e| Err(TimeControlParseError::new(s)))?;
         Ok(TimeControl::new(base, inc))

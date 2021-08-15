@@ -4,8 +4,8 @@ CREATE KEYSPACE IF NOT EXISTS bughouse
 USE bughouse;
 
 CREATE TYPE time_control (
-  base int,
-  inc int,
+  base smallint,
+  inc smallint,
 );
 
 CREATE TYPE rating_snapshot (
