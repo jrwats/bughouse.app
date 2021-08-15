@@ -172,6 +172,10 @@ impl ConnectionMgr {
         Some(*sock_conn.uid())
     }
 
+    pub fn online_users(&self) -> Vec<UserID> {
+
+    }
+
     pub fn remove_conn(&self, conn_id: &ConnID) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id).unwrap_or_default();
         {
