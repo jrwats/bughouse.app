@@ -1,10 +1,8 @@
 use bughouse::{BoardID, Color};
-use std::f64::consts;
 use std::sync::{Arc, RwLock};
 
-use crate::db::{TableSnapshot, UserRatingSnapshot};
-use crate::error::Error;
-use crate::game::{BoardPlayers, Game, GamePlayers};
+use crate::db::UserRatingSnapshot;
+use crate::game::Game;
 
 /// Glicko
 pub struct Rating {

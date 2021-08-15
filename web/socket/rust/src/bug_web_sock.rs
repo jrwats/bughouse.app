@@ -2,7 +2,7 @@ use actix::prelude::*;
 // use actix::ResponseFuture;
 use actix_web::*;
 use actix_web_actors::ws;
-use bughouse::{BoardID, BughouseMove, ALL_COLORS, BOARD_IDS};
+use bughouse::{BughouseMove, ALL_COLORS, BOARD_IDS};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use serde_json::{json, Value};
@@ -16,7 +16,6 @@ use crate::connection_mgr::ConnID;
 use crate::db::Db;
 use crate::error::Error;
 use crate::game::GameID;
-use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -173,9 +172,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
-                self.data.server.on_close(&ctx.address().recipient());
                 ctx.close(reason);
                 ctx.stop();
+                self.data.server.on_close(&ctx.address().recipient());
             }
             _ => ctx.stop(),
         }
@@ -207,8 +206,11 @@ impl BugWebSock {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb_instant) > CLIENT_TIMEOUT {
-                eprintln!("Websocket Client heartbeat failed, disconnecting!");
+                eprintln!("WS Client heartbeat timeout, disconnecting: {}", act.id);
+                let close_reason = ws::CloseReason::from((ws::CloseCode::Policy, "Heartbeat timeout"));
+                ctx.close(Some(close_reason));
                 ctx.stop();
+                act.data.server.on_close(&ctx.address().recipient());
                 return;
             }
             ctx.ping(b"");

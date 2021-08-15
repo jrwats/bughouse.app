@@ -1,9 +1,7 @@
 use bughouse::{BoardID, Color};
-use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::game::{Game, GamePlayers};
-use crate::users::User;
 
 pub struct Player {
     id: UserID,

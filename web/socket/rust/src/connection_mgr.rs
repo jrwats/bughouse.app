@@ -200,7 +200,7 @@ impl ConnectionMgr {
             )))?;
             conns.remove(conn_id);
         }
-        println!("Removed {}", conn_id);
+        println!("ConnectionMgr::remove_conn: {}", conn_id);
         Ok(())
     }
 
