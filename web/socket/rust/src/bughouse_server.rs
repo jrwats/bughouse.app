@@ -641,11 +641,7 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
-
-    fn send_new_rating(
-        &self,
-        user: Arc<RwLock<User>>,
-        ) {
+    fn send_new_rating(&self, user: Arc<RwLock<User>>) {
         let ruser = user.read().unwrap();
         let json = json!({
             "kind": "login",
@@ -660,9 +656,9 @@ impl BughouseServer {
     }
 
     fn update_user_rating(
-        &self, 
+        &self,
         rating_snapshot: &UserRatingSnapshot,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         let maybe_user = self.users.get(&rating_snapshot.uid);
         if let Some(user) = maybe_user {
             {
@@ -688,7 +684,10 @@ impl BughouseServer {
             self.db.record_ratings(&snaps).await?;
             for rating_snapshot in snaps.iter() {
                 if self.update_user_rating(rating_snapshot).is_err() {
-                    eprintln!("Failed updating in-memory user rating {}", rating_snapshot.uid)
+                    eprintln!(
+                        "Failed updating in-memory user rating {}",
+                        rating_snapshot.uid
+                    )
                 }
             }
             println!("updated ratings.");

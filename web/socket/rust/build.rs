@@ -24,9 +24,13 @@ fn write_file(
         count = count + 1;
     }
     let def = format!(
-        "const WORDS: [&'static str; {}] = [\n{}];\npub fn {}() -> &'static [&'static str; {}] {{\n    return &WORDS;\n}}",
+        "const WORDS: [&'static str; {}] = [\n\
+        {}];\n\
+        pub fn {}() -> &'static [&'static str; {}] {{\n\
+        \x20   return &WORDS;\n\
+        }}\n",
         count, array_body, fn_name, count,
-        );
+    );
     fs::write(Path::new("src/guest").join(dest_file), def).unwrap();
     Ok(())
 }
