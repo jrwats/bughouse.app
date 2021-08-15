@@ -21,11 +21,6 @@ class OnlineUsers extends EventEmitter {
     console.log(`OnlineUsers ${Date.now()}`);
     this._socket = socket;
 
-    const onBugwho = (bug) => {
-      console.log(`onBugwho ${bug}`);
-      onPartners(bug.partners);
-      this._onUnpartneredHandles(bug.unpartnered);
-    };
     const onPartners = (partners) => {
       console.log(`OnlineUsers partners`);
       console.log(partners);
@@ -61,7 +56,9 @@ class OnlineUsers extends EventEmitter {
       delete this._outgoingOffers[handle];
       this.emit("outgoingOffers", this._outgoingOffers);
     };
-    socket.on("bugwho", onBugwho);
+    const onLogin = (data) => {
+      socket.sendEvent("online_players", {count: 0, cursor: null});
+    }
     socket.on("unpartneredHandles", (handles) => {
       this._onUnpartneredHandles(handles);
     });
@@ -70,6 +67,7 @@ class OnlineUsers extends EventEmitter {
     socket.on("incomingOffer", onIncomingOffer);
     socket.on("outgoingOfferCancelled", onOutgoingCancelled);
     socket.on("pending", onPending);
+    socket.on("login", onLogin);
     socket.on("logout", onLogout);
     socket.on("unpartnered", ({ user }) => {
       if (!(user.uid in this._users)) {
@@ -87,9 +85,17 @@ class OnlineUsers extends EventEmitter {
       console.error(`Unpartnered ${handle} not found?`);
     });
 
-    socket.on("online_users", (snapshot) => {
-      // TODO
+    socket.on("online_players", ({players}) => {
+      if (players == null) {
+        return;
+      }
+      this._users = {};
+      for (const [uid, handle, rating] of players) {
+        this._users[uid] = {uid, handle, rating};
+      }
+      this.emit('value', this._users);
     });
+    socket.sendEvent("online_players", {count: 0, cursor: null});
   }
 
   _onUnpartneredHandles(unpartneredFicsPlayers) {
@@ -206,11 +212,13 @@ class OnlineUsers extends EventEmitter {
   }
 }
 
-const singleton = new OnlineUsers(SocketProxy.singleton());
-window.__onlineUsers = singleton;
-
+let singleton = null;
 const OnlineUsersGetter = {
   get() {
+    if (singleton == null) {
+      singleton = new OnlineUsers(SocketProxy.get());
+      window.__onlineUsers = singleton;
+    }
     return singleton;
   },
 };

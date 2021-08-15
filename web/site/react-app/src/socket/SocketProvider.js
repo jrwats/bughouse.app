@@ -36,7 +36,6 @@ const SocketProvider = (props) => {
       setLoggedOut(false);
     };
     const onLogin = ({ handle }) => {
-      console.log(`SocketProvider.login(${handle})`);
       setHandle(handle);
       setLoggedOut(false);
     };

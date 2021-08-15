@@ -172,8 +172,18 @@ impl ConnectionMgr {
         Some(*sock_conn.uid())
     }
 
-    pub fn online_users(&self) -> Vec<UserID> {
-
+    pub fn online_users(&self) -> HashMap<UserID, Arc<RwLock<User>>> {
+        let mut res: HashMap<UserID, Arc<RwLock<User>>> = HashMap::new();
+        for (user_id, conns) in self.user_conns.read().unwrap().iter() {
+            if conns.len() > 0 {
+                if let Some(user) = self.users.get(user_id) {
+                    res.insert(*user_id, user);
+                } else {
+                    eprintln!("conn_mgr:online_users Couldn't get online user?");
+                }
+            }
+        }
+        res
     }
 
     pub fn remove_conn(&self, conn_id: &ConnID) -> Result<(), Error> {

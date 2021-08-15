@@ -13,6 +13,7 @@ use std::sync::{Arc, RwLock};
 // use timer::Timer;
 // use std::thread;
 
+use crate::b66::B66;
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
@@ -382,14 +383,20 @@ impl BughouseServer {
 
     pub fn get_online_players_msg(
         &'static self,
-        cursor: Option<UserID>,
-        count: u64,
-        order_by: Option<&str>,
+        _cursor: Option<UserID>,
+        _count: u64,
+        _order_by: Option<&str>,
     ) -> Result<ByteString, Error> {
-
+        let mut players: Vec<(String, String, Option<i16>)> = Vec::new();
+        for (uid, user) in self.conns.online_users().iter() {
+            let ruser = user.read().unwrap();
+            let rating: Option<i16> = if ruser.guest { None } else { Some(ruser.rating) };
+            let row = (B66::encode_uuid(*uid), ruser.handle.clone(), rating);
+            players.push(row);
+        }
         let json = json!({
             "kind": "online_players",
-            "players": [],
+            "players": players,
         });
         Ok(ByteString::from(json.to_string()))
     }

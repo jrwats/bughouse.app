@@ -29,6 +29,7 @@ const PASSTHRU_EVENTS = [
   'incomingOffer',
   'incomingPartnerChallenge',
   'outgoingOfferCancelled',
+  'online_players',
   'partners',
   'pending',
   'table',

@@ -1,8 +1,9 @@
-import React from "react";
-import SideMenu from "./SideMenu.react";
 import Bugwho from "./Bugwho.react";
 import Profile from "./user/Profile.react";
+import React from "react";
+import SideMenu from "./SideMenu.react";
 import Table from "./game/Table.react";
+import Typography from '@material-ui/core/Typography';
 
 import { Router } from "@reach/router";
 import FicsTelnetOutput from "./FicsTelnetOutput";
@@ -21,6 +22,11 @@ const Main = (props) => {
           width: "100%",
         }}
       >
+        <div style={{}}>
+          <Typography variant="h6">
+            <span style={{fontWeight: "bold"}}>bughouse</span>.app
+          </Typography>
+        </div>
         <Router>
           <Table path="/table/:gamePath" />
           <Bugwho path="/" />
