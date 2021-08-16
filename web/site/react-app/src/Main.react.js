@@ -19,7 +19,7 @@ const Main = (props) => {
           marginLeft: "3em",
           position: "absolute",
           height: "100%",
-          width: "100%",
+          width: "calc(100% - 4em)",
         }}
       >
         <div style={{}}>

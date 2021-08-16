@@ -12,7 +12,7 @@ import { UsersContext } from "./UsersProvider";
 
 const useStyles = makeStyles({
   table: {
-    minWidth: "20vw",
+    minWidth: "20em",
   },
 });
 

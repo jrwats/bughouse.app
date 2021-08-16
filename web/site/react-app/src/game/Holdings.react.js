@@ -52,10 +52,11 @@ const Holdings = ({
   return (
     <div
       style={{
-        display: "inline-block",
-        position: "relative",
-        height: "100%",
-        width: "min(5vw, 10vh)",
+        // display: "inline-block",
+        // position: "relative",
+        // height: "100%",
+        // width: "min(5vw, 10vh)",
+        flex: "1 1 0",
       }}
     >
       <PlayerHoldings

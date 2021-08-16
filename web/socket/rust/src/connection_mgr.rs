@@ -110,12 +110,14 @@ impl ConnectionMgr {
                 None => {
                     let set: HashSet<ConnID> =
                         [conn_id].iter().cloned().collect();
+                    eprintln!("1st conn for uid, {}: {}", uid, conn_id);
                     u2c.insert(uid, set);
                 }
                 Some(v) => {
                     if !v.insert(conn_id) {
                         eprintln!("user_conn collision: {}", conn_id);
                     }
+                    eprintln!("Nth conn for uid, {}: {}", uid, conn_id);
                 }
             }
         }
@@ -176,6 +178,7 @@ impl ConnectionMgr {
         let mut res: HashMap<UserID, Arc<RwLock<User>>> = HashMap::new();
         for (user_id, conns) in self.user_conns.read().unwrap().iter() {
             if conns.len() > 0 {
+                eprintln!("{} conns: {:?}", user_id, conns);
                 if let Some(user) = self.users.get(user_id) {
                     res.insert(*user_id, user);
                 } else {
@@ -198,7 +201,10 @@ impl ConnectionMgr {
                 "Couldn't find user: {}",
                 &uid
             )))?;
+            eprintln!("Removing conn for uid, {}: {}", uid, conn_id);
             conns.remove(conn_id);
+        } else {
+            eprintln!("uid nil for conn: {}", conn_id);
         }
         println!("ConnectionMgr::remove_conn: {}", conn_id);
         Ok(())

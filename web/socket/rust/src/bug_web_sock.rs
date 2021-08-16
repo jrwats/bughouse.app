@@ -172,11 +172,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
                 eprintln!("Got binary message? {:?}", bin);
             }
             Ok(ws::Message::Close(reason)) => {
-                ctx.close(reason);
-                ctx.stop();
+                eprintln!("StreamHandler ws_msg_close: {}", self.id);
                 self.data.server.on_close(&ctx.address().recipient());
+                // let heartbeat pick up closure
+                // ctx.close(reason);
+                // ctx.stop();
             }
-            _ => ctx.stop(),
+            _ => {
+                eprintln!("!!!!!!!!! WUT IS THIS? !!!!!!!!!");
+                ctx.stop();
+            }
         }
     }
 }
@@ -206,12 +211,14 @@ impl BugWebSock {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb_instant) > CLIENT_TIMEOUT {
-                eprintln!("WS Client heartbeat timeout, disconnecting: {}", act.id);
+                eprintln!("heartbeat timeout, disconnecting: {}", act.id);
+                act.data.server.on_close(&ctx.address().recipient());
                 let close_reason = ws::CloseReason::from((ws::CloseCode::Policy, "Heartbeat timeout"));
                 ctx.close(Some(close_reason));
                 ctx.stop();
-                act.data.server.on_close(&ctx.address().recipient());
                 return;
+            } else {
+                eprintln!("heartbeat: {}", act.id);
             }
             ctx.ping(b"");
         });

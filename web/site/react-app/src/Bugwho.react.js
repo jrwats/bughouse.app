@@ -2,6 +2,7 @@ import React from "react";
 // import Unpartnered from "./Unpartnered.react";
 // import Teams from "./Teams.react";
 // import Offers from "./Offers.react";
+import Box from '@material-ui/core/Box';
 import GamingLanding from "./GamingLanding.react";
 import Grid from '@material-ui/core/Grid';
 // import GamesList from "./GamesList.react";
@@ -26,21 +27,33 @@ const Bugwho = (props) => {
     <UsersProvider>
       <GamesListProvider>
         <ChallengesProvider>
-          <div style={{}}>
-            <Grid container spacing={1}>
-              <Grid item alignItems="center" spacing={1} xs={3}>
+          {/* <div style={{flexGrow: 1}}> */}
+            <Box
+              display="flex"
+              flexWrap="wrap"
+              p={1}
+              m={1}
+              sx={{maxWidth: "3em"}}
+            >
+            {/* <Grid container spacing={1}> */}
+              <Box p={1}>
+              {/* <Grid item alignItems="center" spacing={1} xs={4}> */}
                 <OnlinePlayers />
-              </Grid>
-              <Grid item  spacing={1} xs={8}>
+              {/* </Grid> */}
+              </Box>
+              <Box p={1}>
+              {/* <Grid item  spacing={1} xs={3}> */}
                 <GamingLanding />
-              </Grid>
-            </Grid>
+              {/* </Grid> */}
+              </Box>
+            </Box>
+            {/* </Grid> */}
             {/* <Challenges /> */}
             {/* <GamesList /> */}
             {/* <Teams {...{partners, onlineUsers, partnerMap}} /> */}
             {/* <Offers {...{unpartnered, incomingOffers}} /> */}
             {/* <Unpartnered unpartnered={unpartnered} /> */}
-          </div>
+          {/* </div> */}
         </ChallengesProvider>
       </GamesListProvider>
     </UsersProvider>

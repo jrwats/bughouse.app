@@ -117,7 +117,12 @@ const Arena = ({ gamePath }) => {
   return (
     <div id="arena" style={{ position: "relative", height: "100%", width: "100%" }}>
       <SideMenu style={{ position: "absolute" }} />
-      {boards}
+      <div style={{
+        width: "calc(100% - 3em)",
+        marginLeft: "3em"
+        }}>
+        {boards}
+      </div>
       {countdown}
     </div>
   );
