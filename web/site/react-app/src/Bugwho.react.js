@@ -4,7 +4,6 @@ import React from "react";
 // import Offers from "./Offers.react";
 import Box from '@material-ui/core/Box';
 import GamingLanding from "./GamingLanding.react";
-import Grid from '@material-ui/core/Grid';
 // import GamesList from "./GamesList.react";
 // import Challenges from "./Challenges.react";
 import UsersProvider from "./user/UsersProvider";

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./chessground.css";
 import BoardGutter from "./BoardGutter.react";
 import Box from '@material-ui/core/Box';
@@ -136,7 +136,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
                     const pieces = chessgroundRef.current.cg.state.pieces;
                     const sideToMove = fen.split(' ')[1];
                     const colorToMove = sideToMove === 'w' ? 'white' : 'black';
-                    if (sideToMove === colorToMove &&
+                    if (handleColor === colorToMove &&
                       pieces.get(to)?.role === PIECES.PAWN &&
                       (to[1] === '1' && sideToMove === 'b' ||
                         to[1] === '8' && sideToMove === 'w')) {
