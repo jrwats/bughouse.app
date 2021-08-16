@@ -59,22 +59,12 @@ async fn main() -> Result<(), io::Error> {
     env_logger::init();
 
     let db = Db::new().await.expect("Could not start DB");
-    // let _db = Db::new();
     let adb = Arc::new(db);
     let addr = ServerHandler::new(adb.clone()).start();
     let server = BughouseServer::get(adb.clone(), addr.clone().recipient());
 
-    // server.start();
-    // let addr = (&server).start();
-    // let addr = server.get_addr();
-    // server.set_loopback(bug_srv.clone().recipient());
-
     println!("starting server...");
-    println!("started");
-    eprintln!("testing STDERR");
 
-    // let server = BughouseServer::startup().await.expect("Couldn't start server");
-    // let srv = Arc::new(server);
     HttpServer::new(move || {
         let context = BugContext::create(
             addr.to_owned().recipient(),
@@ -88,7 +78,6 @@ async fn main() -> Result<(), io::Error> {
             .wrap(middleware::Logger::default())
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
-            // route(web::get().to(move |r, s| { ws_index(r, s, srv_cp.clone()) })))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })

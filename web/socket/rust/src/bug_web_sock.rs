@@ -77,6 +77,11 @@ impl Actor for BugWebSock {
     fn started(&mut self, ctx: &mut Self::Context) {
         self.on_start(ctx);
     }
+
+    fn stopped(&mut self, ctx: &mut Self::Context) {
+        eprintln!("stopped: {}", self.id);
+        self.data.server.on_close(&ctx.address().recipient());
+    }
 }
 
 /// BughouseSever sends these messages to Socket session
@@ -173,10 +178,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
             }
             Ok(ws::Message::Close(reason)) => {
                 eprintln!("StreamHandler ws_msg_close: {}", self.id);
-                self.data.server.on_close(&ctx.address().recipient());
                 // let heartbeat pick up closure
-                // ctx.close(reason);
-                // ctx.stop();
+                ctx.close(reason);
+                ctx.stop();
             }
             _ => {
                 eprintln!("!!!!!!!!! WUT IS THIS? !!!!!!!!!");
@@ -212,13 +216,10 @@ impl BugWebSock {
             // check client heartbeats
             if Instant::now().duration_since(act.hb_instant) > CLIENT_TIMEOUT {
                 eprintln!("heartbeat timeout, disconnecting: {}", act.id);
-                act.data.server.on_close(&ctx.address().recipient());
                 let close_reason = ws::CloseReason::from((ws::CloseCode::Policy, "Heartbeat timeout"));
                 ctx.close(Some(close_reason));
                 ctx.stop();
                 return;
-            } else {
-                eprintln!("heartbeat: {}", act.id);
             }
             ctx.ping(b"");
         });
