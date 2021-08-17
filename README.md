@@ -27,6 +27,9 @@ For now... Google's Firebase.
 We'll want to authenticate users and maintain some kind of identity to help organize games and ~~deduce whether, when playing, someone has bughouse.app functionality or just basic FICS functionalit~~. 
 
  We'll keep track of user's ratings for "rated" games with a Glicko ranking.
+ 
+### DB
+Using [Scylla DB](https://www.scylladb.com/) (Cassandra implementation in C++) via the [rust driver](https://github.com/scylladb/scylla-rust-driver/).  Users, ratings, games, etc all stored here.
 
 **Identity**
 ^ Firebase
