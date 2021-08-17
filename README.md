@@ -31,11 +31,6 @@ We'll want to authenticate users and maintain some kind of identity to help orga
 ### DB
 Using [Scylla DB](https://www.scylladb.com/) (Cassandra implementation in C++) via the [rust driver](https://github.com/scylladb/scylla-rust-driver/).  Users, ratings, games, etc all stored here.
 
-**Identity**
-^ Firebase
-We should hook into Facebook & Google login/auth APIs for easy auth/identity.
-~~Similarly, these accounts we have should be able to store Chess Server backend (FICS) login credentials if the want them.~~
-
 ### Presence "service"
 After authenticating, we should open the **WebSocket** described above.  This single open websocket should keep track of anyone online.
 
