@@ -6,7 +6,6 @@ import Table from "./game/Table.react";
 import Typography from '@material-ui/core/Typography';
 
 import { Router } from "@reach/router";
-import FicsTelnetOutput from "./FicsTelnetOutput";
 
 const Main = (props) => {
   console.log('Main');
@@ -31,7 +30,6 @@ const Main = (props) => {
           <Table path="/table/:gamePath" />
           <Bugwho path="/" />
           <Profile path="/profile" />
-          <FicsTelnetOutput path="fics_console" />
         </Router>
       </div>
     </div>

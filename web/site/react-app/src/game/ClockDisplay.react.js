@@ -11,11 +11,13 @@ const ClockDisplay = ({color, chessboard, forming}) => {
   const lastUpdate = useRef(Math.max(Date.now(), chessboard.getStart() || 0));
   const [state, setState] = useState({
     playerData: chessboard.getBoard()[color],
+    gameOver: false,
     ms: refTime.current,
   });
 
   useEffect(() => {
-    const onUpdate = () => {
+
+    const onUpdate = (data) => {
       const playerData = chessboard.getBoard()[color];
       const milliseconds = playerData.ms;
       if (Number.isNaN(milliseconds)) {
@@ -24,11 +26,15 @@ const ClockDisplay = ({color, chessboard, forming}) => {
         refTime.current = milliseconds;
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
-      setState({ playerData, ms: refTime.current });
+      setState({ 
+        gameOver: data.result != null,
+        playerData,
+        ms: refTime.current 
+      });
     }
 
     const onTick = () => {
-      if (forming || 
+      if (forming || state.gameOver ||
         chessboard.getColorToMove() !== color ||
         Date.now() < chessboard.getStart()
       ) {

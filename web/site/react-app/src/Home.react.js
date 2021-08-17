@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 
-import FicsLogin from "./FicsLogin.react";
 import Loading from "./Loading.react";
 import Main from "./Main.react";
 import { SocketContext } from "./socket/SocketProvider";
@@ -18,8 +17,8 @@ const HomeRouter = (props) => {
   } else {
     debugger;
   }
-  console.log("rendering FICS login...");
-  return <FicsLogin path="fics_login" />;
+  console.log("Not logged in?");
+  return <Loading path="loading" />;
 };
 
 const Home = (props) => {

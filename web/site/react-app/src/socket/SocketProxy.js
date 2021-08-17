@@ -264,7 +264,6 @@ class SocketProxy extends EventEmitter {
     this.emit("logging_in", { user: this._user });
     this._loggedOut = false;
     console.log(`${this._gcn()} creds: ${JSON.stringify(creds)}`);
-    this._send("fics_login", creds);
     console.log(`Sent 'login' to socket`);
     return new Promise((resolve, reject) => {
       this._sock.once("login", resolve);
@@ -284,7 +283,6 @@ class SocketProxy extends EventEmitter {
 
   logout() {
     console.log(`${this._gcn()}.logout`);
-    this._sock.send("fics_logout");
     this._logout();
   }
 
