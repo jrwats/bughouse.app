@@ -229,6 +229,22 @@ impl BughouseServer {
         self.conns.clone()
     }
 
+    pub fn sub_online_players(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("subbing online");
+        self.conns.sub_online_players(recipient)
+    }
+
+    pub fn unsub_online_players(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("unsubbing online");
+        self.conns.unsub_online_players(recipient)
+    }
+
     pub fn add_seek(
         &'static self,
         time_ctrl: TimeControl,
@@ -314,25 +330,11 @@ impl BughouseServer {
         self.conns.user_from_conn(conn_id)
     }
 
-    // If, on the offchance, that a user disconnects right after game start (and is not present),
-    // try fetching user from DB.
-    pub async fn maybe_user_from_uid(
-        &'static self,
-        uid: &UserID,
-    ) -> Option<Arc<RwLock<User>>> {
-        if let Some(u) = self.users.get(uid) {
-            return Some(u);
-        } else if let Some(user_row) = self.db.get_user(uid).await {
-            return Some(self.users.add(User::from(user_row)));
-        }
-        None
-    }
-
     pub async fn user_from_uid(
         &'static self,
         uid: &UserID,
     ) -> Result<Arc<RwLock<User>>, Error> {
-        if let Some(u) = self.maybe_user_from_uid(uid).await {
+        if let Some(u) = self.users.maybe_user_from_uid(uid).await {
             return Ok(u);
         }
         Err(Error::UnknownUID(*uid))
@@ -387,13 +389,8 @@ impl BughouseServer {
         _count: u64,
         _order_by: Option<&str>,
     ) -> Result<ByteString, Error> {
-        let mut players: Vec<(String, String, Option<i16>)> = Vec::new();
-        for (uid, user) in self.conns.online_users().iter() {
-            let ruser = user.read().unwrap();
-            let rating: Option<i16> = if ruser.guest { None } else { Some(ruser.rating) };
-            let row = (B66::encode_uuid(*uid), ruser.handle.clone(), rating);
-            players.push(row);
-        }
+        let players =
+            ConnectionMgr::get_online_players(self.conns.online_users());
         let json = json!({
             "kind": "online_players",
             "players": players,

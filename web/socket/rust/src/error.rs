@@ -9,7 +9,7 @@ use uuid::Error as UuidError;
 
 use crate::connection_mgr::UserID;
 use crate::game::GameID;
-use crate::messages::ServerMessage;
+use crate::messages::{ClientMessage, ServerMessage};
 
 #[derive(Debug)]
 pub struct TimeControlParseError {
@@ -93,6 +93,9 @@ pub enum Error {
     #[error("mpsc::SendError: {0}")]
     SendError(std::sync::mpsc::SendError<String>),
 
+    #[error("ClientSend: {0}")]
+    ClientSend(actix::prelude::SendError<ClientMessage>),
+
     #[error("ServerSend: {0}")]
     ServerSend(actix::prelude::SendError<ServerMessage>),
 
@@ -159,11 +162,11 @@ impl From<UuidError> for Error {
     }
 }
 
-// impl From<NoneError> for Error {
-//     fn from(err: NoneError) -> Self {
-//         Error::NoneError(err)
-//     }
-// }
+impl From<actix::prelude::SendError<ClientMessage>> for Error {
+    fn from(err: actix::prelude::SendError<ClientMessage>) -> Self {
+        Error::ClientSend(err)
+    }
+}
 
 impl From<actix::prelude::SendError<ServerMessage>> for Error {
     fn from(err: actix::prelude::SendError<ServerMessage>) -> Self {

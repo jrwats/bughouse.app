@@ -1,11 +1,14 @@
 use crate::db::Db;
-use crate::messages::ClientMessage;
+use crate::messages::{ClientMessage, ClientMessageKind};
 use actix::prelude::*;
+use bytestring::ByteString;
+use serde_json::json;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 
 // use std::io::prelude::{Read, Write};
+use crate::b66::B66;
 use crate::error::Error;
 use crate::hash::hash;
 use crate::users::{User, Users};
@@ -38,6 +41,7 @@ pub struct ConnectionMgr {
     conns: RwLock<HashMap<ConnID, SockConn>>,
     user_conns: RwLock<HashMap<UserID, HashSet<ConnID>>>,
     fid_users: RwLock<HashMap<String, UserID>>,
+    subs: RwLock<HashSet<Recipient<ClientMessage>>>,
 }
 
 impl ConnectionMgr {
@@ -48,6 +52,7 @@ impl ConnectionMgr {
             conns: RwLock::new(HashMap::new()),
             user_conns: RwLock::new(HashMap::new()),
             fid_users: RwLock::new(HashMap::new()),
+            subs: RwLock::new(HashSet::new()),
         }
     }
 
@@ -112,6 +117,7 @@ impl ConnectionMgr {
                         [conn_id].iter().cloned().collect();
                     eprintln!("1st conn for uid, {}: {}", uid, conn_id);
                     u2c.insert(uid, set);
+                    self.on_online_user(uid);
                 }
                 Some(v) => {
                     if !v.insert(conn_id) {
@@ -182,11 +188,103 @@ impl ConnectionMgr {
                 if let Some(user) = self.users.get(user_id) {
                     res.insert(*user_id, user);
                 } else {
-                    eprintln!("conn_mgr:online_users Couldn't get online user?");
+                    eprintln!(
+                        "conn_mgr:online_users Couldn't get online user?"
+                    );
                 }
             }
         }
         res
+    }
+
+    pub fn get_online_players(
+        online_users: HashMap<UserID, Arc<RwLock<User>>>,
+    ) -> Vec<(String, String, Option<i16>)> {
+        online_users
+            .iter()
+            .map(|(uid, user)| {
+                let ruser = user.read().unwrap();
+                let rating: Option<i16> = if ruser.guest {
+                    None
+                } else {
+                    Some(ruser.rating)
+                };
+                (B66::encode_uuid(*uid), ruser.handle.clone(), rating)
+            })
+            .collect()
+    }
+
+    pub fn unsub_online_players(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        let mut wsubs = self.subs.write().unwrap();
+        wsubs.remove(&recipient);
+        Ok(())
+    }
+
+    pub fn sub_online_players(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        let mut wsubs = self.subs.write().unwrap();
+        wsubs.insert(recipient);
+        Ok(())
+    }
+
+    fn on_online_user(&self, uid: UserID) -> Result<(), Error> {
+        self.notify_online_subs([uid].iter().cloned().collect(), HashSet::new())
+    }
+
+    fn on_offline_user(&self, uid: UserID) -> Result<(), Error> {
+        self.notify_online_subs(HashSet::new(), [uid].iter().cloned().collect())
+    }
+
+    fn notify_online_subs(
+        &self,
+        online: HashSet<UserID>,
+        offline: HashSet<UserID>,
+    ) -> Result<(), Error> {
+        let players: Vec<(String, String, Option<i16>)> =
+            Self::get_online_players(
+                online
+                    .iter()
+                    .map(|uid| (*uid, self.users.get(uid).unwrap()))
+                    .collect(),
+            );
+        let offline_ids: Vec<String> =
+            offline.iter().map(|uid| B66::encode_uuid(*uid)).collect();
+        let json = json!({
+            "kind": "online_players_update",
+            "offline": offline_ids,
+            "online": players,
+        });
+        let json_str = Arc::new(ByteString::from(json.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(json_str.clone()));
+        println!(
+            "notifying {} subs: {}",
+            self.subs.read().unwrap().len(),
+            json_str
+        );
+        let mut subs_to_remove = HashSet::new();
+        {
+            let rsubs = self.subs.read().unwrap();
+            for sub in rsubs.iter() {
+                let res = sub.do_send(msg.clone());
+                if res.is_err() {
+                    eprintln!(
+                        "Couldn't update sub: {}",
+                        Self::get_conn_id(sub)
+                    );
+                    subs_to_remove.insert(sub.clone());
+                }
+            }
+        }
+        let mut wsubs = self.subs.write().unwrap();
+        for sub in subs_to_remove.iter() {
+            wsubs.remove(sub);
+        }
+        Ok(())
     }
 
     pub fn remove_conn(&self, conn_id: &ConnID) -> Result<(), Error> {
@@ -203,6 +301,9 @@ impl ConnectionMgr {
             )))?;
             eprintln!("Removing conn for uid, {}: {}", uid, conn_id);
             conns.remove(conn_id);
+            if conns.len() == 0 {
+                self.on_offline_user(uid);
+            }
         } else {
             eprintln!("uid nil for conn: {}", conn_id);
         }

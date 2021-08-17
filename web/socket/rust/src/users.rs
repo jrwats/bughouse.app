@@ -52,6 +52,20 @@ impl Users {
         users.get(uid).cloned()
     }
 
+    // If, on the offchance, that a user disconnects right after game start (and is not present),
+    // try fetching user from DB.
+    pub async fn maybe_user_from_uid(
+        &'static self,
+        uid: &UserID,
+    ) -> Option<Arc<RwLock<User>>> {
+        if let Some(u) = self.get(uid) {
+            return Some(u);
+        } else if let Some(user_row) = self.db.get_user(uid).await {
+            return Some(self.add(User::from(user_row)));
+        }
+        None
+    }
+
     pub fn add(&self, user: User) -> Arc<RwLock<User>> {
         let mut users = self.users.write().unwrap();
         let new_user = Arc::new(RwLock::new(user));

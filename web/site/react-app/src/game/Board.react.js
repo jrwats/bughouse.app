@@ -107,6 +107,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           p={1}
           m={1}
           style={{
+            position: "relative",
             margin: 0,
             padding: 0,
             height: "100%",

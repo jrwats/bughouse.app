@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { NAMES } from "./Piece";
 import { pos2key } from "chessground/util";
@@ -16,33 +16,23 @@ const HeldPiece = ({
   viewOnly,
 }) => {
   const disabled = viewOnly || count === 0;
-  const pieceRef = React.useRef(null);
+  const pieceRef = useRef(null);
   const { socket } = useContext(SocketContext);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
-  const relRef = React.useRef(null);
+  const relRef = useRef(null);
 
   const onDrag = (e, coords) => {
     setCoords(coords);
   };
 
-  function onStop(e, relCoords) {
+  function onStop(evt, relCoords) {
     const chessground = chessgroundRef.current;
-    let { x, y } = relCoords;
-    x += relCoords.node.offsetWidth / 2 - chessground.el.offsetLeft;
-    y +=
-      relCoords.node.offsetTop +
-      relCoords.node.offsetHeight / 2 -
-      chessground.el.offsetTop;
-    const sqWidth = chessground.el.offsetWidth / 8;
-    const sqHeight = chessground.el.offsetHeight / 8;
-
-    // Calculate piece coordinates relative to chessground chessboard
-    const [relX, relY] = [Math.floor(x / sqWidth), Math.floor(y / sqHeight)];
-    const pos =
-      chessground.props.orientation === "white"
-        ? [relX, 7 - relY]
-        : [7 - relX, relY];
-    const key = pos2key(pos);
+    const key = chessground.cg.getKeyAtDomPos(
+      [evt.x, evt.y],
+      chessground.props.orientation === 'white',
+      chessground.el.getBoundingClientRect()
+    )
+    // const key = pos2key(pos);
     setTimeout(() => {
       setCoords({ x: 0, y: 0 });
     }, 80);

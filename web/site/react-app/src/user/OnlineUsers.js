@@ -7,6 +7,7 @@ import SocketProxy from "../socket/SocketProxy";
  */
 class OnlineUsers extends EventEmitter {
   constructor(socket) {
+    console.log(`OnlineUsers ctor`);
     super();
     this._uids = {};
     this._users = {};
@@ -85,6 +86,16 @@ class OnlineUsers extends EventEmitter {
       console.error(`Unpartnered ${handle} not found?`);
     });
 
+    const onOnlineUpdate = (data) => {
+      console.log(`online_players_update: ${data}`);
+      for (const uid of data.offline) {
+        delete this._users[uid];
+      }
+      for (const uid in data.online) {
+        this._users[uid] = data.online[uid];
+      }
+      this.emit('value', this._users);
+    };
     socket.on("online_players", ({players}) => {
       if (players == null) {
         return;
@@ -95,6 +106,7 @@ class OnlineUsers extends EventEmitter {
       }
       this.emit('value', this._users);
     });
+    socket.on("online_players_update", onOnlineUpdate);
     socket.sendEvent("online_players", {count: 0, cursor: null});
   }
 

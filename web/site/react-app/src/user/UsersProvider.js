@@ -1,5 +1,6 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import OnlineUsers from "./OnlineUsers";
+import { SocketContext } from "../socket/SocketProvider";
 
 export const UsersContext = createContext({
   onlineUsers: {},
@@ -29,6 +30,8 @@ const UsersProvider = (props) => {
   const [partners, setPartners] = useState(src.getPartners());
   const [partnerMap, setPartnerMap] = useState(_mapPartners(partners));
   const [unpartnered, setUnpartnered] = useState(src.getUnpartnered());
+
+  const { socket } = useContext(SocketContext);
 
   useEffect(() => {
     const usersListener = (users) => {

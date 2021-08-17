@@ -216,7 +216,10 @@ impl BugWebSock {
             // check client heartbeats
             if Instant::now().duration_since(act.hb_instant) > CLIENT_TIMEOUT {
                 eprintln!("heartbeat timeout, disconnecting: {}", act.id);
-                let close_reason = ws::CloseReason::from((ws::CloseCode::Policy, "Heartbeat timeout"));
+                let close_reason = ws::CloseReason::from((
+                    ws::CloseCode::Policy,
+                    "Heartbeat timeout",
+                ));
                 ctx.close(Some(close_reason));
                 ctx.stop();
                 return;
@@ -359,6 +362,22 @@ impl BugWebSock {
                 }
                 println!("vacate: {:?}", val);
             }
+            "sub_online_players" => {
+                self.data
+                    .server
+                    .sub_online_players(ctx.address().recipient());
+                let players_msg = self.data.server.get_online_players_msg(
+                    None,
+                    u64::MAX,
+                    None,
+                )?;
+                ctx.text(players_msg);
+            }
+            "unsub_online_players" => {
+                self.data
+                    .server
+                    .unsub_online_players(ctx.address().recipient());
+            }
             "online_players" => {
                 let cursor = if let Some(uid_str) = val["cursor"].as_str() {
                     Some(B66::decode_uuid(&uid_str).ok_or_else(|| {
@@ -372,7 +391,10 @@ impl BugWebSock {
                 };
                 let count: u64 = Self::get_field_u64(val, "count", kind)?;
                 let order_by = val["order_by"].as_str();
-                let players_msg = self.data.server.get_online_players_msg(cursor, count, order_by)?;
+                let players_msg = self
+                    .data
+                    .server
+                    .get_online_players_msg(cursor, count, order_by)?;
                 ctx.text(players_msg);
             }
             "move" => {

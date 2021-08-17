@@ -54,7 +54,12 @@ const Table = ({ gamePath }) => {
   return (
     <div style={{ position: "relative", height: "100%", width: "100%", ...variStyle}}>
       <SideMenu style={{ position: "absolute" }} />
-      {boards}
+      <div style={{
+        width: "calc(100% - 3em)",
+        marginLeft: "3em"
+      }}>
+        {boards}
+      </div>
     </div>
   );
 };

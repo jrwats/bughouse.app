@@ -1,5 +1,6 @@
 import Paper from '@material-ui/core/Paper';
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
+import { SocketContext } from "../socket/SocketProvider";
 import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -19,6 +20,15 @@ const useStyles = makeStyles({
 const OnlinePlayers = () => {
   let { onlineUsers } = useContext(UsersContext);
   const classes = useStyles();
+
+  const { socket } = useContext(SocketContext);
+
+  useEffect(() => {
+    socket.sendEvent('sub_online_players', {});
+    return () => {
+      socket.sendEvent('unsub_online_players', {});
+    }
+  },[socket]);
 
   return (
     <TableContainer component={Paper}>
