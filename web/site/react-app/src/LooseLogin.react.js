@@ -18,13 +18,15 @@ const LooseLogin = ({ gamePath }) => {
   useEffect(() => {
     const onUpdate = (game) => {
       setRated(game.isRated());
-    }
+    };
     game.on("update", onUpdate);
     return () => {
       game.off("update", onUpdate);
-    }
+    };
   }, [game]);
-  console.log(`LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket.isGuest()}`);
+  console.log(
+    `LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket.isGuest()}`
+  );
   // user is non-null AND game is either unrated OR the user is not a guest
   // eslint-disable no-mixed-operators
   if (pendingInit || (user != null && (!rated || !isGuest))) {
@@ -33,36 +35,40 @@ const LooseLogin = ({ gamePath }) => {
   console.log(`Login displaying login`);
 
   const playAsGuest = () => {
-    auth.signInAnonymously()
-      .then(() => {
-      })
+    auth
+      .signInAnonymously()
+      .then(() => {})
       .catch((e) => {
         console.error(`Failed to sign in`);
       });
   };
   return (
-    <div style={{
-      position: "absolute",
-      height: "min(100%, 50vw)",
-      width: "100%",
-      zIndex: 10}}>
-    <div id="loginContainer">
-      <div id="looseLogin" className="row">
-        <div className="column" style={{ padding: "30px" }} >
-          <Button 
-            disabled={rated}
-            variant="contained"
-            color="primary"
-            onClick={playAsGuest} >
-            Play as Guest
-          </Button>
-          {rated ? <div>Rated games require sign-in</div> : null}
-        </div>
-        <div className="column">
-          <FirebaseLogin />
+    <div
+      style={{
+        position: "absolute",
+        height: "min(100%, 50vw)",
+        width: "100%",
+        zIndex: 10,
+      }}
+    >
+      <div id="loginContainer">
+        <div id="looseLogin" className="row">
+          <div className="column" style={{ padding: "30px" }}>
+            <Button
+              disabled={rated}
+              variant="contained"
+              color="primary"
+              onClick={playAsGuest}
+            >
+              Play as Guest
+            </Button>
+            {rated ? <div>Rated games require sign-in</div> : null}
+          </div>
+          <div className="column">
+            <FirebaseLogin />
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

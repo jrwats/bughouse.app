@@ -6,7 +6,7 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 200);
 
-const ClockDisplay = ({color, chessboard, forming}) => {
+const ClockDisplay = ({ color, chessboard, forming }) => {
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
   const lastUpdate = useRef(Math.max(Date.now(), chessboard.getStart() || 0));
   const [state, setState] = useState({
@@ -16,7 +16,6 @@ const ClockDisplay = ({color, chessboard, forming}) => {
   });
 
   useEffect(() => {
-
     const onUpdate = (data) => {
       const playerData = chessboard.getBoard()[color];
       const milliseconds = playerData.ms;
@@ -26,15 +25,17 @@ const ClockDisplay = ({color, chessboard, forming}) => {
         refTime.current = milliseconds;
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
-      setState({ 
+      setState({
         gameOver: data.result != null,
         playerData,
-        ms: refTime.current 
+        ms: refTime.current,
       });
-    }
+    };
 
     const onTick = () => {
-      if (forming || state.gameOver ||
+      if (
+        forming ||
+        state.gameOver ||
         chessboard.getColorToMove() !== color ||
         Date.now() < chessboard.getStart()
       ) {
@@ -44,13 +45,13 @@ const ClockDisplay = ({color, chessboard, forming}) => {
       let delta = now - lastUpdate.current;
       lastUpdate.current = now;
       refTime.current = Math.max(0, refTime.current - delta);
-      setState({...state, ms: refTime.current});
+      setState({ ...state, ms: refTime.current });
     };
-    chessboard.on('update', onUpdate);
-    _ticker.on('tick', onTick);
+    chessboard.on("update", onUpdate);
+    _ticker.on("tick", onTick);
     return () => {
-      chessboard.off('update', onUpdate);
-      _ticker.off('tick', onTick);
+      chessboard.off("update", onUpdate);
+      _ticker.off("tick", onTick);
     };
   }, [state, color, chessboard, forming]);
 

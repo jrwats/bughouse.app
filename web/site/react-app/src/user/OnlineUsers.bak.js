@@ -57,7 +57,7 @@ class OnlineUsers extends EventEmitter {
       this.emit("incomingChallenges", this._incomingChallenges);
       this.emit("incomingOffers", this._incomingOffers);
     };
-    const onIncomingOffer = ({ handle}) => {
+    const onIncomingOffer = ({ handle }) => {
       console.log(`OnlineUsers onIncomingOffer(${handle})`);
       this._incomingOffers[handle] = true;
       this.emit("incomingOffers", this._incomingOffers);

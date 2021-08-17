@@ -11,12 +11,12 @@ import Table from "./game/Table.react";
 import Arena from "./game/Arena.react";
 import UsersProvider from "./user/UsersProvider";
 import ViewerProvider from "./user/ViewerProvider";
-import {  Router } from "@reach/router";
+import { Router } from "@reach/router";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 Presence.init();
 
-const GuestTable = ({gamePath}) => {
+const GuestTable = ({ gamePath }) => {
   return (
     <>
       <LooseLogin gamePath={gamePath} />
@@ -24,7 +24,6 @@ const GuestTable = ({gamePath}) => {
     </>
   );
 };
-
 
 const App = () => {
   const darkTheme = createMuiTheme({ palette: { type: "dark" } });

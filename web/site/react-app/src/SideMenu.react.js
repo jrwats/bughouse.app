@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import AccountCircleIcon from '@material-ui/icons/AccountCircle';
-import FeaturedVideoIcon from '@material-ui/icons/FeaturedVideo';
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
+import FeaturedVideoIcon from "@material-ui/icons/FeaturedVideo";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -92,15 +92,16 @@ const SideMenu = ({ style }) => {
             <ListItemText primary="Dashboard" />
           </StyledMenuItem>
         </Link>
-        {isGuest ? null :
-        <Link to="/profile">
-          <StyledMenuItem>
-            <ListItemIcon>
-              <AccountCircleIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText primary="Profile" />
-          </StyledMenuItem>
-        </Link>}
+        {isGuest ? null : (
+          <Link to="/profile">
+            <StyledMenuItem>
+              <ListItemIcon>
+                <AccountCircleIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Profile" />
+            </StyledMenuItem>
+          </Link>
+        )}
         {/*
         <Link to="/fics_console">
           <StyledMenuItem>

@@ -33,9 +33,7 @@ const Home = (props) => {
     return null;
   }
 
-  return (
-    <HomeRouter />
-  );
+  return <HomeRouter />;
 };
 
 export default Home;

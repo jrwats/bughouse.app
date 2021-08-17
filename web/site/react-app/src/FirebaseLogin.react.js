@@ -60,21 +60,23 @@ const FirebaseLogin = () => {
         // or whether we leave that to developer to handle.
         return isMobile;
       },
-      uiShown: function() {
-        console.log('firebase UI shown');
+      uiShown: function () {
+        console.log("firebase UI shown");
         console.log(`currentUser: ${firebase.auth().currentUser}`);
       },
-      signInFailure: function(err) {
+      signInFailure: function (err) {
         debugger;
         console.error(err);
-      }
+      },
     },
     signInOptions,
     // Privacy policy url.
     tosUrl: "https://bughouse.app/TOS.pdf",
     privacyPolicyUrl: "https://bughouse.app/privacy.htm",
   };
-  return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />;
+  return (
+    <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
+  );
 };
 
 export default FirebaseLogin;

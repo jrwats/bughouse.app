@@ -1,7 +1,7 @@
 import firebase from "firebase/app";
 import "firebase/auth"; // initializes firebase.auth
 import "firebase/database"; // initializes firebase.database
-import { PROD, DEV } from "./FirebaseConfig"
+import { PROD, DEV } from "./FirebaseConfig";
 
 // console.log(`FIREBASE: ${FIREBASE}`);
 console.log(`FIREBASE: ${process.env.REACT_APP_FIREBASE}`);

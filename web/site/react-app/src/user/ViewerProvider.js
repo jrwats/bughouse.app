@@ -11,7 +11,7 @@ const DEFAULT_CONTEXT = {
   isGuest: false,
   rating: 0,
   uid: null,
-}
+};
 export const ViewerContext = createContext(DEFAULT_CONTEXT);
 let _singleton = null;
 
@@ -21,18 +21,18 @@ class ViewerSingleton extends EventEmitter {
     this._socket = SocketProxy.get();
     this.onLogin = this._onLogin.bind(this);
     this.onLogout = this._onLogout.bind(this);
-    this._socket.on('login', this.onLogin)
-    this._socket.on('logout', this.onLogout)
+    this._socket.on("login", this.onLogin);
+    this._socket.on("logout", this.onLogout);
     this._setViewer(user);
   }
 
   _onLogin(data) {
     if (data.uid !== this._viewer.uid) {
       console.log(`ViewerSingelton new user?`);
-      this._viewer = {...DEFAULT_CONTEXT, ...data};
+      this._viewer = { ...DEFAULT_CONTEXT, ...data };
     }
-    this._viewer = {...this._viewer, ...data};
-    this.emit('update', this._viewer);
+    this._viewer = { ...this._viewer, ...data };
+    this.emit("update", this._viewer);
   }
 
   _onLogout(data) {

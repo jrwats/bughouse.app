@@ -46,11 +46,11 @@ const GamingLanding = () => {
             setExpansion(ActionExpansion.FORM_GAME);
           }}
         >
-          Play with Friends 
+          Play with Friends
         </Button>
       </div>
     </>
   );
-}
+};
 
 export default GamingLanding;

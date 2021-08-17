@@ -9,7 +9,7 @@ const ResultKind = {
 };
 
 function _getColor(idx) {
-  return idx === 0 ? 'white' : 'black';
+  return idx === 0 ? "white" : "black";
 }
 
 class BughouseGame extends EventEmitter {
@@ -21,12 +21,14 @@ class BughouseGame extends EventEmitter {
 
     let idA = id + "/a";
     let idB = id + "/b";
-    this._a = a != null
-      ? new ChessBoard({ ...a, game: this, id: idA })
-      : ChessBoard.init(this, idA);
-    this._b = b != null
-      ? new ChessBoard({ ...b, game: this, id: idB })
-      : ChessBoard.init(this, idB);
+    this._a =
+      a != null
+        ? new ChessBoard({ ...a, game: this, id: idA })
+        : ChessBoard.init(this, idA);
+    this._b =
+      b != null
+        ? new ChessBoard({ ...b, game: this, id: idB })
+        : ChessBoard.init(this, idB);
   }
 
   _setStart(delayStartMillis) {
@@ -44,12 +46,12 @@ class BughouseGame extends EventEmitter {
     this.emit("update", this);
   }
 
-  isFinished() { 
+  isFinished() {
     return this._finished;
   }
 
-  getID() { 
-    return this._id; 
+  getID() {
+    return this._id;
   }
 
   isRated() {
@@ -73,7 +75,7 @@ class BughouseGame extends EventEmitter {
   }
 
   _deriveReason(board, kind, winnerColor) {
-    const boardLabel = board === 0 ? 'A' : 'B';
+    const boardLabel = board === 0 ? "A" : "B";
     const boards = this._getBoards();
     const srcBoard = boards[board];
     const handles = srcBoard.getHandles();
@@ -100,11 +102,11 @@ class BughouseGame extends EventEmitter {
     );
     console.log(data.result);
     this._finished = true;
-    const {board, kind, winner} = data.result;
+    const { board, kind, winner } = data.result;
     const boards = this._getBoards();
     boards[board].setWinner(_getColor(winner));
     boards[1 - board].setWinner(_getColor(1 - winner));
-    this._reason = this._deriveReason(board, kind, winner)
+    this._reason = this._deriveReason(board, kind, winner);
     this._result = data.result;
     this._winner = data.result[0] === "1" ? "white" : "black";
     ScreenLock.release();

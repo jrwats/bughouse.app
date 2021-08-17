@@ -74,25 +74,24 @@ const Arena = ({ gamePath }) => {
   }, []);
 
   // TODO make this user-controlled/editable (for observers etc)
-  if (orientation == null || orientation === '') {
+  if (orientation == null || orientation === "") {
     orientation = handleColorB ? Orientation.FLIPPED : Orientation.DEFAULT;
     const color = handleColorA || handleColorB;
-    orientation |= color === 'black' ? Orientation.BLACK : 0;
+    orientation |= color === "black" ? Orientation.BLACK : 0;
   } else {
     orientation = parseInt(orientation);
   }
 
   // let orientation = null;
-  let viewerOrientation =
-    orientation & Orientation.BLACK
-        ? "black"
-        : "white"
+  let viewerOrientation = orientation & Orientation.BLACK ? "black" : "white";
   let orientationA =
     orientation & Orientation.FLIPPED
       ? opposite(viewerOrientation)
       : viewerOrientation;
 
-  console.log(`hca: ${handleColorA}, hcb: ${handleColorB}, orientation: ${orientation}`);
+  console.log(
+    `hca: ${handleColorA}, hcb: ${handleColorB}, orientation: ${orientation}`
+  );
   const boards = [
     <Board
       id="boardA"
@@ -109,18 +108,25 @@ const Arena = ({ gamePath }) => {
       orientation={opposite(orientationA)}
     />,
   ];
-  const countdown = game && <GameStartCountdown key="countdown" start={game.getStart()} />;
+  const countdown = game && (
+    <GameStartCountdown key="countdown" start={game.getStart()} />
+  );
 
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();
   }
   return (
-    <div id="arena" style={{ position: "relative", height: "100%", width: "100%" }}>
+    <div
+      id="arena"
+      style={{ position: "relative", height: "100%", width: "100%" }}
+    >
       <SideMenu style={{ position: "absolute" }} />
-      <div style={{
-        width: "calc(100% - 3em)",
-        marginLeft: "3em"
-        }}>
+      <div
+        style={{
+          width: "calc(100% - 3em)",
+          marginLeft: "3em",
+        }}
+      >
         {boards}
       </div>
       {countdown}

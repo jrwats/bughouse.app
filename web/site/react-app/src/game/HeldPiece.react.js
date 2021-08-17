@@ -29,9 +29,9 @@ const HeldPiece = ({
     const chessground = chessgroundRef.current;
     const key = chessground.cg.getKeyAtDomPos(
       [evt.x, evt.y],
-      chessground.props.orientation === 'white',
+      chessground.props.orientation === "white",
       chessground.el.getBoundingClientRect()
-    )
+    );
     // const key = pos2key(pos);
     setTimeout(() => {
       setCoords({ x: 0, y: 0 });

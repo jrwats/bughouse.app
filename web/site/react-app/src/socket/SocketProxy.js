@@ -21,20 +21,20 @@ setInterval(() => {
 }, 5000);
 
 const PASSTHRU_EVENTS = [
-  'bugwho', 
-  'form_table',
-  'game_end',
-  'game_start',
-  'game_update',
-  'incomingOffer',
-  'incomingPartnerChallenge',
-  'outgoingOfferCancelled',
-  'online_players',
-  'online_players_update',
-  'partners',
-  'pending',
-  'table',
-  'unpartneredHandles',
+  "bugwho",
+  "form_table",
+  "game_end",
+  "game_start",
+  "game_update",
+  "incomingOffer",
+  "incomingPartnerChallenge",
+  "outgoingOfferCancelled",
+  "online_players",
+  "online_players_update",
+  "partners",
+  "pending",
+  "table",
+  "unpartneredHandles",
 ];
 
 /**
@@ -75,7 +75,8 @@ class SocketProxy extends EventEmitter {
       .then((idToken) => {
         this._idToken = idToken;
         this._authenticate();
-      }).catch((err) => {
+      })
+      .catch((err) => {
         console.error(err);
       });
   }
@@ -124,7 +125,7 @@ class SocketProxy extends EventEmitter {
       this.emit("data", data);
     };
     for (const event of PASSTHRU_EVENTS) {
-      handlers[event] = function(data) {
+      handlers[event] = function (data) {
         // console.log(`${event}: ${JSON.stringify(data, null, ' ')}`);
         this._emit(event, data);
       };
@@ -208,15 +209,16 @@ class SocketProxy extends EventEmitter {
         console.debug(evt);
       }
       try {
-        const payload =
-          evt.data[0] === "{" ? JSON.parse(evt.data) : evt.data;
+        const payload = evt.data[0] === "{" ? JSON.parse(evt.data) : evt.data;
         const key = payload.kind || evt.data;
         const handler = handlers[key];
         if (handler == null) {
           debugger;
           console.error("Unrecognized event: %s", evt);
-          console.error("Unrecognized payload: %s", 
-            JSON.stringify(payload, null, ' '));
+          console.error(
+            "Unrecognized payload: %s",
+            JSON.stringify(payload, null, " ")
+          );
           return;
         }
         handler.call(this, payload);
@@ -227,9 +229,9 @@ class SocketProxy extends EventEmitter {
   }
 
   _authenticate() {
-      if (this._idToken != null) {
-        this._send("auth", { token: this._idToken });
-      }
+    if (this._idToken != null) {
+      this._send("auth", { token: this._idToken });
+    }
   }
 
   _gcn() {

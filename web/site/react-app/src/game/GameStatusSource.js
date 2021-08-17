@@ -37,9 +37,9 @@ class GameStatusSource extends EventEmitter {
   }
 
   _onTable(data) {
-    console.log('onTable!');
+    console.log("onTable!");
     if (data.id in this._games) {
-      this._games[data.id].update(data)
+      this._games[data.id].update(data);
     } else {
       this._games[data.id] = BughouseGame.init(data);
       navigate(`/table/${data.id}`);

@@ -11,7 +11,7 @@ const PlayerHoldings = ({
   color,
   viewOnly,
 }) => {
-  const piece2count = {P: 0, B: 0, N: 0, R: 0, Q: 0};
+  const piece2count = { P: 0, B: 0, N: 0, R: 0, Q: 0 };
   for (const c of holdings) {
     ++piece2count[c];
   }
@@ -46,9 +46,11 @@ const Holdings = ({
   orientation,
   viewOnly,
 }) => {
-  const chars = (holdings || '').split('');
-  const blackHoldings = chars.filter(c => c === c.toLowerCase()).map(c => c.toUpperCase());
-  const whiteHoldings = chars.filter(c => c === c.toUpperCase());
+  const chars = (holdings || "").split("");
+  const blackHoldings = chars
+    .filter((c) => c === c.toLowerCase())
+    .map((c) => c.toUpperCase());
+  const whiteHoldings = chars.filter((c) => c === c.toUpperCase());
   return (
     <div
       style={{
@@ -61,7 +63,7 @@ const Holdings = ({
     >
       <PlayerHoldings
         color={opposite(orientation)}
-        holdings={orientation === 'white' ? blackHoldings : whiteHoldings}
+        holdings={orientation === "white" ? blackHoldings : whiteHoldings}
         viewOnly={true}
       />
       <PlayerHoldings
@@ -70,7 +72,7 @@ const Holdings = ({
         chessground={chessground}
         color={orientation}
         chessboard={chessboard}
-        holdings={orientation === 'white' ? whiteHoldings : blackHoldings}
+        holdings={orientation === "white" ? whiteHoldings : blackHoldings}
         viewOnly={viewOnly}
       />
     </div>

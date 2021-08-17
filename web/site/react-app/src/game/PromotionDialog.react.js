@@ -1,20 +1,20 @@
-import PropTypes from 'prop-types';
-import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import Dialog from '@material-ui/core/Dialog';
-import { NAMES}  from './Piece';
+import PropTypes from "prop-types";
+import { makeStyles } from "@material-ui/core/styles";
+import Grid from "@material-ui/core/Grid";
+import Dialog from "@material-ui/core/Dialog";
+import { NAMES } from "./Piece";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    overflow: 'hidden',
+    overflow: "hidden",
     padding: "2em 2em",
   },
   container: {
-    position: 'relative',
+    position: "relative",
     height: "20vw",
     left: "10.5vw",
-    width: 'fit-content',
-    overflow: 'hidden',
+    width: "fit-content",
+    overflow: "hidden",
   },
 }));
 
@@ -32,17 +32,18 @@ function PromotionDialog(props) {
   console.log(`PromotionDialog color: ${color}`);
 
   return (
-    <Dialog 
+    <Dialog
       classes={classes}
       fullWidth={true}
       onClose={handleClose}
       aria-labelledby="simple-dialog-title"
-      open={open}>
+      open={open}
+    >
       <Grid container alignItems="center" spacing={1}>
-        {['n', 'b', 'r', 'q'].map((piece) => (
+        {["n", "b", "r", "q"].map((piece) => (
           <Grid item xs={3} spacing={8}>
-            <span 
-              onClick={() => handleListItemClick(piece)} 
+            <span
+              onClick={() => handleListItemClick(piece)}
               style={{
                 cursor: "pointer",
                 display: "inline-block",
@@ -51,7 +52,8 @@ function PromotionDialog(props) {
                 position: "relative",
                 marginLeft: ".5em",
                 marginRight: ".5em",
-              }}>
+              }}
+            >
               <piece
                 data-piece={piece}
                 className={`${color} ${NAMES[piece]}`}

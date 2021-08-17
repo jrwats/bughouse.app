@@ -38,7 +38,7 @@ class ChessBoard extends EventEmitter {
   }
 
   getBoardID() {
-    return this._game.getBoardA() === this ? 'A' : 'B';
+    return this._game.getBoardA() === this ? "A" : "B";
   }
 
   getBoardIdx() {
@@ -55,7 +55,7 @@ class ChessBoard extends EventEmitter {
   }
 
   decrHolding({ color, piece }) {
-    if (color === 'black') {
+    if (color === "black") {
       piece = piece.toLowerCase();
     }
     const holdings = this._holdings;

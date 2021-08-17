@@ -45,7 +45,7 @@ class OnlineUsers extends EventEmitter {
       this.emit("incomingChallenges", this._incomingChallenges);
       this.emit("incomingOffers", this._incomingOffers);
     };
-    const onIncomingOffer = ({ handle}) => {
+    const onIncomingOffer = ({ handle }) => {
       console.log(`OnlineUsers onIncomingOffer(${handle})`);
       this._incomingOffers[handle] = true;
       this.emit("incomingOffers", this._incomingOffers);
@@ -58,8 +58,8 @@ class OnlineUsers extends EventEmitter {
       this.emit("outgoingOffers", this._outgoingOffers);
     };
     const onLogin = (data) => {
-      socket.sendEvent("online_players", {count: 0, cursor: null});
-    }
+      socket.sendEvent("online_players", { count: 0, cursor: null });
+    };
     socket.on("unpartneredHandles", (handles) => {
       this._onUnpartneredHandles(handles);
     });
@@ -94,20 +94,20 @@ class OnlineUsers extends EventEmitter {
       for (const uid in data.online) {
         this._users[uid] = data.online[uid];
       }
-      this.emit('value', this._users);
+      this.emit("value", this._users);
     };
-    socket.on("online_players", ({players}) => {
+    socket.on("online_players", ({ players }) => {
       if (players == null) {
         return;
       }
       this._users = {};
       for (const [uid, handle, rating] of players) {
-        this._users[uid] = {uid, handle, rating};
+        this._users[uid] = { uid, handle, rating };
       }
-      this.emit('value', this._users);
+      this.emit("value", this._users);
     });
     socket.on("online_players_update", onOnlineUpdate);
-    socket.sendEvent("online_players", {count: 0, cursor: null});
+    socket.sendEvent("online_players", { count: 0, cursor: null });
   }
 
   _onUnpartneredHandles(unpartneredFicsPlayers) {

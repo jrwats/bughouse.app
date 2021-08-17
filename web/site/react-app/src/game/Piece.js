@@ -12,12 +12,12 @@ export const NAMES = {
 };
 
 export const PIECES = {
-  PAWN: 'pawn',
-  BISHOP: 'bishop',
-  KNIGHT: 'knight',
-  ROOK: 'rook',
-  QUEEN: 'queen',
-  KING: 'king',
+  PAWN: "pawn",
+  BISHOP: "bishop",
+  KNIGHT: "knight",
+  ROOK: "rook",
+  QUEEN: "queen",
+  KING: "king",
 };
 
 const Piece = {
