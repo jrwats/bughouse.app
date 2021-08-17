@@ -111,6 +111,7 @@ class BughouseGame extends EventEmitter {
     this._winner = data.result[0] === "1" ? "white" : "black";
     ScreenLock.release();
     this.emit("gameOver", data);
+    this.emit("update", data);
   }
 
   static init({ id, delayStartMillis, a, b }) {
