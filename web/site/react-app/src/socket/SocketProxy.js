@@ -82,8 +82,8 @@ class SocketProxy extends EventEmitter {
   }
 
   _send(kind, data) {
-    if (this._sock.readyState() === WebSocket.OPEN) {
-      this._sock && this._sock.send(JSON.stringify({ ...data, kind }));
+    if (this._sock?.readyState() === WebSocket.OPEN) {
+      this._sock.send(JSON.stringify({ ...data, kind }));
     } else {
       console.log(`queing ${kind} msg`);
       this._msgQueue.push([kind, data]);
