@@ -45,7 +45,7 @@ const OnlinePlayers = () => {
   const { socket } = useContext(SocketContext);
   const { onlineUsers } = useContext(UsersContext);
   const classes = useStyles();
-  const [order, setOrder] = useState("asc");
+  const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("rating");
   const players = Object.keys(onlineUsers)
     .map((uid) => onlineUsers[uid])
