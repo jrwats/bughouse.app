@@ -18,13 +18,17 @@ const Login = ({ navigate }) => {
       <div
         className="column"
         style={{
-          padding: "30px",
+          padding: "0px 50px 0px 12px",
           borderRadius: "2rem",
           boxShadow: "10px 5px 5px #404040",
-          backgroundColor: "#dfe0ef",
+          backgroundColor: "#202030",
+          textAlign: "center",
         }}
       >
-        <img alt="logo" src="/bha_logo.png" />
+        <img class="bug_img_logo" alt="logo" src="/blurred_horsies.png" />
+        <span class="bug_logo_text">
+          <b>bughouse.</b>app
+        </span>
       </div>
       <div className="column">
         <FirebaseLogin />
