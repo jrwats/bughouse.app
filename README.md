@@ -5,7 +5,7 @@
 ### Chess Server Backend
 We'll rely on a largely-websocket-based backend written in Rust atop the [Actix Web framework](https://actix.rs/docs/websockets/) framework.
 
-*Connecting to FICS was a fun old-school-cool idea, but it introduces uncessary latency (2 hops every move - 200ms on a GOOD day - betwee US / Canada servers compared to ~40ms running our own server).  As much love as I have for FICS and it's 90's-era telnet protocol, it's still losing mindshare by the day, so this "network effect" benefit was minimal.*
+*Connecting to FICS was a fun old-school-cool idea, but it introduces uncessary latency (2 hops every move - 200ms on a GOOD day - between US / Canada servers compared to ~40ms running our own server).  As much love as I have for FICS and it's 90's-era telnet protocol, it's still losing mindshare by the day, so this "network effect" benefit was minimal.*
 
 ### Websocket
 `web/socket/rust`
