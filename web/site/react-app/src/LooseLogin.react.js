@@ -25,7 +25,7 @@ const LooseLogin = ({ gamePath }) => {
     };
   }, [game]);
   console.log(
-    `LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket.isGuest()}`
+    `LooseLogin pendingInit: ${pendingInit}, isRated: ${rated}, isGuest: ${socket?.isGuest()}`
   );
   // user is non-null AND game is either unrated OR the user is not a guest
   // eslint-disable no-mixed-operators

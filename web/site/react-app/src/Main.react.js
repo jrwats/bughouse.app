@@ -21,10 +21,8 @@ const Main = (props) => {
           width: "calc(100% - 4em)",
         }}
       >
-        <div style={{}}>
-          <Typography variant="h6">
-            <span style={{ fontWeight: "bold" }}>bughouse</span>.app
-          </Typography>
+        <div class="bug_logo_text small">
+          bughouse.app
         </div>
         <Router>
           <Table path="/table/:gamePath" />

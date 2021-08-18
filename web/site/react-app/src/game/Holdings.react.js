@@ -53,6 +53,7 @@ const Holdings = ({
   const whiteHoldings = chars.filter((c) => c === c.toUpperCase());
   return (
     <div
+      class="holdings"
       style={{
         // display: "inline-block",
         position: "relative",

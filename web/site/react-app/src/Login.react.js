@@ -18,10 +18,11 @@ const Login = ({ navigate }) => {
       <div
         className="column"
         style={{
-          padding: "0px 50px 0px 12px",
+          padding: "8px 50px 8px 12px",
           borderRadius: "2rem",
-          boxShadow: "10px 5px 5px #404040",
-          backgroundColor: "#202030",
+          boxShadow: "12px 6px 9px #9030a0",
+          backgroundColor: "#080824",
+          // backgroundColor: "#202030",
           textAlign: "center",
         }}
       >
