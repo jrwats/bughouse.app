@@ -15,18 +15,8 @@ const Login = ({ navigate }) => {
 
   return (
     <div id="login" className="row">
-      <div
-        className="column"
-        style={{
-          padding: "8px 50px 8px 12px",
-          borderRadius: "2rem",
-          boxShadow: "12px 6px 9px #9030a0",
-          backgroundColor: "#080824",
-          // backgroundColor: "#202030",
-          textAlign: "center",
-        }}
-      >
-        <img class="bug_img_logo" alt="logo" src="/blurred_horsies.png" />
+      <div id="logo_splash" className="column">
+        <img class="bug_img_logo" alt="logo" src="/neon_horsies.png" />
         <span class="bug_logo_text">
           <b>bughouse.</b>app
         </span>

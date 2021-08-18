@@ -123,6 +123,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             boardID={id}
             chessground={chessgroundRef}
             gameID={gameID}
+            height={sz}
             orientation={orientation}
             holdings={holdings}
             chessboard={chessboard}

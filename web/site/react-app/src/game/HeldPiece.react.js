@@ -1,7 +1,6 @@
 import React, { useContext, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { NAMES } from "./Piece";
-import { pos2key } from "chessground/util";
 import { SocketContext } from "../socket/SocketProvider";
 
 const HeldPiece = ({
@@ -32,7 +31,6 @@ const HeldPiece = ({
       chessground.props.orientation === "white",
       chessground.el.getBoundingClientRect()
     );
-    // const key = pos2key(pos);
     setTimeout(() => {
       setCoords({ x: 0, y: 0 });
     }, 80);

@@ -3,7 +3,7 @@ import Profile from "./user/Profile.react";
 import React from "react";
 import SideMenu from "./SideMenu.react";
 import Table from "./game/Table.react";
-import Typography from "@material-ui/core/Typography";
+// import Typography from "@material-ui/core/Typography";
 
 import { Router } from "@reach/router";
 
@@ -22,7 +22,7 @@ const Main = (props) => {
         }}
       >
         <div class="bug_logo_text small">
-          bughouse.app
+          <span class="solid">bughouse.</span>app
         </div>
         <Router>
           <Table path="/table/:gamePath" />

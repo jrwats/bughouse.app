@@ -18,11 +18,11 @@ const Table = ({ gamePath }) => {
     navigate(`/arena/${data.id}`);
   };
   useEffect(() => {
-    socket.on("game_update", onGame);
-    socket.on("game_start", onGame);
+    socket?.on("game_update", onGame);
+    socket?.on("game_start", onGame);
     return () => {
-      socket.off("game_update", onGame);
-      socket.off("game_start", onGame);
+      socket?.off("game_update", onGame);
+      socket?.off("game_start", onGame);
     };
   }, [socket]);
   useEffect(() => {

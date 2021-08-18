@@ -67,7 +67,7 @@ const SideMenu = ({ style }) => {
           padding: "2px 2px",
           minWidth: "3em",
           color: "#efef",
-          backgroundColor: "#6c8cad",
+          // backgroundColor: "#6c8cad",
         }}
         aria-controls="customized-menu"
         aria-haspopup="true"

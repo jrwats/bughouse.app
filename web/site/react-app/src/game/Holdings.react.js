@@ -40,6 +40,7 @@ const PlayerHoldings = ({
 const Holdings = ({
   boardID,
   gameID,
+  height,
   chessground,
   chessboard,
   holdings,
@@ -57,7 +58,7 @@ const Holdings = ({
       style={{
         // display: "inline-block",
         position: "relative",
-        // height: "100%",
+        height: height ? `${height}px` : "100%",
         // width: "min(5vw, 10vh)",
         flex: "1 1 0",
       }}
