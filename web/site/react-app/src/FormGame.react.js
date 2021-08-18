@@ -6,18 +6,19 @@ import Slider from "@material-ui/core/Slider";
 import Switch from "@material-ui/core/Switch";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/core/styles";
-import { indigo } from "@material-ui/core/colors";
+import { purple } from "@material-ui/core/colors";
+import { deepPurple } from "@material-ui/core/colors";
 
 import { SocketContext } from "./socket/SocketProvider";
 
 const BugSwitch = withStyles({
   switchBase: {
-    color: indigo[400],
+    color: purple[600],
     "&$checked": {
-      color: indigo[600],
+      color: deepPurple[600],
     },
     "&$checked + $track": {
-      backgroundColor: indigo[600],
+      backgroundColor: deepPurple[600],
     },
   },
   checked: {},

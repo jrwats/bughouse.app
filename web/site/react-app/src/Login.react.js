@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import FirebaseLogin from "./FirebaseLogin.react";
 import { AuthContext } from "./auth/AuthProvider";
+import logo from "./images/blue_pink_neon.png";
 
 const Login = ({ navigate }) => {
   const { pendingInit, user } = useContext(AuthContext);
@@ -16,7 +17,7 @@ const Login = ({ navigate }) => {
   return (
     <div id="login" className="row">
       <div id="logo_splash" className="column">
-        <img class="bug_img_logo" alt="logo" src="/neon_horsies.png" />
+        <img class="bug_img_logo" alt="logo" src={logo} />
         <span class="bug_logo_text">
           <b>bughouse.</b>app
         </span>

@@ -32,13 +32,14 @@ const App = () => {
     {
       palette: {
         type: "dark",
-        primary: {
-          main: purple[700],
-          dark: purple[400],
-        },
+        primary: purple,
+        // {
+        //   main: purple[700],
+        //   dark: purple[400],
+        // },
         secondary: {
-          main: deepPurple[500],
-          dark: deepPurple[400],
+          main: '#a22e63',// purple[200],
+          dark: '#e23e73',// purple[200],
         }
       }
     }

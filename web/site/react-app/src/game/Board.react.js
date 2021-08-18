@@ -116,7 +116,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             position: "relative",
             margin: 0,
             padding: 0,
-            height: "100%",
+            height: sz == null ? "100%" : sz + "px",
           }}
         >
           <Holdings
