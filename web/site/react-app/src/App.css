@@ -91,6 +91,10 @@
   font-weight: 500;
 }
 
+.alien {
+  font-family: 'AlienEncounters', Roboto;
+}
+
 @keyframes small-glow {
   to {
     text-shadow: 0 0 10px red;
@@ -396,6 +400,14 @@ body .makeStyles-paper-161 {
   border-radius: 0.5em;
   background-color: #403c5d;
   margin: 3px 1em 3px 0px;
+  text-align: center;
+}
+
+#game_messages_quick_buttons .alien {
+  font-family: "AlienEncounters", "Roboto", "Helvetica";
+  font-weight: 300;
+  text-align: center;
+  color: rgba(180, 0, 255, 0.8);
 }
 
 #game_messages {
@@ -411,15 +423,91 @@ body .makeStyles-paper-161 {
 }
 
 .message {
-  /* background-color: rgba(120, 20, 255, 0.4); */
+  background-color: rgba(255, 0, 220, 0.3);
   border-radius: 0.5em;
   margin-right: 1em;
   padding: 0px 1em 2px 2px;
   position: relative;
   right: 0px;
+  text-align: right;
 }
 
 .message.self {
-  text-align: right;
-  background-color: rgba(255, 0, 255, 0.3);
+  background-color: rgba(120, 20, 235, 0.3);
+  text-align: left;
 }
+
+#game_messages_quick_buttons .MuiButton-root {
+  padding: 2px 2px;
+  min-width: 4px;
+  margin: 2px 2px;
+}
+
+.quick-msg {
+  height: min(2vw, 4vh);
+  width: min(2vw, 4vh);
+  font-size: min(2vw, 4vh);
+}
+
+.quick-msg.white, .quick-msg.black {
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Do not repeat the image */
+  background-size: cover; 
+}
+
+.quick-msg .MuiSvgIcon-root {
+  height: calc(min(2vw, 4vh) + 3px);
+  width: calc(min(2vw, 4vh) + 3px);
+  color: rgba(255, 20, 100, 0.95);
+  box: 1px 1px 1em rgba(255, 0, 155, 0.5);
+}
+
+.message .quick-msg .MuiSvgIcon-root {
+  position: relative;
+  top: 6px;
+}
+
+#game_messages_quick_buttons .MuiSvgIcon-root {
+  text-align: center;
+  margin-left: -0.1rem;
+  margin-top: -0.3rem;
+}
+
+.quick-msg.pawn.white{background-image:url('./images/pieces/merida/wP.svg')}
+.quick-msg.bishop.white{background-image:url('./images/pieces/merida/wB.svg')}
+.quick-msg.knight.white{background-image:url('./images/pieces/merida/wN.svg')}
+.quick-msg.rook.white{background-image:url('./images/pieces/merida/wR.svg')}
+.quick-msg.queen.white{background-image:url('./images/pieces/merida/wQ.svg')}
+.quick-msg.king.white{background-image:url('./images/pieces/merida/wK.svg')}
+.quick-msg.pawn.black{background-image:url('./images/pieces/merida/bP.svg')}
+.quick-msg.bishop.black{background-image:url('./images/pieces/merida/bB.svg')}
+.quick-msg.knight.black{background-image:url('./images/pieces/merida/bN.svg')}
+.quick-msg.rook.black{background-image:url('./images/pieces/merida/bR.svg')}
+.quick-msg.queen.black{background-image:url('./images/pieces/merida/bQ.svg')}
+.quick-msg.king.black{background-image:url('./images/pieces/merida/bK.svg')}
+
+.quick-msg.exchange,
+.quick-msg.mates,
+.quick-msg.stall,
+.quick-msg.watch_time {
+  font-size: min(1.5vw, 3vh);
+  font-weight: 600;
+  margin-left: -0.1rem;
+  margin-top: -0.6rem;
+  padding: 2px 2px;
+} 
+
+.quick-msg.exchange .text, .quick-msg.mates .text {
+  color: rgba(255, 0, 170);
+  text-shadow: 0px 0px 1em rgba(255, 0, 255, 0.5);
+}
+
+.quick-msg.stall {
+  -webkit-filter: url(#red-filter);
+  filter: url(#red-filter);
+}
+
+/* .quick-msg.exchange { content: "\u{1f5d8}" } */
+/* .quick-msg.mates { content: "#" } */
+/* .quick-msg.stall { content: "\u{23f8}" } */
+/* .quick-msg.watch_time { content:  "\u{1f551}"}  */

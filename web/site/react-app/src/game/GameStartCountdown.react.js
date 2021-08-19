@@ -5,8 +5,7 @@ const GameStartCountdown = ({ start }) => {
   let [count, setCount] = useState(getSecsTilStart());
   let interval = useRef(null);
   const msTilStart = start - Date.now();
-
-  const updateClock = () => setCount(getSecsTilStart());
+  const updateClock = () => { setCount(getSecsTilStart()) };
   useEffect(() => {
     interval.current = setInterval(() => {
       updateClock();
@@ -14,15 +13,17 @@ const GameStartCountdown = ({ start }) => {
         clearInterval(interval.current);
       }
     }, 50);
-  }, []);
+    return () => { clearInterval(interval.current); };
+  }, [start]);
 
-  if (msTilStart >= 0) {
-    setTimeout(() => {
-      updateClock();
-    }, (msTilStart % 1000) || 1000);
-  }
+  // if (msTilStart >= 0) {
+  //   setTimeout(() => {
+  //     updateClock();
+  //   }, (msTilStart % 1000) || 1000);
+  // }
 
   if (count < 0 || msTilStart < 0) {
+    console.log(`setting null cuz ${count < 0} ${msTilStart < 0}`);
     return null;
   }
 

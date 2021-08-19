@@ -1,14 +1,44 @@
+import Button from "@material-ui/core/Button";
+import QuickMessages, { QuickMessagesText, QuickMessagesPiece } from './QuickMessages';
 import React, { useContext, useEffect, useRef, useState } from "react";
 import TextField from '@material-ui/core/TextField';
+import Typography from "@material-ui/core/Typography";
+import { opposite } from "chessground/util";
 import { ViewerContext } from "../user/ViewerProvider";
 import { SocketContext } from "../socket/SocketProvider";
+import BlockIcon from '@material-ui/icons/Block';
 
-const GameMessages = ({gameID}) => {
+const getQuickContent = ({key, self, playerColor}) => {
+  const piece = QuickMessagesPiece[key];
+  let color = piece == null ? null : 
+    (key.startsWith('NEED_') ? playerColor : opposite(playerColor));
+  color = self ? color : opposite(color);
+  const classes = [
+    'quick-msg', 
+    piece || key.toLowerCase(),
+    color, 
+    (key.startsWith('NO_') ? ' no' : '')
+  ];
+  const btnClass = classes.filter(c => !!c).join(' ');  
+  const content = key.startsWith('NO_') ? 
+    <BlockIcon /> : 
+    (QuickMessagesText[key] || '\u{3000}');
+  return (
+    <span key={key} className={btnClass}>
+      <span class="text">
+        {content}
+      </span>
+    </span>
+  );
+}
+
+const GameMessages = ({playerColor, gameID}) => {
   const { socket } = useContext(SocketContext);
   const { uid } = useContext(ViewerContext);
   const messages = useRef([]);
   const [uiMessages, setMessages] = useState({val: messages.current});
   const textInput = useRef(null);
+  const scrollRef = useRef(null);
 
   const onSubmit = (evt) => {
     const input = textInput.current.querySelector("input");
@@ -32,7 +62,7 @@ const GameMessages = ({gameID}) => {
       }
       let message = type === 'text' ? 
         {text: data.text} : 
-        {msgID: data.msgID}; // TODO - enum?
+        {quick: data.quick}; // TODO - enum?
 
       messages.current.push({
         self: sender === uid, 
@@ -40,27 +70,68 @@ const GameMessages = ({gameID}) => {
         ...message
       });
       setMessages({val: messages.current});
+      scrollRef.current.scrollTop = Number.MAX_SAFE_INTEGER;
     };
     socket.on('game_msg', onMsg);
     return () => {
       socket.off('game_msg', onMsg);
     }
   }, [socket]);
-  console.log(`GameMessages len: ${uiMessages.length}`);
+
+  const quickButtons = [];
+  for (const key in QuickMessages) {
+    const content = getQuickContent({self: true, key, playerColor});
+    quickButtons.push((
+      <Button
+        variant="outlined"
+        color="secondary"
+        onClick={(e) => {
+          socket.sendEvent("game_msg", {
+            id: gameID,
+            sender: uid,
+            type: "quick",
+            quick: key,
+          });
+        }}
+      >
+        {content}
+      </Button>
+    ));
+    if (/QUEEN/.test(key)) {
+      quickButtons.push(<div />);
+    }
+  }
 
   return (
     <div id="game_message_center">
-      <div id="game_messages_quick_buttons">
-        quick buttons go here
+      <div style={{position: "absolute", display: "hidden"}}>
+        <svg>
+          <filter id="red-filter">
+            <feColorMatrix type="matrix" values="
+              1.00 0    0    0 0
+              0    0.00 0    0 0
+              0    0    0.58 0 0
+              0    0    0    1 0" />
+          </filter>
+        </svg>
       </div>
-      <div id="game_messages">
+      <div id="game_messages_quick_buttons">
+        <Typography className="alien" variant="h5">Quick messages</Typography>
+        {quickButtons}
+      </div>
+      <div id="game_messages" ref={scrollRef}>
         {/* <div>Messages go here...</div> */}
         {uiMessages.val.map(msg => {
           const self = msg.self ? "self " : "";
-          const msgID = msg.msgID || "";
+          const quick = msg.quick || "";
+          const content = msg.text != null ? msg.text : getQuickContent({
+            key: msg.quick,
+            self: msg.self,
+            playerColor,
+          });
           return (
-            <div className={`message ${self}${msgID}`}>
-              {msg.text} 
+            <div className={`message ${self}${quick}`}>
+              {content}
             </div>
           );
         })}

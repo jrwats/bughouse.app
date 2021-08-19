@@ -120,7 +120,7 @@ const Arena = ({ gamePath }) => {
   }
   const game_messages = color == null ? null : (
     <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
-      <GameMessages gameID={gameID} />
+      <GameMessages playerColor={color} gameID={gameID} />
     </div>
   );
   return (

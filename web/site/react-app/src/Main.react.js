@@ -21,8 +21,8 @@ const Main = (props) => {
           width: "calc(100% - 4em)",
         }}
       >
-        <div class="bug_logo_text small">
-          <span class="solid">bughouse.</span>app
+        <div className="bug_logo_text small">
+          <span className="solid">bughouse.</span>app
         </div>
         <Router>
           <Table path="/table/:gamePath" />

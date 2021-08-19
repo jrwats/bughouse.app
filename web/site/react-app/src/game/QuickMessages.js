@@ -1,4 +1,4 @@
-export default const QuickMessages = {
+const QuickMessages = {
   NEED_PAWN: 1,
   NEED_BISHOP: 2,
   NEED_KNIGHT: 3,
@@ -13,4 +13,26 @@ export default const QuickMessages = {
   MATES: 12,
   STALL: 13,
   WATCH_TIME: 14,
-}
+};
+export default QuickMessages;
+
+export const QuickMessagesPiece = {
+  NEED_PAWN: 'pawn',
+  NEED_BISHOP: 'bishop',
+  NEED_KNIGHT: 'knight',
+  NEED_ROOK: 'rook',
+  NEED_QUEEN: 'queen',
+  NO_PAWN: 'pawn',
+  NO_BISHOP: 'bishop',
+  NO_KNIGHT: 'knight',
+  NO_ROOK: 'rook',
+  NO_QUEEN: 'queen',
+};
+
+export const QuickMessagesText = {
+  EXCHANGE: "\u{1f5d8}",   // rotating arrows
+  MATES: "#",
+  // STALL: "\u{23f8}",       // pause
+  STALL: "\u{270b}",       // raised hand
+  WATCH_TIME: "\u{1f551}", // clock two-o-clock
+};
