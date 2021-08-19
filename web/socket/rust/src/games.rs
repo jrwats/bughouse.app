@@ -196,7 +196,7 @@ impl Games {
     ) -> Result<(Arc<RwLock<Game>>, BoardID), Error> {
         let game = self
             .get_user_game(&uid)
-            .ok_or(Error::InvalidMoveNotPlaying(uid, game_id))?;
+            .ok_or(Error::InvalidUserNotPlaying(uid, game_id))?;
         {
             let user_game = game.read().unwrap();
             let user_game_id = user_game.get_id();
@@ -226,7 +226,7 @@ impl Games {
         let bytestr = Arc::new(ByteString::from(msg_val.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         for player in Players::new(&players).get_players().iter() {
-            self.conns.send_to_user(player.get_uid(), &msg);
+            self.conns.send_to_user(&player.get_uid(), &msg);
         }
         self.observers.notify(game.get_id(), &msg);
         msg

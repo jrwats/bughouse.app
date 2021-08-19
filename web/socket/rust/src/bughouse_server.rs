@@ -4,7 +4,7 @@ use actix_web::*;
 use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
-use serde_json::json;
+use serde_json::{json, Value};
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
 use std::io::prelude::{Read, Write};
@@ -415,10 +415,7 @@ impl BughouseServer {
             "uid": ruser.id,
             "handle": ruser.handle,
         });
-        let bytestr = Arc::new(ByteString::from(json.to_string()));
-        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
-        self.conns.send_to_user(ruser.id, &msg);
-        Ok(msg)
+        Ok(self.send_text_to_user(json.to_string(), &ruser.id))
     }
 
     pub fn queue_sit(
@@ -659,6 +656,13 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
+    fn send_text_to_user(&self, payload: String, uid: &UserID) -> ClientMessage{
+        let bytestr = Arc::new(ByteString::from(payload));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        self.conns.send_to_user(uid, &msg);
+        msg
+    }
+
     fn send_new_rating(&self, user: Arc<RwLock<User>>) {
         let ruser = user.read().unwrap();
         let json = json!({
@@ -668,9 +672,7 @@ impl BughouseServer {
             "rating": ruser.rating,
             "deviation": ruser.deviation,
         });
-        let bytestr = Arc::new(ByteString::from(json.to_string()));
-        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
-        self.conns.send_to_user(ruser.id, &msg);
+        self.send_text_to_user(json.to_string(), &ruser.id);
     }
 
     fn update_user_rating(
@@ -714,9 +716,29 @@ impl BughouseServer {
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
-    pub fn get_game_msg(
+    pub fn send_game_msg(
         &self,
-        // kind: GameJsonKind,
+        game_id: GameID,
+        payload: &Value,
+        conn_id: &ConnID,
+        ) -> Result<(), Error> {
+        let uid = self.uid_from_conn(conn_id)?;
+        let game = self.games.get_user_game(&uid)
+            .ok_or(Error::InvalidUserNotPlaying(uid, game_id))?;
+        let rgame = game.read().unwrap();
+        if *rgame.get_id() != game_id {
+            return Err(
+                Error::InvalidGameIDForUser(uid, game_id, *rgame.get_id()),
+                );
+        }
+        if let Some(partner_uid) = rgame.get_partner(&uid) {
+            self.send_text_to_user(payload.to_string(), &partner_uid);
+        }
+        Ok(())
+    }
+
+    pub fn get_game_json_payload(
+        &self,
         game_id: GameID,
     ) -> Result<ByteString, Error> {
         let game = self

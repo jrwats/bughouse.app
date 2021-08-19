@@ -10,7 +10,7 @@ const GameStartCountdown = ({ start }) => {
       setCount(getSecsTilStart());
       console.log(`count: ${getSecsTilStart()}`);
       // setNow(Date.now());
-    }, msTilStart % 1000 || 1000);
+    }, (msTilStart % 1000) || 100);
   }
 
   if (count < 0 || msTilStart < 0) {

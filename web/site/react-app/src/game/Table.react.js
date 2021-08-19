@@ -60,13 +60,13 @@ const Table = ({ gamePath }) => {
       }}
     >
       <SideMenu style={{ position: "absolute" }} />
-      <div
-        style={{
-          // width: "calc(100% - 3em)",
-          // marginLeft: "3em",
-        }}
-      >
-        {boards}
+      <div style={{width: "100%"}}>
+        <div style={{display: "inline-block", width: "50%"}}>
+          {boards[0]}
+        </div>
+        <div style={{display: "inline-block", width: "50%"}}>
+          {boards[1]}
+        </div>
       </div>
     </div>
   );

@@ -42,8 +42,8 @@ pub enum Error {
     #[error("BugError: {0}")]
     BugError(BugError),
 
-    #[error("InvalidMove User not in game: {0}, {1}")]
-    InvalidMoveNotPlaying(UserID, GameID),
+    #[error("Invalid: User not in game: {0}, {1}")]
+    InvalidUserNotPlaying(UserID, GameID),
 
     #[error("InvalidMove InvalidUser: {0}")]
     InvalidMoveUser(UserID),

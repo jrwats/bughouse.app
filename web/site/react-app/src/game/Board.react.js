@@ -93,7 +93,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
   return (
-    <div style={{ display: "inline-block", width: "50%" }}>
+    <div style={{ display: "inline-block", height: "100%", width: "100%" }}>
       <BoardGutter
         forming={forming}
         color={opposite(orientation)}

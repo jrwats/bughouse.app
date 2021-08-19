@@ -130,7 +130,7 @@ impl ConnectionMgr {
         Ok(conn_id)
     }
 
-    pub fn send_to_user(&self, uid: UserID, msg: &ClientMessage) {
+    pub fn send_to_user(&self, uid: &UserID, msg: &ClientMessage) {
         let conns = self.conns.read().unwrap();
         let mut conn_id_to_remove: Option<ConnID> = None;
         {

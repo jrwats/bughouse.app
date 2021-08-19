@@ -99,7 +99,7 @@
 
 @keyframes glow {
   to {
-    text-shadow: 0 0 .5em #ff20af;
+    text-shadow: 0 0 50px rgba(255, 32, 200, 0.95);
   }
 }
 
@@ -381,4 +381,20 @@ body .makeStyles-paper-161 {
   box-shadow:
   inset    -1px  0 10px 2px   rgba(255, 44, 255, 0.8),
            1px   0 30px 3px   rgba(255, 44, 255, 0.95);
+}
+
+#game_message_center {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#game_messages {
+  flex: auto;
+  max-height: 50vh;
+  overflow: scroll;
+}
+
+#game_message_input {
+  flex: 1 1 1;
 }

@@ -397,6 +397,10 @@ impl BugWebSock {
                     .get_online_players_msg(cursor, count, order_by)?;
                 ctx.text(players_msg);
             }
+            "game_msg" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                self.data.server.send_game_msg(game_id, val, &self.id);
+            }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field_str(val, "move", kind)?;
@@ -406,7 +410,7 @@ impl BugWebSock {
                 let res = self.data.server.make_move(game_id, &bug_mv, self.id);
                 if let Err(e) = res {
                     eprintln!("move err: {}", e);
-                    let game_msg = self.data.server.get_game_msg(game_id)?;
+                    let game_msg = self.data.server.get_game_json_payload(game_id)?;
                     eprintln!("sending: {}", game_msg);
                     ctx.text(game_msg);
                 };
@@ -466,12 +470,12 @@ impl BugWebSock {
                 self.data
                     .server
                     .observe(&game_id, ctx.address().recipient());
-                let game_msg = self.data.server.get_game_msg(game_id)?;
+                let game_msg = self.data.server.get_game_json_payload(game_id)?;
                 ctx.text(game_msg);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                let game_msg = self.data.server.get_game_msg(game_id)?;
+                let game_msg = self.data.server.get_game_json_payload(game_id)?;
                 ctx.text(game_msg);
             }
             "auth" => {

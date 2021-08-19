@@ -25,6 +25,7 @@ const PASSTHRU_EVENTS = [
   "form_table",
   "game_end",
   "game_start",
+  "game_msg",
   "game_update",
   "incomingOffer",
   "incomingPartnerChallenge",

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Board from "./Board.react";
 import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
+import GameMessages from "./GameMessages.react";
 import SideMenu from "../SideMenu.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "../user/ViewerProvider";
@@ -33,6 +34,7 @@ const Arena = ({ gamePath }) => {
   const [handleColorB, setHandleColorB] = useState(
     boardB != null ? boardB.getHandleColor(handle) : null
   );
+
   useEffect(() => {
     const onboardA = () => {
       const newHC1 = boardA.getHandleColor(handle);
@@ -47,6 +49,7 @@ const Arena = ({ gamePath }) => {
       boardA.off("init", onboardA);
     };
   }, [handle, boardA, gamesSrc]);
+
   useEffect(() => {
     const onboardB = () => {
       const newHC2 = boardB.getHandleColor(handle);
@@ -121,13 +124,20 @@ const Arena = ({ gamePath }) => {
       style={{ position: "relative", height: "100%", width: "100%" }}
     >
       <SideMenu style={{ position: "absolute" }} />
-      <div
-        style={{
-          width: "calc(100% - 3em)",
-          marginLeft: "3em",
-        }}
-      >
-        {boards}
+      <div style={{display: "flex"}}>
+        <div style={{flex: "1 1 50vw"}}>
+          {boards[0]}
+        </div>
+        <div style={{flex: "1 1 50vw"}}>
+          <div style={{display: "flex"}}>
+            <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
+              <GameMessages gameId={gameID} />
+            </div>
+            <div style={{flex: "auto"}}>
+              {boards[1]}
+            </div>
+          </div>
+        </div>
       </div>
       {countdown}
     </div>
