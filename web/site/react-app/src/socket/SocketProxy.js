@@ -38,6 +38,10 @@ const PASSTHRU_EVENTS = [
   "unpartneredHandles",
 ];
 
+const NOISY_EVENTS = {
+  game_start: 1,
+};
+
 /**
  * Proxy to our WebScocket connection that emits raw console output as well as
  * parsed game and environment data.
@@ -127,6 +131,9 @@ class SocketProxy extends EventEmitter {
     };
     for (const event of PASSTHRU_EVENTS) {
       handlers[event] = function (data) {
+        if (NOISY_EVENTS[event]) {
+          console.log(data);
+        }
         // console.log(`${event}: ${JSON.stringify(data, null, ' ')}`);
         this._emit(event, data);
       };

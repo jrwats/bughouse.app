@@ -131,7 +131,7 @@ const Arena = ({ gamePath }) => {
         <div style={{flex: "1 1 50vw"}}>
           <div style={{display: "flex"}}>
             <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
-              <GameMessages gameId={gameID} />
+              <GameMessages gameID={gameID} />
             </div>
             <div style={{flex: "auto"}}>
               {boards[1]}

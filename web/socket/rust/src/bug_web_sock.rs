@@ -398,7 +398,9 @@ impl BugWebSock {
                 ctx.text(players_msg);
             }
             "game_msg" => {
+                println!("game_msg: {}", val);
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                println!("game_msg: {}", game_id);
                 self.data.server.send_game_msg(game_id, val, &self.id);
             }
             "move" => {

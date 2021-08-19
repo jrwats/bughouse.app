@@ -722,17 +722,22 @@ impl BughouseServer {
         payload: &Value,
         conn_id: &ConnID,
         ) -> Result<(), Error> {
+        println!("send_game_msg({}, {}, {})", game_id, payload, conn_id);
         let uid = self.uid_from_conn(conn_id)?;
         let game = self.games.get_user_game(&uid)
             .ok_or(Error::InvalidUserNotPlaying(uid, game_id))?;
         let rgame = game.read().unwrap();
         if *rgame.get_id() != game_id {
+            eprintln!("{} != {}", rgame.get_id(), game_id);
             return Err(
                 Error::InvalidGameIDForUser(uid, game_id, *rgame.get_id()),
                 );
         }
         if let Some(partner_uid) = rgame.get_partner(&uid) {
+            println!("sending {} to {}", payload, partner_uid);
             self.send_text_to_user(payload.to_string(), &partner_uid);
+        } else {
+            println!("game_msg: no partner?");
         }
         Ok(())
     }
