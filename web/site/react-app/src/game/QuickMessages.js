@@ -30,7 +30,7 @@ export const QuickMessagesPiece = {
 };
 
 export const QuickMessagesText = {
-  EXCHANGE: "\u{1f5d8}",   // rotating arrows
+  EXCHANGE: "\u{21c4}",   // rotating arrows
   MATES: "#",
   // STALL: "\u{23f8}",       // pause
   STALL: "\u{270b}",       // raised hand

@@ -53,9 +53,11 @@ const HeldPiece = ({
     <div
       ref={relRef}
       style={{
+        position: 'relative',
         visibility: visibility,
         height: "20%",
         width: "100%",
+        textAlign: "center",
       }}
     >
       <Draggable
@@ -76,9 +78,9 @@ const HeldPiece = ({
             position: "absolute",
             visibility: visibility,
             top: top + "px",
-            left: 0,
+            left: "10%",
             width: "100%",
-            height: "12.5%",
+            height: "100%", // "calc(12.5% - 3px)",
           }}
         />
       </Draggable>

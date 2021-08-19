@@ -92,7 +92,7 @@
 }
 
 .alien {
-  font-family: 'AlienEncounters', Roboto;
+  font-family: 'AlienEncountersSolid', 'Roboto';
 }
 
 @keyframes small-glow {
@@ -368,8 +368,10 @@ body .makeStyles-paper-161 {
   padding-bottom: 100%;
 }
 
+
 .holdings {
-  background: #403c5d;
+  background: linear-gradient(to left, #401c4d, rgba(130, 30, 255, 0.4));
+  /* background-color: #401c4d; */
   box-shadow:
     inset     0px 0 20px 5px rgba(255, 44, 255, 0.95),
               0px 0 8px  2px rgba(255, 34, 255, 0.90),
@@ -398,7 +400,7 @@ body .makeStyles-paper-161 {
   flex: auto;
   max-height: 50vh;
   border-radius: 0.5em;
-  background-color: #403c5d;
+  background-color: #401c4d;
   margin: 3px 1em 3px 0px;
   text-align: center;
 }
@@ -425,7 +427,10 @@ body .makeStyles-paper-161 {
 .message {
   background-color: rgba(255, 0, 220, 0.3);
   border-radius: 0.5em;
+  box-shadow: 0px 0px 10px 2px rgba(255, 0, 255, 0.8);
+  margin-left: 4px;
   margin-right: 1em;
+  margin-top: 4px;
   padding: 0px 1em 2px 2px;
   position: relative;
   right: 0px;
@@ -433,7 +438,8 @@ body .makeStyles-paper-161 {
 }
 
 .message.self {
-  background-color: rgba(120, 20, 235, 0.3);
+  background-color: rgba(170, 20, 255, 0.2);
+  box-shadow: 0px 0px 10px 2px rgba(100, 20, 255, 0.7);
   text-align: left;
 }
 
@@ -441,6 +447,7 @@ body .makeStyles-paper-161 {
   padding: 2px 2px;
   min-width: 4px;
   margin: 2px 2px;
+  background-color: rgba(130, 30, 255, 0.4);
 }
 
 .quick-msg {
@@ -452,7 +459,7 @@ body .makeStyles-paper-161 {
 .quick-msg.white, .quick-msg.black {
   background-position: center; /* Center the image */
   background-repeat: no-repeat; /* Do not repeat the image */
-  background-size: cover; 
+  background-size: cover;
 }
 
 .quick-msg .MuiSvgIcon-root {
@@ -468,9 +475,13 @@ body .makeStyles-paper-161 {
 }
 
 #game_messages_quick_buttons .MuiSvgIcon-root {
+  position: relative;
   text-align: center;
   margin-left: -0.1rem;
+  top: max(-0.2vh, -0.2vw);
   margin-top: -0.3rem;
+  height: calc(min(2vw, 4vh) + 3px);
+  width: calc(min(2vw, 4vh) + 3px);
 }
 
 .quick-msg.pawn.white{background-image:url('./images/pieces/merida/wP.svg')}
@@ -495,7 +506,7 @@ body .makeStyles-paper-161 {
   margin-left: -0.1rem;
   margin-top: -0.6rem;
   padding: 2px 2px;
-} 
+}
 
 .quick-msg.exchange .text, .quick-msg.mates .text {
   color: rgba(255, 0, 170);
