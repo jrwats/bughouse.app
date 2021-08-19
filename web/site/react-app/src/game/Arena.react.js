@@ -34,6 +34,7 @@ const Arena = ({ gamePath }) => {
   const [handleColorB, setHandleColorB] = useState(
     boardB != null ? boardB.getHandleColor(handle) : null
   );
+  const color = handleColorA || handleColorB;
 
   useEffect(() => {
     const onboardA = () => {
@@ -79,7 +80,6 @@ const Arena = ({ gamePath }) => {
   // TODO make this user-controlled/editable (for observers etc)
   if (orientation == null || orientation === "") {
     orientation = handleColorB ? Orientation.FLIPPED : Orientation.DEFAULT;
-    const color = handleColorA || handleColorB;
     orientation |= color === "black" ? Orientation.BLACK : 0;
   } else {
     orientation = parseInt(orientation);
@@ -118,6 +118,11 @@ const Arena = ({ gamePath }) => {
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();
   }
+  const game_messages = color == null ? null : (
+    <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
+      <GameMessages gameID={gameID} />
+    </div>
+  );
   return (
     <div
       id="arena"
@@ -129,10 +134,9 @@ const Arena = ({ gamePath }) => {
           {boards[0]}
         </div>
         <div style={{flex: "1 1 50vw"}}>
+          
           <div style={{display: "flex"}}>
-            <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
-              <GameMessages gameID={gameID} />
-            </div>
+            {game_messages}
             <div style={{flex: "auto"}}>
               {boards[1]}
             </div>

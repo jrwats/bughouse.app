@@ -1,16 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 const GameStartCountdown = ({ start }) => {
   const getSecsTilStart = () => Math.round(((start || 0) - Date.now()) / 1000);
   // let [now, setNow] = useState(Date.now());
   let [count, setCount] = useState(getSecsTilStart());
+  let interval = useRef(null);
   const msTilStart = start - Date.now();
+
+  const updateClock = () => setCount(getSecsTilStart());
+  useEffect(() => {
+    interval.current = setInterval(() => {
+      updateClock();
+      if (start < Date.now()) {
+        clearInterval(interval.current);
+      }
+    }, 50);
+  }, []);
 
   if (msTilStart >= 0) {
     setTimeout(() => {
-      setCount(getSecsTilStart());
-      console.log(`count: ${getSecsTilStart()}`);
-      // setNow(Date.now());
-    }, (msTilStart % 1000) || 100);
+      updateClock();
+    }, (msTilStart % 1000) || 1000);
   }
 
   if (count < 0 || msTilStart < 0) {

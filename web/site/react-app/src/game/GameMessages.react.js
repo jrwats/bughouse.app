@@ -11,7 +11,8 @@ const GameMessages = ({gameID}) => {
   const textInput = useRef(null);
 
   const onSubmit = (evt) => {
-    const newHandle = textInput.current.querySelector("input").value;
+    const input = textInput.current.querySelector("input");
+    const newHandle = input.value;
     socket.sendEvent("game_msg", {
       id: gameID,
       sender: uid,
@@ -19,6 +20,7 @@ const GameMessages = ({gameID}) => {
       text: textInput.current.querySelector("input").value 
     });
     evt.preventDefault();
+    input.value = '';
   };
 
   useEffect(() => {
@@ -48,8 +50,11 @@ const GameMessages = ({gameID}) => {
 
   return (
     <div id="game_message_center">
+      <div id="game_messages_quick_buttons">
+        quick buttons go here
+      </div>
       <div id="game_messages">
-        <div>Messages go here...</div>
+        {/* <div>Messages go here...</div> */}
         {uiMessages.val.map(msg => {
           const self = msg.self ? "self " : "";
           const msgID = msg.msgID || "";

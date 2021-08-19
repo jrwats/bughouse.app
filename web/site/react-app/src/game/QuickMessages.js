@@ -1,0 +1,16 @@
+export default const QuickMessages = {
+  NEED_PAWN: 1,
+  NEED_BISHOP: 2,
+  NEED_KNIGHT: 3,
+  NEED_ROOK: 4,
+  NEED_QUEEN: 5,
+  NO_PAWN: 6,
+  NO_BISHOP: 7,
+  NO_KNIGHT: 8,
+  NO_ROOK: 9,
+  NO_QUEEN: 10,
+  EXCHANGE: 11,
+  MATES: 12,
+  STALL: 13,
+  WATCH_TIME: 14,
+}

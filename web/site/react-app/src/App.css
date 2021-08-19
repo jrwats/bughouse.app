@@ -389,12 +389,37 @@ body .makeStyles-paper-161 {
   flex-direction: column;
 }
 
-#game_messages {
+#game_messages_quick_buttons {
+  position: relative;
   flex: auto;
   max-height: 50vh;
-  overflow: scroll;
+  border-radius: 0.5em;
+  background-color: #403c5d;
+  margin: 3px 1em 3px 0px;
+}
+
+#game_messages {
+  position: relative;
+  flex: auto;
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #game_message_input {
   flex: 1 1 1;
+}
+
+.message {
+  /* background-color: rgba(120, 20, 255, 0.4); */
+  border-radius: 0.5em;
+  margin-right: 1em;
+  padding: 0px 1em 2px 2px;
+  position: relative;
+  right: 0px;
+}
+
+.message.self {
+  text-align: right;
+  background-color: rgba(255, 0, 255, 0.3);
 }

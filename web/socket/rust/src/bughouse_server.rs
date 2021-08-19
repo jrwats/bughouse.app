@@ -736,6 +736,9 @@ impl BughouseServer {
         if let Some(partner_uid) = rgame.get_partner(&uid) {
             println!("sending {} to {}", payload, partner_uid);
             self.send_text_to_user(payload.to_string(), &partner_uid);
+            // Send ACK back to sender
+            println!("sending same to {}", uid);
+            self.send_text_to_user(payload.to_string(), &uid);
         } else {
             println!("game_msg: no partner?");
         }
