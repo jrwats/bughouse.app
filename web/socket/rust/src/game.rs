@@ -197,10 +197,11 @@ impl Game {
 
     pub fn get_partner(&self, uid: &UserID) -> Option<UserID> {
         if let Some((board_id, color)) = self.get_board_id_for_user(uid) {
-           let maybe_player = &self.players[1 - board_id.to_index()][1 - color.to_index()];
-           if let Some(player) = maybe_player {
-               return Some(player.read().unwrap().id);
-           }
+            let maybe_player =
+                &self.players[1 - board_id.to_index()][1 - color.to_index()];
+            if let Some(player) = maybe_player {
+                return Some(player.read().unwrap().id);
+            }
         }
         None
     }

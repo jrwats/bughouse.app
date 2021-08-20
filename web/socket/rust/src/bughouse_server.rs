@@ -662,7 +662,11 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
-    fn send_text_to_user(&self, payload: String, uid: &UserID) -> ClientMessage {
+    fn send_text_to_user(
+        &self,
+        payload: String,
+        uid: &UserID,
+    ) -> ClientMessage {
         let bytestr = Arc::new(ByteString::from(payload));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         self.conns.send_to_user(uid, &msg);
@@ -727,17 +731,21 @@ impl BughouseServer {
         game_id: GameID,
         payload: &Value,
         conn_id: &ConnID,
-        ) -> Result<(), Error> {
+    ) -> Result<(), Error> {
         println!("send_game_msg({}, {}, {})", game_id, payload, conn_id);
         let uid = self.uid_from_conn(conn_id)?;
-        let game = self.games.get_user_game(&uid)
+        let game = self
+            .games
+            .get_user_game(&uid)
             .ok_or(Error::InvalidUserNotPlaying(uid, game_id))?;
         let rgame = game.read().unwrap();
         if *rgame.get_id() != game_id {
             eprintln!("{} != {}", rgame.get_id(), game_id);
-            return Err(
-                Error::InvalidGameIDForUser(uid, game_id, *rgame.get_id()),
-                );
+            return Err(Error::InvalidGameIDForUser(
+                uid,
+                game_id,
+                *rgame.get_id(),
+            ));
         }
         if let Some(partner_uid) = rgame.get_partner(&uid) {
             println!("sending {} to {}", payload, partner_uid);
