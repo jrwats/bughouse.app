@@ -1,14 +1,17 @@
 import Button from "@material-ui/core/Button";
+import CloseIcon from "@material-ui/icons/Close";
 import EditIcon from "@material-ui/icons/Edit";
 import SpellcheckIcon from "@material-ui/icons/Spellcheck";
 import Grid from "@material-ui/core/Grid";
 import Paper from "@material-ui/core/Paper";
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
+import Loading from "../Loading.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "./ViewerProvider";
 import { makeStyles } from "@material-ui/core/styles";
+import purple from '@material-ui/core/colors/purple';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -22,6 +25,21 @@ const HandleEdit = ({ handle }) => {
   const textInput = useRef(null);
   const { socket } = useContext(SocketContext);
   let [editing, setEditing] = useState(false);
+  let [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const onUpdate = (_data) => {
+      setEditing(false);
+      setSubmitting(false);
+    };
+    socket.on('handle_update', onUpdate);
+    socket.on('login', onUpdate);
+    return () => {
+      socket.off('handle_update', onUpdate);
+      socket.off('login', onUpdate);
+    }
+  }, [socket]);
+
   if (!editing) {
     return (
       <>
@@ -42,25 +60,40 @@ const HandleEdit = ({ handle }) => {
       </>
     );
   }
+
   const onSubmit = (evt) => {
     const newHandle = textInput.current.querySelector("input").value;
     socket.sendEvent("set_handle", { handle: newHandle });
     evt.preventDefault();
+    setSubmitting(true);
   };
+
   return (
     <form onSubmit={onSubmit} noValidate autoComplete="off">
-      <TextField
-        ref={textInput}
-        id="handle"
-        label="Handle:"
-        defaultValue={handle}
-      />
-      <span style={{ position: "relative", top: ".4em", marginLeft: "1em" }}>
-        <Button variant="contained" color="primary" onClick={onSubmit}>
-          <SpellcheckIcon fontSize="small" />
-          <span style={{ marginLeft: ".2em" }}>Submit</span>
-        </Button>
-      </span>
+      <div  style={{width: "100%"}}>
+        <TextField
+          ref={textInput}
+          id="handle"
+          label="Handle:"
+          defaultValue={handle}
+        />
+      </div>
+      <div style={{margin: "4px 0px"}}>
+        <span style={{marginTop: "4px"}}>
+          <Button variant="contained" color={submitting ? "secondary" : "primary"} onClick={onSubmit}>
+            <SpellcheckIcon fontSize="small" />
+            <span style={{ marginLeft: ".2em" }}>
+              {submitting ? <Loading style={{padding: "0 2rem"}} size="1.0rem" /> : "Submit"}
+            </span>
+          </Button>
+        </span>
+        <span style={{margin: "4px 4px 4px 4px"}}>
+          <Button variant="contained" disabled={submitting} color="secondary" onClick={(_) => { setEditing(false); }}>
+            <CloseIcon fontSize="small" />
+            <span style={{ marginLeft: ".2em" }}>Cancel</span>
+          </Button>
+        </span>
+      </div>
     </form>
   );
 };
@@ -72,18 +105,12 @@ const Profile = (props) => {
 
   return (
     <div style={{ flexGrow: 1 }}>
-      <Grid container spacing={1}>
-        <Grid container item xs={12} spacing={8}>
-          <Grid item xs={3}>
-            <HandleEdit handle={handle} />
-          </Grid>
-        </Grid>
-        <Grid container item xs={12} spacing={3}>
-          <Grid item sm={4}>
-            <Paper className={classes.paper}>
-              Rating: {rating}, Deviation: {deviation}
-            </Paper>
-          </Grid>
+      <HandleEdit handle={handle} />
+      <Grid container item xs={12} spacing={3} style={{marginTop: "1rem"}}>
+        <Grid item sm={4}>
+          <Paper className={classes.paper}>
+            Rating: {rating}, Deviation: {deviation}
+          </Paper>
         </Grid>
       </Grid>
     </div>

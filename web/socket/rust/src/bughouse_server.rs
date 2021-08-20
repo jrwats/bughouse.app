@@ -415,7 +415,13 @@ impl BughouseServer {
             "uid": ruser.id,
             "handle": ruser.handle,
         });
-        Ok(self.send_text_to_user(json.to_string(), &ruser.id))
+        self.send_text_to_user(json.to_string(), &ruser.id);
+        let hdl_json = json!({
+            "kind": "handle_update",
+            "uid": ruser.id,
+            "handle": ruser.handle,
+        });
+        Ok(self.send_text_to_user(hdl_json.to_string(), &ruser.id))
     }
 
     pub fn queue_sit(
@@ -656,7 +662,7 @@ impl BughouseServer {
         self.games.get(game_id)
     }
 
-    fn send_text_to_user(&self, payload: String, uid: &UserID) -> ClientMessage{
+    fn send_text_to_user(&self, payload: String, uid: &UserID) -> ClientMessage {
         let bytestr = Arc::new(ByteString::from(payload));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         self.conns.send_to_user(uid, &msg);
