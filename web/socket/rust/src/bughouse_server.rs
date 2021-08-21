@@ -771,6 +771,15 @@ impl BughouseServer {
         Ok(ByteString::from(game_json.to_val().to_string()))
     }
 
+    pub async fn get_game_row_payload(
+        &self,
+        game_id: &GameID,
+    ) -> Result<ByteString, Error> {
+        let game_row = self.db.get_game(&game_id).await?;
+        let game_json = game_row.to_json();
+        Ok(ByteString::from(game_json.to_string()))
+    }
+
     pub fn on_close(
         &'static self,
         recipient: &Recipient<ClientMessage>,

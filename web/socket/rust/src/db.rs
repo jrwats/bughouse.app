@@ -27,6 +27,7 @@ use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID};
+use crate::game_row::GameRow;
 use crate::guest::guest_handle::GuestHandle;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
@@ -38,14 +39,6 @@ pub struct Db {
     session: Session,
     ctx: Context,
 }
-
-// #[derive(Clone, FromRow, IntoUserType, FromUserType)]
-// pub struct UserRatingRow {
-//     pub uid: UserID,
-//     pub time: DateTime<Utc>,
-//     pub deviation: i16,
-//     pub rating: i16,
-// }
 
 #[derive(Debug, FromRow)]
 pub struct FirebaseRowData {
@@ -227,6 +220,25 @@ impl Db {
         }
         res?;
         Ok(())
+    }
+
+    pub async fn get_game(&self, game_id: &GameID) -> Result<GameRow, Error> {
+        let res = self
+            .session
+            .query(
+                "SELECT (id, start_time, result, time_ctrl, rated, players, moves) 
+                FROM bughouse.games
+                WHERE id = ?",
+                (game_id,),
+            )
+            .await?;
+        if let Some(rows) = res.rows {
+            for row in rows.into_typed::<GameRow>() {
+                let result = row?;
+                return Ok(result);
+            }
+        }
+        Err(Error::InvalidGameID(*game_id))
     }
 
     pub async fn get_user(&self, uid: &UserID) -> Option<User> {

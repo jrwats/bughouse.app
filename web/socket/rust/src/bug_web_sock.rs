@@ -178,7 +178,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for BugWebSock {
             }
             Ok(ws::Message::Close(reason)) => {
                 eprintln!("StreamHandler ws_msg_close: {}", self.id);
-                // let heartbeat pick up closure
                 ctx.close(reason);
                 ctx.stop();
             }
@@ -473,9 +472,7 @@ impl BugWebSock {
                 self.data
                     .server
                     .observe(&game_id, ctx.address().recipient());
-                let game_msg =
-                    self.data.server.get_game_json_payload(game_id)?;
-                ctx.text(game_msg);
+                ctx.text(self.data.server.get_game_json_payload(game_id)?);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;

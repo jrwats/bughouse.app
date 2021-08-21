@@ -19,6 +19,7 @@ mod error;
 mod firebase;
 mod game;
 mod game_json;
+mod game_row;
 mod games;
 mod guest;
 // mod adjectives;
