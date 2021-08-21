@@ -652,6 +652,14 @@ mod test {
                 ),
                 32639,
             ),
+            (
+                BughouseMove::new(
+                    Some(ALL_SQUARES[NUM_SQUARES - 1]),
+                    ALL_SQUARES[NUM_SQUARES - 1],
+                    None,
+                ),
+                32703,
+            ),
         ];
         for (mv, expected_num) in tests.iter() {
             let mv_num = Db::serialize_move(&mv);
