@@ -130,10 +130,21 @@ impl ConnectionMgr {
         Ok(conn_id)
     }
 
-    pub fn send_to_user(&self, uid: &UserID, msg: &ClientMessage) {
+    pub fn send_to_conn(
+        &self,
+        conn_id: &ConnID,
+        msg: ClientMessage,
+    ) -> Result<(), Error> {
         let conns = self.conns.read().unwrap();
+        let conn = conns.get(conn_id).unwrap();
+        conn.recipient().do_send(msg)?;
+        Ok(())
+    }
+
+    pub fn send_to_user(&self, uid: &UserID, msg: &ClientMessage) {
         let mut conn_id_to_remove: Option<ConnID> = None;
         {
+            let conns = self.conns.read().unwrap();
             if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
                 for conn_id in conn_ids.iter() {
                     let conn = conns.get(conn_id).unwrap();

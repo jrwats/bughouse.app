@@ -1,4 +1,4 @@
-use bughouse::{BoardID, Color, Error as BugError};
+use bughouse::{BoardID, Error as BugError};
 use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;

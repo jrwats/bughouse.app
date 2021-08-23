@@ -4,6 +4,7 @@ use actix_web::*;
 use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
+use futures::join;
 use serde_json::{json, Value};
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
@@ -13,7 +14,6 @@ use std::sync::{Arc, RwLock};
 // use timer::Timer;
 // use std::thread;
 
-use crate::b66::B66;
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
@@ -338,6 +338,48 @@ impl BughouseServer {
             return Ok(u);
         }
         Err(Error::UnknownUID(*uid))
+    }
+
+    pub async fn get_user_handles(
+        &'static self,
+        snaps: &TableSnapshot,
+    ) -> Result<((String, String), (String, String)), Error> {
+        let ((aw, ab), (bw, bb)) = snaps;
+        let (maybe_aw, maybe_ab, maybe_bw, maybe_bb) = join!(
+            self.users.maybe_user_from_uid(&aw.uid),
+            self.users.maybe_user_from_uid(&ab.uid),
+            self.users.maybe_user_from_uid(&bw.uid),
+            self.users.maybe_user_from_uid(&bb.uid),
+        );
+        let rawu = maybe_aw.unwrap();
+        let rabu = maybe_ab.unwrap();
+        let rbwu = maybe_bw.unwrap();
+        let rbbu = maybe_bb.unwrap();
+        let awu = rawu.read().unwrap();
+        let abu = rabu.read().unwrap();
+        let bwu = rbwu.read().unwrap();
+        let bbu = rbbu.read().unwrap();
+        Ok((
+            (awu.handle.clone(), abu.handle.clone()),
+            (bwu.handle.clone(), bbu.handle.clone()),
+        ))
+    }
+
+    pub async fn send_gamerow(
+        &'static self,
+        game_id: GameID,
+        conn_id: &ConnID,
+    ) -> Result<ClientMessage, Error> {
+        let gamerow = self.db.get_gamerow(&game_id).await?;
+        let handles = self.get_user_handles(&gamerow.players).await?;
+        let payload = gamerow.to_json(handles);
+        let bytestr = Arc::new(ByteString::from(payload.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        let res = self.conns.send_to_conn(conn_id, msg.clone());
+        if res.is_err() {
+            eprintln!("Error sending to: {}", conn_id);
+        }
+        Ok(msg)
     }
 
     pub async fn rating_snapshot_from_uid(
@@ -769,15 +811,6 @@ impl BughouseServer {
             .ok_or(Error::InvalidGameID(game_id))?;
         let game_json = GameJson::new(game.clone(), Games::get_kind(game));
         Ok(ByteString::from(game_json.to_val().to_string()))
-    }
-
-    pub async fn get_game_row_payload(
-        &self,
-        game_id: &GameID,
-    ) -> Result<ByteString, Error> {
-        let game_row = self.db.get_game(&game_id).await?;
-        let game_json = game_row.to_json();
-        Ok(ByteString::from(game_json.to_string()))
     }
 
     pub fn on_close(

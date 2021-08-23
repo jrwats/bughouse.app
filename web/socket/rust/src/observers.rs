@@ -1,6 +1,6 @@
 use actix::prelude::*;
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use crate::game::GameID;
 use crate::hash::hash;

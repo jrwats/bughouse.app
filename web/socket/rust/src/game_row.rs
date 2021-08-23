@@ -1,4 +1,4 @@
-use bughouse::{BughouseMove, Square, ALL_PIECES, ALL_SQUARES, NUM_PIECES};
+use bughouse::{BughouseMove, Color, ALL_PIECES, ALL_SQUARES, NUM_PIECES};
 use chrono::Duration;
 use scylla::cql_to_rust::FromRow;
 use scylla::macros::FromRow;
@@ -20,23 +20,49 @@ pub struct GameRow {
     pub moves: HashMap<i32, i16>,
 }
 
+//                         src             dest    piece
+type ClientBughouesMove = (Option<String>, String, Option<String>);
+
 impl GameRow {
-    pub fn to_json(&self) -> Value {
-        // : [HashMap<i32, BughouseMove; 2] 
-        let mut moves: [HashMap<i32, (Option<Square>, Square, Option<Piece>)>; 2] = [HashMap::new(), HashMap::new()];
+    pub fn to_json(
+        &self,
+        handles: ((String, String), (String, String)),
+    ) -> Value {
+        let mut moves: [HashMap<i32, ClientBughouesMove>; 2] =
+            [HashMap::new(), HashMap::new()];
         for (key, mv_num) in self.moves.iter() {
             let bug_move = Self::deserialize_move(*mv_num);
-            let serialized = (bug_move.get_source(), bug_move.get_dest(), bug_move.get_piece());
+            let serialized = (
+                bug_move.get_source().map(|s| s.to_string()),
+                bug_move.get_dest().to_string(),
+                bug_move.get_piece().map(|p| p.to_string(Color::Black)),
+            );
             moves[(key & 1) as usize].insert(key >> 1, serialized);
         }
-        let oh_hai = self.start_time.num_milliseconds();
+        let ((aw, ab), (bw, bb)) = &self.players;
+        let ((awh, abh), (bwh, bbh)) = &handles;
         json!({
-            id: self.id,
-            start_time: oh_hai,
-            result: self.result,
-            time_ctrl: format!("{}", self.time_ctrl),
-            rated: self.rated,
-            // players: self.players,
+            "id": self.id,
+            "start_time": self.start_time.num_milliseconds(),
+            "result": self.result,
+            "time_ctrl": format!("{}", self.time_ctrl),
+            "rated": self.rated,
+            "players": [
+                [{
+                    "rating": aw.rating,
+                    "handle": awh,
+                }, {
+                    "rating": ab.rating,
+                    "handle": abh,
+                }],
+                [{
+                    "rating": bw.rating,
+                    "handle": bwh,
+                }, {
+                    "rating": bb.rating,
+                    "handle": bbh,
+                }],
+            ],
             // moves: moves,
         })
     }
@@ -82,14 +108,12 @@ impl GameRow {
             }
         }
     }
-
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use bughouse::Piece;
-
+    use bughouse::{Piece, Square, NUM_SQUARES};
 
     #[test]
     fn move_serialization() {

@@ -219,7 +219,10 @@ impl Db {
         Ok(())
     }
 
-    pub async fn get_game(&self, game_id: &GameID) -> Result<GameRow, Error> {
+    pub async fn get_gamerow(
+        &self,
+        game_id: &GameID,
+    ) -> Result<GameRow, Error> {
         let res = self
             .session
             .query(
@@ -591,4 +594,3 @@ impl Db {
         .await
     }
 }
-
