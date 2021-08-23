@@ -327,6 +327,11 @@ impl BugWebSock {
                     eprintln!("table formation error: {}", e);
                 }
             }
+            "analyze" => {
+                let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
+                let recipient = ctx.address().recipient();
+                self.data.server.queue_send_gamerow(&game_id, recipient)?;
+            }
             "sit" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 // TODO implement from_str for BoardID / color
@@ -429,6 +434,19 @@ impl BugWebSock {
         Ok(())
     }
 
+    fn get_game_or_send_row(
+        &self,
+        game_id: GameID,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<ByteString, Error> {
+        let res = self.data.server.get_game_json_payload(game_id);
+        if let Err(e) = res {
+            self.data.server.queue_send_gamerow(&game_id, recipient)?;
+            return Err(e);
+        }
+        res
+    }
+
     fn msg_handler(
         &self,
         text: &ByteString,
@@ -472,13 +490,15 @@ impl BugWebSock {
                 self.data
                     .server
                     .observe(&game_id, ctx.address().recipient());
-                ctx.text(self.data.server.get_game_json_payload(game_id)?);
+                let msg = self
+                    .get_game_or_send_row(game_id, ctx.address().recipient())?;
+                ctx.text(msg);
             }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                let game_msg =
-                    self.data.server.get_game_json_payload(game_id)?;
-                ctx.text(game_msg);
+                let msg = self
+                    .get_game_or_send_row(game_id, ctx.address().recipient())?;
+                ctx.text(msg);
             }
             "auth" => {
                 let token = val["token"].as_str().ok_or(Error::AuthError {

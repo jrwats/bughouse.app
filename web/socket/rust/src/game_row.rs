@@ -1,4 +1,7 @@
-use bughouse::{BughouseMove, Color, ALL_PIECES, ALL_SQUARES, NUM_PIECES};
+use bughouse::{
+    BoardID, BughouseMove, Color, ALL_COLORS, ALL_PIECES, ALL_SQUARES,
+    BOARD_IDS, NUM_PIECES,
+};
 use chrono::Duration;
 use scylla::cql_to_rust::FromRow;
 use scylla::macros::FromRow;
@@ -6,7 +9,7 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::db::TableSnapshot;
-use crate::game::GameID;
+use crate::game::{GameID, GameResult, GameResultType};
 use crate::time_control::TimeControl;
 
 #[derive(Clone, FromRow)]
@@ -27,6 +30,7 @@ impl GameRow {
     pub fn to_json(
         &self,
         handles: ((String, String), (String, String)),
+        kind: Option<String>,
     ) -> Value {
         let mut moves: [HashMap<i32, ClientBughouesMove>; 2] =
             [HashMap::new(), HashMap::new()];
@@ -41,10 +45,16 @@ impl GameRow {
         }
         let ((aw, ab), (bw, bb)) = &self.players;
         let ((awh, abh), (bwh, bbh)) = &handles;
+        let result: GameResult = Self::deserialize_result(self.result);
+        let msg_kind = match kind {
+            None => "game_row".to_string(),
+            Some(k) => k,
+        };
         json!({
             "id": self.id,
+            "kind": msg_kind,
             "start_time": self.start_time.num_milliseconds(),
-            "result": self.result,
+            "result": result,
             "time_ctrl": format!("{}", self.time_ctrl),
             "rated": self.rated,
             "players": [
@@ -63,8 +73,29 @@ impl GameRow {
                     "handle": bbh,
                 }],
             ],
-            // moves: moves,
+            "moves": moves
         })
+    }
+
+    pub fn deserialize_result(result_col: i16) -> GameResult {
+        let board_idx = (result_col & 1) as usize;
+        let winner = ((result_col >> 1) & 1) as usize;
+        let result = if ((result_col >> 2) & 1) == 0 {
+            GameResultType::Flagged
+        } else {
+            GameResultType::Checkmate
+        };
+        GameResult {
+            board: BOARD_IDS[board_idx],
+            winner: ALL_COLORS[winner],
+            kind: result,
+        }
+    }
+
+    pub fn serialize_result(result: &GameResult) -> i16 {
+        result.board as i16
+            | ((result.winner as i16) << 1)
+            | ((result.kind as i16) << 2)
     }
 
     pub fn deserialize_move(mv_num: i16) -> BughouseMove {

@@ -308,7 +308,6 @@ impl Game {
 
 #[cfg(test)]
 mod test {
-    use super::*;
 
     #[test]
     fn uuid_ref_eq_sanity() {

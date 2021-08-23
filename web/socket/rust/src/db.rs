@@ -428,11 +428,7 @@ impl Db {
         game: Arc<RwLock<Game>>,
     ) -> Result<(), Error> {
         let rgame = game.read().unwrap();
-        let result = rgame.get_result().unwrap();
-        // TODO implement serialization
-        let val: i16 = result.board as i16
-            | ((result.winner as i16) << 1)
-            | ((result.kind as i16) << 2);
+        let val = GameRow::serialize_result(&rgame.get_result().unwrap());
         let res = self
             .session
             .query(

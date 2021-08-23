@@ -37,11 +37,12 @@ impl ClientMessage {
 
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
+    CheckGame(GameID),
     CreateGame(TimeControl, bool, GamePlayers),
     FormTable(TimeControl, bool, UserID),
-    SetHandle(String, UserID),
-    CheckGame(GameID),
+    GetGameRow(GameID, Recipient<ClientMessage>),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
+    SetHandle(String, UserID),
     Sit(GameID, BoardID, Color, UserID),
     Vacate(GameID, BoardID, Color, Recipient<ClientMessage>),
 }

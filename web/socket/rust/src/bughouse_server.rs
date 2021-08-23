@@ -118,6 +118,10 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).form_table(time_ctrl, rated, uid);
                 Box::pin(async move { fut.await })
             }
+            ServerMessageKind::GetGameRow(game_id, recipient) => {
+                let fut = self.srv(ctx).send_game_row(game_id, recipient);
+                Box::pin(async move { fut.await })
+            }
             ServerMessageKind::Sit(game_id, board_id, color, uid) => {
                 let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
                 Box::pin(async move { fut.await })
@@ -365,19 +369,31 @@ impl BughouseServer {
         ))
     }
 
-    pub async fn send_gamerow(
+    pub fn queue_send_gamerow(
+        &self,
+        game_id: &GameID,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        self.loopback.do_send(ServerMessage::new(
+            ServerMessageKind::GetGameRow(*game_id, recipient),
+        ))?;
+        Ok(())
+    }
+
+    pub async fn send_game_row(
         &'static self,
         game_id: GameID,
-        conn_id: &ConnID,
+        recipient: Recipient<ClientMessage>,
     ) -> Result<ClientMessage, Error> {
         let gamerow = self.db.get_gamerow(&game_id).await?;
         let handles = self.get_user_handles(&gamerow.players).await?;
-        let payload = gamerow.to_json(handles);
+        let payload = gamerow.to_json(handles, None);
         let bytestr = Arc::new(ByteString::from(payload.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
-        let res = self.conns.send_to_conn(conn_id, msg.clone());
+        // let res = self.conns.send_to_conn(conn_id, msg.clone());
+        let res = recipient.do_send(msg.clone());
         if res.is_err() {
-            eprintln!("Error sending to: {}", conn_id);
+            eprintln!("Error sending to: {:?}", recipient);
         }
         Ok(msg)
     }
