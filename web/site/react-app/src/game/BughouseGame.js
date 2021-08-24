@@ -26,6 +26,7 @@ class BughouseGame extends EventEmitter {
     this._isAnalysis = false;
     this._rated = rated;
     this._moves = [];
+    this._result = null;
     this._setStart(delayStartMillis);
     this._id = id;
 
@@ -167,11 +168,11 @@ class BughouseGame extends EventEmitter {
     console.log(data.result);
     this._finished = true;
     const { board, kind, winner } = data.result;
+    this._result = data.result;
     const boards = this._getBoards();
     boards[board].setWinner(_getColor(winner));
     boards[1 - board].setWinner(_getColor(1 - winner));
     this._reason = this._deriveReason(board, kind, winner);
-    this._result = data.result;
     this._winner = data.result[0] === "1" ? "white" : "black";
     ScreenLock.release();
     this.emit("gameOver", data);

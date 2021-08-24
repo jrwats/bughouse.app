@@ -25,11 +25,8 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         refTime.current = milliseconds;
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
-      setState({
-        gameOver: cb.getGame().getResult() != null,
-        playerData,
-        ms: refTime.current,
-      });
+      const gameOver = cb.getGame().getResult() != null;
+      setState({ gameOver, playerData, ms: refTime.current });
     };
 
     const onTick = () => {
@@ -63,7 +60,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const mins = Math.floor(state.ms / 1000.0 / 60.0);
   const secs = Math.floor((state.ms / 1000.0) % 60);
   return (
-    <span className="h6 alien" style={{paddingTop: "4px"}}>
+    <span className="h6 alien" style={{paddingTop: "4px", minWidth: "4rem"}}>
       {mins}:{(secs < 10 ? "0" : "") + secs}
     </span>
   );

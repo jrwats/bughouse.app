@@ -12,7 +12,6 @@ const GameOverMessage = ({ chessboard }) => {
   const { handle } = useContext(SocketContext);
   const board = chessboard.getBoard();
   const winnerColor = chessboard.getWinner();
-  console.log(`GameOverMessage ${chessboard.getID()}`);
   const gameID = chessboard.getGame().getID();
 
   if (board[winnerColor] == null) {
