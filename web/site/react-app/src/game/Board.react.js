@@ -24,11 +24,13 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const [sz, setSz] = useState(null);
   const pendingMove = useRef({});
   const boardWrapperRef = useRef(null);
+  const chessgroundRef = React.useRef(null);
 
   const readEl = (el) => {
     if (el == null) {
       return;
     }
+    console.log(`rect: ${JSON.stringify(el.getBoundingClientRect())}`);
     const height = el.offsetHeight;
     const width = el.offsetWidth;
     let newSz = Math.floor(Math.min(height, width));
@@ -36,9 +38,10 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     console.log(`height: ${height}, width: ${width}, newSz: ${newSz}`);
     setSz(newSz);
   };
+
   useEffect(() => {
     readEl(boardWrapperRef.current);
-    const resizeObserver = new ResizeObserver((entries) => {
+    const resizeObserver = new ResizeObserver((_entries) => {
       readEl(boardWrapperRef.current);
     });
     resizeObserver.observe(boardWrapperRef.current);
@@ -47,7 +50,6 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     };
   }, [boardWrapperRef]);
 
-  const chessgroundRef = React.useRef(null);
 
   const game = chessboard.getGame();
   useEffect(() => {
@@ -90,33 +92,37 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   }, [game]);
 
   let alert = null;
-  if (finished) {
+  if (finished && !chessboard.getGame().isAnalysis()) {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
   return (
-    <div style={{ display: "inline-block", height: "100%", width: "100%" }}>
+    <div style={{ 
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      width: "100%" 
+      }}>
       <BoardGutter
         forming={forming}
         color={opposite(orientation)}
         chessboard={chessboard}
       />
-      <div
-        style={{
-          position: "relative",
-          height: "min(90vh, 44vw)",
+      <div style={{ 
+        position: "relative", // for alert
+        flex: "8 1 min(80vh, 44vw)",
+        display: "flex",
+        maxHeight: "min(85vh, 44vw)",
         }}
       >
-        <Box
+        {/* <Box */}
+        <div
           id={id}
-          display="flex"
-          flexWrap="nowrap"
-          p={1}
-          m={1}
           style={{
-            position: "relative",
+            flex: "1 1 auto",
+            display: "flex",
+            flexWrap: "nowrap",
             margin: 0,
             padding: 0,
-            height: sz == null ? "100%" : sz + "px",
           }}
         >
           {alert}
@@ -130,13 +136,15 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             chessboard={chessboard}
             viewOnly={viewOnly}
           />
-          <div ref={boardWrapperRef} style={{ height: "100%", flex: "8 1 0" }}>
+          <div ref={boardWrapperRef} style={{ 
+            position: "relative",
+            flex: "8 1 min(85vh, 40vw)" 
+            }}>
             <div
               style={{
                 position: "absolute",
                 height: sz == null ? "100%" : sz + "px",
-                width: sz == null ? "100%" : sz + "px",
-                backgroundColor: "#ff0000",
+                width: sz == null ? "100%" : sz + "px"
               }}
             >
               <Chessground
@@ -177,7 +185,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
               />
             </div>
           </div>
-        </Box>
+        </div>
         <PromotionDialog
           color={orientation}
           open={promoVisible}
@@ -195,12 +203,12 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           }}
           selectedValue={"x"}
         />
-        <BoardGutter
-          forming={forming}
-          color={orientation}
-          chessboard={chessboard}
-        />
       </div>
+      <BoardGutter
+        forming={forming}
+        color={orientation}
+        chessboard={chessboard}
+      />
     </div>
   );
 };

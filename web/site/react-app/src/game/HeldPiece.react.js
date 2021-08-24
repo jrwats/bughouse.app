@@ -6,6 +6,7 @@ import { SocketContext } from "../socket/SocketProvider";
 const HeldPiece = ({
   boardID,
   chessboard,
+  container,
   chessgroundRef,
   color,
   count,
@@ -49,6 +50,9 @@ const HeldPiece = ({
   if (count > 1) {
     countCircle = <span className="countCircle">{count}</span>;
   }
+  // TODO: bounds is undefined because setting it limits dragging to the lower
+  // half of screen right now.  Need to debug that.  We *SHOULD* be able to set
+  // bounds to the board container
   return (
     <div
       ref={relRef}
@@ -62,7 +66,7 @@ const HeldPiece = ({
     >
       <Draggable
         nodeRef={pieceRef}
-        bounds={`#${boardID}`}
+        bounds={undefined /* `#${boardID}`*/ }
         disabled={disabled}
         onStop={onStop}
         onDrag={onDrag}

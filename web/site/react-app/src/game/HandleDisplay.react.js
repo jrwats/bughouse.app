@@ -6,13 +6,12 @@ const HandleDisplay = ({ handle }) => {
   const { handleToUser } = useContext(UsersContext);
   return (
     <span>
-      <span className="h6 roboto light">{handle}</span>
+      <span className="player h6 roboto">{handle}</span>
       <UserName
         user={handleToUser[handle]}
         className="h6"
         style={{
           display: "inline",
-          fontWeight: "300",
         }}
       />
     </span>

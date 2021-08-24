@@ -62,8 +62,11 @@ const BoardGutter = ({ color, chessboard, forming }) => {
     socket.sendEvent("vacate", gameData);
   };
   const canVacate = forming && playerHandle === viewerHandle;
+  const toMove = chessboard.getColorToMove();
+  const playerColor = chessboard.getHandleColor(playerHandle);
+  const ticking = !forming && toMove != null && toMove === playerColor;
   return (
-    <div className="playerData">
+    <div className={`${"playerData"} ${ticking ? "ticking" : ""}`}>
       {getHandleDisplay(playerHandle, canVacate, onSit, onVacate)}
       <ClockDisplay color={color} chessboard={chessboard} forming={forming} />
     </div>

@@ -32,6 +32,29 @@ const getQuickContent = ({key, self, playerColor}) => {
   );
 }
 
+const BUTTON_GROUPS = [
+  [
+    QuickMessages.NEED_PAWN,
+    QuickMessages.NEED_KNIGHT,
+    QuickMessages.NEED_BISHOP,
+    QuickMessages.NEED_ROOK,
+    QuickMessages.NEED_QUEEN
+  ],
+  [
+    QuickMessages.NO_PAWN,
+    QuickMessages.NO_KNIGHT,
+    QuickMessages.NO_BISHOP,
+    QuickMessages.NO_ROOK,
+    QuickMessages.NO_QUEEN
+  ],
+  [
+    QuickMessages.EXCHANGE,
+    QuickMessages.MATES,
+    QuickMessages.STALL,
+    QuickMessages.WATCH_TIME,
+  ]
+];
+
 const GameMessages = ({playerColor, gameID}) => {
   const { socket } = useContext(SocketContext);
   const { uid } = useContext(ViewerContext);
@@ -78,29 +101,28 @@ const GameMessages = ({playerColor, gameID}) => {
     }
   }, [socket]);
 
-  const quickButtons = [];
-  for (const key in QuickMessages) {
-    const content = getQuickContent({self: true, key, playerColor});
-    quickButtons.push((
-      <Button
-        variant="outlined"
-        color="secondary"
-        onClick={(e) => {
-          socket.sendEvent("game_msg", {
-            id: gameID,
-            sender: uid,
-            type: "quick",
-            quick: key,
-          });
-        }}
-      >
-        {content}
-      </Button>
-    ));
-    if (/QUEEN/.test(key)) {
-      quickButtons.push(<div />);
-    }
-  }
+  const btnColumns = BUTTON_GROUPS.map(btnGroup => {
+    const rows = btnGroup.map(key => {
+      const content = getQuickContent({self: true, key, playerColor});
+      return (
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={(e) => {
+            socket.sendEvent("game_msg", {
+              id: gameID,
+              sender: uid,
+              type: "quick",
+              quick: key,
+            });
+          }}
+        >
+          {content}
+        </Button>
+      );
+    });
+    return (<div style={{flex: "auto"}}>{rows}</div>);
+  });
 
   return (
     <div id="game_message_center">
@@ -117,7 +139,9 @@ const GameMessages = ({playerColor, gameID}) => {
       </div>
       <div id="game_messages_quick_buttons">
         <Typography className="alien" variant="h5">Quick messages</Typography>
-        {quickButtons}
+        <div style={{display: "flex", flexWrap: "nowrap"}}>
+          {btnColumns}
+        </div>
       </div>
       <div id="game_messages" ref={scrollRef}>
         {/* <div>Messages go here...</div> */}

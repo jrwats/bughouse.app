@@ -92,7 +92,7 @@ class BughouseGame extends EventEmitter {
       .map(k => {
         const boardID = k & 0x1;
         const ms = k >> 1; // milliseconds since start
-        const serMove = serializedMoves[k];
+        let serMove = serializedMoves[k];
         const num = Math.floor(moveNums[boardID] / 2) + 1;
         ++moveNums[boardID];
         let move = {boardID, num, ms};

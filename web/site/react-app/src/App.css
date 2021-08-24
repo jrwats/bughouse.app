@@ -229,6 +229,7 @@
 }
 
 body {
+  margin: 2px;
   /* fallback for old browsers */
   background: #232333;
   /* background: #0f0c29;   */
@@ -263,10 +264,27 @@ body .mono {
 }
 
 .playerData {
-  padding: 0.5em 0px;
+  color: rgba(190, 50, 240, 0.9);
+  flex: 1 1 auto;
+  max-height: 5vh;
+  padding-bottom: 1em;
   display: flex;
-  width: min(100%, 90vh);
+  max-width: min(95%, 90vh);
   justify-content: space-around;
+  text-shadow: 0px 0px 0px rgba(0, 0, 0, 0.95);
+}
+
+.playerData.ticking {
+  animation: small-glow 0.5s infinite alternate;
+  color: rgba(255, 150, 255, 1.0);
+  /* box-shadow: */
+  /*   inset     0px 0 20px 5px rgba(120, 44, 255, 0.95), */
+  /*             0px 0 8px  2px rgba(120, 34, 255, 0.90), */
+  /*             0px 0 30px 4px rgba(120, 44, 255, 0.80); */
+}
+
+.playerData.ticking .player {
+  font-weight: 700;
 }
 
 .h5 {
