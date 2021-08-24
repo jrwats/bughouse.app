@@ -16,7 +16,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   });
 
   useEffect(() => {
-    const onUpdate = (data) => {
+    const onUpdate = (cb) => {
       const playerData = chessboard.getBoard()[color];
       const milliseconds = playerData.ms;
       if (Number.isNaN(milliseconds)) {
@@ -26,7 +26,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
       setState({
-        gameOver: data.result != null,
+        gameOver: cb.getGame().getResult() != null,
         playerData,
         ms: refTime.current,
       });

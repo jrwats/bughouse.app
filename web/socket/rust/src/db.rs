@@ -49,9 +49,9 @@ pub struct FirebaseRowData {
 // User's GLICKO rating snapshot before game start
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
-    pub uid: UserID,
-    pub rating: i16,
     pub deviation: i16,
+    pub rating: i16,
+    pub uid: UserID,
 }
 
 impl UserRatingSnapshot {
@@ -135,7 +135,7 @@ impl Db {
         uid: &UserID,
     ) -> Result<(), Error> {
         let mut query = Query::new(
-            "INSERT INTO bughouse.handles (handle, id) VALUES (?, ?) IF NOT EXISTS".to_string()
+            "INSERT INTO bughouse.handles (handle, uid) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
         query.set_consistency(Consistency::One);
         query.set_serial_consistency(Some(Consistency::Serial));
@@ -219,14 +219,14 @@ impl Db {
         Ok(())
     }
 
-    pub async fn get_gamerow(
+    pub async fn get_game_row(
         &self,
         game_id: &GameID,
     ) -> Result<GameRow, Error> {
         let res = self
             .session
             .query(
-                "SELECT (id, start_time, result, time_ctrl, rated, players, moves) 
+                "SELECT id, start_time, result, time_ctrl, rated, players, moves
                 FROM bughouse.games
                 WHERE id = ?",
                 (game_id,),
@@ -245,7 +245,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT (id, firebase_id, deviation, email, guest, handle, name, photo_url, rating)
+                "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating
             FROM bughouse.users
             WHERE id = ?",
                 (uid,),

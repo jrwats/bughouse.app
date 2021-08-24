@@ -1,12 +1,12 @@
-use scylla::cql_to_rust::FromCqlVal;
-use scylla::macros::{FromUserType, IntoUserType};
+use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::fmt;
 
 use crate::error::TimeControlParseError;
 
 pub type TimeID = String;
 
-#[derive(Clone, Hash, Debug, PartialEq, FromUserType, IntoUserType)]
+#[derive(Clone, Hash, Debug, PartialEq, FromRow, FromUserType, IntoUserType)]
 pub struct TimeControl {
     base: i16, // Base time (in minutes) each player starts with
     inc: i16,  // increment in seconds

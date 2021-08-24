@@ -1,8 +1,8 @@
 import firebase from "firebase/app";
 
-const logout = (telnet) => {
-  if (telnet != null) {
-    telnet.destroy();
+const logout = (socket) => {
+  if (socket != null) {
+    socket.destroy();
   }
   console.log("logging out");
   firebase

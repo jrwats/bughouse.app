@@ -22,14 +22,16 @@ const HomeRouter = (props) => {
 };
 
 const Home = (props) => {
-  const { user, needsEmailVerified } = useContext(AuthContext);
+  const { pendingInit, user, needsEmailVerified } = useContext(AuthContext);
   const navigate = useNavigate();
-  if (user == null) {
+  if (pendingInit) {
+    return <Loading path="loading" />;
+  } else if (user == null) {
     console.log(`Home user is null, navigating to login`);
-    navigate("/login", true);
+    navigate("/login");
     return null;
   } else if (needsEmailVerified) {
-    navigate("/verify", true);
+    navigate("/verify");
     return null;
   }
 

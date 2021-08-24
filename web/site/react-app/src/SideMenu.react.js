@@ -61,7 +61,7 @@ const SideMenu = ({ style }) => {
   };
 
   return (
-    <div style={{ zIndex: "50", ...style }}>
+    <div style={{ display: "inline-block", zIndex: "50", ...style }}>
       <Button
         style={{
           padding: "2px 2px",

@@ -330,7 +330,7 @@ impl BugWebSock {
             "analyze" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
                 let recipient = ctx.address().recipient();
-                self.data.server.queue_send_gamerow(&game_id, recipient)?;
+                self.data.server.queue_send_game_row(&game_id, recipient)?;
             }
             "sit" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
@@ -441,7 +441,8 @@ impl BugWebSock {
     ) -> Result<ByteString, Error> {
         let res = self.data.server.get_game_json_payload(game_id);
         if let Err(e) = res {
-            self.data.server.queue_send_gamerow(&game_id, recipient)?;
+            println!("queueing_game_row: {}", game_id);
+            self.data.server.queue_send_game_row(&game_id, recipient)?;
             return Err(e);
         }
         res

@@ -26,6 +26,7 @@ const PASSTHRU_EVENTS = [
   "game_end",
   "game_start",
   "game_msg",
+  "game_row",
   "game_update",
   "incomingOffer",
   "incomingPartnerChallenge",
@@ -40,6 +41,7 @@ const PASSTHRU_EVENTS = [
 
 const NOISY_EVENTS = {
   game_start: 1,
+  game_row: 1,
 };
 
 /**
@@ -132,6 +134,7 @@ class SocketProxy extends EventEmitter {
     for (const event of PASSTHRU_EVENTS) {
       handlers[event] = function (data) {
         if (NOISY_EVENTS[event]) {
+          console.log(`${event} !!!`);
           console.log(data);
         }
         // console.log(`${event}: ${JSON.stringify(data, null, ' ')}`);

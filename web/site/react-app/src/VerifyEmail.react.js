@@ -11,6 +11,7 @@ const VerifyEmail = (props) => {
   const navigate = useNavigate();
 
   if (user == null) {
+    console.log(`VerifyEmail user == null`);
     navigate("/login", true);
     return null;
   } else if (!needsEmailVerified) {

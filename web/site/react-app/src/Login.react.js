@@ -18,8 +18,8 @@ const Login = ({ navigate }) => {
     <div id="login" className="row">
       <div id="logo_splash" className="column">
         {/* <span class="bug_img_logo" alg="logo" /> */}
-        <img className="bug_img_logo" alt="logo" src={logo} />
-        <span className="bug_logo_text">
+        <img className="bug-img-logo" alt="logo" src={logo} />
+        <span className="bug-logo-text">
           <span className="solid">
             bughouse.
           </span>

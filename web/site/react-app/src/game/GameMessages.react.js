@@ -25,7 +25,7 @@ const getQuickContent = ({key, self, playerColor}) => {
     (QuickMessagesText[key] || '\u{3000}');
   return (
     <span key={key} className={btnClass}>
-      <span class="text">
+      <span className="text">
         {content}
       </span>
     </span>

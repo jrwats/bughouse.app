@@ -369,7 +369,7 @@ impl BughouseServer {
         ))
     }
 
-    pub fn queue_send_gamerow(
+    pub fn queue_send_game_row(
         &self,
         game_id: &GameID,
         recipient: Recipient<ClientMessage>,
@@ -385,9 +385,16 @@ impl BughouseServer {
         game_id: GameID,
         recipient: Recipient<ClientMessage>,
     ) -> Result<ClientMessage, Error> {
-        let gamerow = self.db.get_gamerow(&game_id).await?;
-        let handles = self.get_user_handles(&gamerow.players).await?;
-        let payload = gamerow.to_json(handles, None);
+        println!("send_game_row({}, {:?})", game_id, recipient);
+        let res = self.db.get_game_row(&game_id).await;
+        if let Err(e) = res {
+            eprintln!("err: {}", e);
+            eprintln!("err: {:?}", e);
+            return Err(e);
+        }
+        let game_row = res.unwrap();
+        let handles = self.get_user_handles(&game_row.players).await?;
+        let payload = game_row.to_json(handles, None);
         let bytestr = Arc::new(ByteString::from(payload.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         // let res = self.conns.send_to_conn(conn_id, msg.clone());
@@ -825,6 +832,10 @@ impl BughouseServer {
             .games
             .get(&game_id)
             .ok_or(Error::InvalidGameID(game_id))?;
+        {
+            let mut wgame = game.write().unwrap();
+            wgame.update_all_clocks();
+        }
         let game_json = GameJson::new(game.clone(), Games::get_kind(game));
         Ok(ByteString::from(game_json.to_val().to_string()))
     }

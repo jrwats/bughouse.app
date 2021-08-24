@@ -195,7 +195,7 @@ impl ConnectionMgr {
         let mut res: HashMap<UserID, Arc<RwLock<User>>> = HashMap::new();
         for (user_id, conns) in self.user_conns.read().unwrap().iter() {
             if conns.len() > 0 {
-                eprintln!("{} conns: {:?}", user_id, conns);
+                // eprintln!("{} conns: {:?}", user_id, conns);
                 if let Some(user) = self.users.get(user_id) {
                     res.insert(*user_id, user);
                 } else {

@@ -13,11 +13,11 @@ class ChessBoard extends EventEmitter {
     this._winner = null;
   }
 
-  update({ board, holdings }) {
+  update({ board, holdings, analysis }) {
     console.log(`ChessBoard.update(...)`);
     // invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
-    this._board = board;
-    this._holdings = holdings;
+    this._board = {...this._board, ...board};
+    this._holdings = holdings || "";
     this.emit("update", this);
     if (!this._initialized) {
       this._initialized = true;

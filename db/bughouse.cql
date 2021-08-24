@@ -9,9 +9,9 @@ CREATE TYPE time_control (
 );
 
 CREATE TYPE rating_snapshot (
-  id uuid,
-  rating smallint,
   deviation smallint,
+  rating smallint,
+  uid uuid,
 );
 
 // CREATE TYPE IF NOT EXISTS board tuple<rating_snapshot, rating_snapshot>;
@@ -71,10 +71,10 @@ CREATE INDEX ON users(firebase_id);
 CREATE INDEX ON users(handle);
 
 CREATE TABLE IF NOT EXISTS handles(
-  id timeuuid,
+  uid timeuuid,
   handle text PRIMARY KEY,
 );
-CREATE INDEX ON handles(id);
+CREATE INDEX ON handles(uid);
 
 CREATE TABLE IF NOT EXISTS firebase_users(
   firebase_id text PRIMARY KEY,

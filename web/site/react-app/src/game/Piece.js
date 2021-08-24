@@ -20,9 +20,17 @@ export const PIECES = {
   KING: "king",
 };
 
+// Keep in sync with bughouse: https://crates.io/crates/bughouse 
+const IDX_2_PIECE = ['p', 'n', 'b', 'r', 'q', 'k'];
+
+export const fromIdx = (idx) => {
+  return IDX_2_PIECE[idx] || null;
+}
+
 const Piece = {
   NAMES,
   PIECES,
+  fromIdx
 };
 
 export default Piece;

@@ -2,6 +2,8 @@ import { EventEmitter } from "events";
 import invariant from "invariant";
 import ScreenLock from "./ScreenLock";
 import ChessBoard from "./ChessBoard";
+import Piece from "./Piece";
+import { pos2key, allKeys } from "chessground/util";
 
 const ResultKind = {
   FLAGGED: 0,
@@ -12,10 +14,18 @@ function _getColor(idx) {
   return idx === 0 ? "white" : "black";
 }
 
+function toKey(sqIdx) {
+  const file = sqIdx % 8;
+  const rank = Math.floor(sqIdx / 8);
+  return pos2key([file, rank]);
+}
+
 class BughouseGame extends EventEmitter {
   constructor({ id, rated, delayStartMillis, a, b }) {
     super();
+    this._isAnalysis = false;
     this._rated = rated;
+    this._moves = [];
     this._setStart(delayStartMillis);
     this._id = id;
 
@@ -56,6 +66,60 @@ class BughouseGame extends EventEmitter {
 
   isRated() {
     return this._rated;
+  }
+
+  isAnalysis() {
+    return this._isAnalysis;
+  }
+
+  setIsAnalysis(analysis) {
+    this._isAnalysis = analysis;
+  }
+
+  // NOTE: Doing this on client for now to minimize work on server where possible
+  // See GameRow::serialize/deserialize server-side
+  // map<key, val>
+  // key >> 1 = time in ms (since start of game)
+  // key & 0x1 = board ID
+  // val < 0 = drop move
+  // val > 0 = normal move
+  setMoves(serializedMoves) {
+    // NOTE: keys already come in sorted order, but w/e
+    let moveNums = [0, 0];
+    this._moves = Object.keys(serializedMoves)
+      .map(k => parseInt(k))
+      .sort((a,b) => a - b)
+      .map(k => {
+        const boardID = k & 0x1;
+        const ms = k >> 1; // milliseconds since start
+        const serMove = serializedMoves[k];
+        const num = Math.floor(moveNums[boardID] / 2) + 1;
+        ++moveNums[boardID];
+        let move = {boardID, num, ms};
+        if (serMove < 1) {
+          serMove = -serMove
+          move.piece = Piece.fromIdx(serMove >> 6); // drop
+          move.dest = toKey(serMove & 0x3f);
+        } else {
+          move.piece = Piece.fromIdx((serMove >> 6) & 0x7); // promo
+          move.dest = toKey(serMove & 0x3f);
+          move.src = toKey((serMove >> 9) & 0x3f);
+        }
+        return move;
+    });
+    this.emit("update", this);
+  }
+
+  getMoves() {
+    return this._moves;
+  }
+
+  setTimeControl(timeCtrlStr) {
+    let [base, inc] = timeCtrlStr.split('|');
+    this._timeCtrl = {
+      base: parseInt(base),
+      inc: parseInt(inc)
+    };
   }
 
   getStart() {

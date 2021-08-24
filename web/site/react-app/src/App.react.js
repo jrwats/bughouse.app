@@ -14,7 +14,7 @@ import ViewerProvider from "./user/ViewerProvider";
 import { Router } from "@reach/router";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import purple from '@material-ui/core/colors/purple';
-import deepPurple from '@material-ui/core/colors/purple';
+// import deepPurple from '@material-ui/core/colors/purple';
 
 Presence.init();
 

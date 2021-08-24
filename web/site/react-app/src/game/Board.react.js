@@ -61,8 +61,9 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       setHoldings(holdings);
       setViewOnly(
         forming ||
-          (chessboard.isInitialized() &&
-            chessboard.getHandleColor(handle) == null)
+        !chessboard.isInitialized() ||
+        chessboard.getGame().isAnalysis() || 
+        chessboard.getHandleColor(handle) == null
       );
     };
     const onGameOver = () => {
@@ -105,7 +106,6 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
           height: "min(90vh, 44vw)",
         }}
       >
-        {alert}
         <Box
           id={id}
           display="flex"
@@ -119,6 +119,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             height: sz == null ? "100%" : sz + "px",
           }}
         >
+          {alert}
           <Holdings
             boardID={id}
             chessground={chessgroundRef}

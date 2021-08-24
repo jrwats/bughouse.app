@@ -8,18 +8,36 @@ class GameStatusSource extends EventEmitter {
     super();
     this._socket = socket;
     this._observing = {};
-    // const uid = this._socket.getUid();
-    // this._socket.on("logout", () => {
-    //   this._destroy();
-    // });
     this._games = {};
 
+    this._socket.on("game_row", (data) => this._onGameRow(data));
     this._socket.on("game_update", (data) => this._onGameUpdate(data));
     this._socket.on("game_over", (data) => this._onGameOver(data));
     this._socket.on("game_end", (data) => this._onGameOver(data));
     this._socket.on("game_start", (data) => this._onGameStart(data));
     this._socket.on("form_table", (data) => this._onTable(data));
     this._socket.on("table", (data) => this._onTable(data));
+  }
+
+  _onGameRow(data) {
+    console.log(`GameStatusSource row ${JSON.stringify(data)}`);
+    debugger;
+    const game = this.getGame(data.id);
+    game.setTimeControl(data.time_ctrl);
+    game.setMoves(data.moves);
+    game.setIsAnalysis(true);
+    // game.setMoves(data.moves);
+    const [[aw, ab], [bw, bb]] = data.players;
+    game.getBoardA().update({
+      board: {white: aw, black: ab},
+      // moves: data.moves[0],
+    });
+    game.getBoardB().update({
+      board: {white: bw, black: bb},
+      // moves: data.moves[1],
+    });
+    navigate(`/analysis/${data.id}`);
+    this.emit("gameUpdate", this._games[data.id]);
   }
 
   _onGameUpdate(data) {

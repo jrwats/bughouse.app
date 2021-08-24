@@ -1,3 +1,4 @@
+import Analysis from "./game/Analysis.react";
 import Bugwho from "./Bugwho.react";
 import Profile from "./user/Profile.react";
 import React from "react";
@@ -11,23 +12,18 @@ const Main = (props) => {
   console.log("Main");
   return (
     <div style={{ width: "100%", height: "100%" }}>
-      <SideMenu style={{ position: "absolute" }} />
-      <div
-        style={{
-          top: "0px",
-          marginLeft: "3em",
-          position: "absolute",
-          height: "100%",
-          width: "calc(100% - 4em)",
-        }}
-      >
-        <div className="bug_logo_text small">
+      <div style={{position: "absolute"}}>
+        <SideMenu />
+        <span className="bug-logo-text small">
           <span className="solid">bughouse.</span>app
-        </div>
+        </span>
+      </div>
+      <div className="main">
         <Router>
-          <Table path="/table/:gamePath" />
           <Bugwho path="/" />
+          <Analysis path="/analysis/:gamePath" />
           <Profile path="/profile" />
+          <Table path="/table/:gamePath" />
         </Router>
       </div>
     </div>

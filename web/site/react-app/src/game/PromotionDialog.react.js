@@ -29,7 +29,6 @@ function PromotionDialog(props) {
   const handleListItemClick = (value) => {
     onClose(value);
   };
-  console.log(`PromotionDialog color: ${color}`);
 
   return (
     <Dialog

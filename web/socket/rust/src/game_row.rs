@@ -8,11 +8,12 @@ use scylla::macros::FromRow;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
+use crate::b66::B66;
 use crate::db::TableSnapshot;
 use crate::game::{GameID, GameResult, GameResultType};
 use crate::time_control::TimeControl;
 
-#[derive(Clone, FromRow)]
+#[derive(Clone, Debug, FromRow)]
 pub struct GameRow {
     pub id: GameID,
     pub start_time: Duration,
@@ -24,7 +25,7 @@ pub struct GameRow {
 }
 
 //                         src             dest    piece
-type ClientBughouesMove = (Option<String>, String, Option<String>);
+// type ClientBughouesMove = (Option<String>, String, Option<String>);
 
 impl GameRow {
     pub fn to_json(
@@ -32,17 +33,17 @@ impl GameRow {
         handles: ((String, String), (String, String)),
         kind: Option<String>,
     ) -> Value {
-        let mut moves: [HashMap<i32, ClientBughouesMove>; 2] =
-            [HashMap::new(), HashMap::new()];
-        for (key, mv_num) in self.moves.iter() {
-            let bug_move = Self::deserialize_move(*mv_num);
-            let serialized = (
-                bug_move.get_source().map(|s| s.to_string()),
-                bug_move.get_dest().to_string(),
-                bug_move.get_piece().map(|p| p.to_string(Color::Black)),
-            );
-            moves[(key & 1) as usize].insert(key >> 1, serialized);
-        }
+        // let mut moves: [HashMap<i32, ClientBughouesMove>; 2] =
+        //     [HashMap::new(), HashMap::new()];
+        // for (key, mv_num) in self.moves.iter() {
+        //     let bug_move = Self::deserialize_move(*mv_num);
+        //     let serialized = (
+        //         bug_move.get_source().map(|s| s.to_string()),
+        //         bug_move.get_dest().to_string(),
+        //         bug_move.get_piece().map(|p| p.to_string(Color::Black)),
+        //     );
+        //     moves[(key & 1) as usize].insert(key >> 1, serialized);
+        // }
         let ((aw, ab), (bw, bb)) = &self.players;
         let ((awh, abh), (bwh, bbh)) = &handles;
         let result: GameResult = Self::deserialize_result(self.result);
@@ -51,7 +52,7 @@ impl GameRow {
             Some(k) => k,
         };
         json!({
-            "id": self.id,
+            "id": B66::encode_uuid(self.id),
             "kind": msg_kind,
             "start_time": self.start_time.num_milliseconds(),
             "result": result,
@@ -73,7 +74,7 @@ impl GameRow {
                     "handle": bbh,
                 }],
             ],
-            "moves": moves
+            "moves": self.moves
         })
     }
 
