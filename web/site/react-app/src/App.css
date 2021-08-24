@@ -136,12 +136,28 @@
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 800px) {
+  .bug_img_logo {
+    max-width: 6em;
+    max-height: 6em;
+  }
+  .bug-logo-text { font-size: 4.5em; }
+}
+
+@media screen and (max-width: 700px) {
   .bug_img_logo {
     max-width: 6em;
     max-height: 6em;
   }
   .bug-logo-text { font-size: 4em; }
+}
+
+@media screen and (max-width: 600px) {
+  .bug_img_logo {
+    max-width: 5em;
+    max-height: 5em;
+  }
+  .bug-logo-text { font-size: 3.5em; }
 }
 
 @media screen and (max-width: 500px) {
@@ -183,10 +199,14 @@
   /* opacity: 100%; */
 }
 
+#login.row {
+  max-width: 85%;
+  margin-left: 5%;
+}
+
 #looseLogin.row, #login.row {
   display: flex;
   flex-wrap: wrap;
-  width: 100%;
   justify-content: center;
   align-items: center;
 }
