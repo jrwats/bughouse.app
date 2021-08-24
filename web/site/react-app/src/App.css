@@ -137,35 +137,31 @@
 }
 
 @media screen and (max-width: 800px) {
-  .bug_img_logo {
-    max-width: 6em;
-    max-height: 6em;
-  }
-  .bug-logo-text { font-size: 4.5em; }
+  .bug-logo-text { font-size: 4.5rem; }
 }
 
 @media screen and (max-width: 700px) {
-  .bug_img_logo {
-    max-width: 6em;
-    max-height: 6em;
+  .bug-img-logo {
+    max-width: 6rem;
+    max-height: 6rem;
   }
-  .bug-logo-text { font-size: 4em; }
+  .bug-logo-text { font-size: 4rem; }
 }
 
 @media screen and (max-width: 600px) {
-  .bug_img_logo {
-    max-width: 5em;
-    max-height: 5em;
+  .bug-img-logo {
+    max-width: 5rem;
+    max-height: 5rem;
   }
-  .bug-logo-text { font-size: 3.5em; }
+  .bug-logo-text { font-size: 3.5rem; }
 }
 
 @media screen and (max-width: 500px) {
- .bug_img_logo {
-    max-width: 4em;
-    max-height: 4em;
-  }
- .bug-logo-text { font-size: 3em; }
+ .bug-logo-text { font-size: 3rem; }
+}
+
+@media screen and (max-width: 400px) {
+ .bug-logo-text { font-size: 2.5rem; }
 }
 
 .App-link {
