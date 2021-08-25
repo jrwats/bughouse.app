@@ -53,7 +53,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   }, [state, color, chessboard, forming]);
 
   if (Number.isNaN(state.ms)) {
-    debugger;
+    // debugger;
     console.error(`state.ms isNaN`);
     state.ms = 0;
   }

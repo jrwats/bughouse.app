@@ -121,7 +121,7 @@ const GameMessages = ({playerColor, gameID}) => {
         </Button>
       );
     });
-    return (<div style={{flex: "auto", flexWrap: "nowrap"}}>{btns}</div>);
+    return (<div className="quick-btn-holder">{btns}</div>);
   });
 
   return (
@@ -167,7 +167,6 @@ const GameMessages = ({playerColor, gameID}) => {
             ref={textInput}
             label="Send Message"
             style={{ margin: 8 }}
-            placeholder="Send Message to your partner"
             fullWidth
             margin="normal"
             InputLabelProps={{ shrink: true }}

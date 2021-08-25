@@ -48,8 +48,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     if (el == null) {
       return;
     }
-    const height = el.offsetHeight;
-    const width = el.offsetWidth;
+    const height = el.offsetHeight * 0.8;
+    const width = el.offsetWidth * 0.88;
     let newSz = Math.floor(Math.min(height, width));
     newSz -= newSz % 32;
     setSz(newSz);
@@ -117,9 +117,10 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
+    <div ref={boardWrapperRef} style={{
+      // display: "flex",
+      // flexDirection: "column",
+      // justifyContent: "center",
       height: "100%",
       width: "100%"
       }}>
@@ -130,9 +131,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       />
       <div style={{
         position: "relative", // for alert
-        flex: "8 1 auto",
+        // flex: "8 1 auto",
         display: "flex",
-        maxHeight: "min(85vh, 44vw)",
         }}
       >
         {/* <Box */}
@@ -157,9 +157,10 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             chessboard={chessboard}
             viewOnly={viewOnly}
           />
-          <div ref={boardWrapperRef} style={{
+          <div style={{
             position: "relative",
-            flex: "8 1 auto"
+            flex: "8 1 auto",
+            height: "100%",
             }}>
             <div
               style={{

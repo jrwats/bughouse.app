@@ -299,14 +299,14 @@ body .mono {
 .h5 {
   text-overflow: ellipsis;
   font-size: 5rem;
-  font-weight: 500;
+  font-size: min(4vw, 8vh);
 }
 
 .h6 {
   white-space: nowrap;
   text-overflow: ellipsis;
   /* font-size: clamp(.5rem, min(2vw, 3vh), 1.5rem); */
-  font-size: 1.2rem;
+  font-size: min(3vw, 6vh);
   font-weight: 500;
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
@@ -528,6 +528,17 @@ body .makeStyles-paper-161 {
   background-color: rgba(130, 30, 255, 0.4);
 }
 
+.quick-btn-holder {
+  display: flex;
+  flex: auto;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.quick-btn-holder button {
+  flex: 0 1 auto;
+}
+
 .quick-msg {
   height: min(1.8vw, 4vh);
   width: min(1.8vw, 4vh);
@@ -543,7 +554,7 @@ body .makeStyles-paper-161 {
   font-size: min(1.8vw, 4vh);
   height: calc(min(1.8vw, 4vh) + 2px);
   width: calc(min(1.8vw, 4vh) + 2px);
-  color: rgba(255, 60, 140, 0.8);
+  color: rgba(255, 60, 140, 0.7);
   transform: translate(-2%, 10%);
 }
 
@@ -569,12 +580,13 @@ body .makeStyles-paper-161 {
 
 #game_messages_quick_buttons .MuiSvgIcon-root {
   position: relative;
-  text-align: center;
-  margin-left: -0.1rem;
+  /* text-align: center; */
+  /* margin-left: -0.2rem; */
+  /* margin-top: -0.4rem; */
   top: max(-0.2vh, -0.2vw);
-  margin-top: -0.3rem;
-  height: calc(min(2vw, 4vh) + 3px);
-  width: calc(min(2vw, 4vh) + 3px);
+  height: calc(min(2vw, 4vh) + 0.5rem);
+  width: calc(min(2vw, 4vh) + 0.5rem);
+  transform: translate(-14%, -11%);
 }
 
 .quick-msg.pawn.white{background-image:url('./images/pieces/merida/wP.svg')}
@@ -594,12 +606,17 @@ body .makeStyles-paper-161 {
 .quick-msg.mates,
 .quick-msg.stall,
 .quick-msg.watch_time {
-  font-size: min(1.5vw, 3vh);
+  font-size: min(1.7vw, 3vh);
   font-weight: 600;
-  margin-left: -0.1rem;
-  margin-top: -0.6rem;
-  padding: 2px 2px;
+  /* margin-left: -0.3rem; */
+  /* margin-top: -0.7rem; */
+  padding: 0.1rem 0.1rem;
   text-align: center;
+  transform: translate(-11%, -24%);
+}
+
+.quick-msg.stall {
+  transform: translate(-3%, -24%);
 }
 
 .message .quick-msg.exchange,
@@ -608,7 +625,6 @@ body .makeStyles-paper-161 {
 .message .quick-msg.watch_time {
   font-size: min(2vw, 4vh);
 }
-
 
 .quick-msg.exchange .text, .quick-msg.mates .text {
   color: rgba(255, 0, 170);
@@ -619,9 +635,3 @@ body .makeStyles-paper-161 {
   -webkit-filter: url(#red-filter);
   filter: url(#red-filter);
 }
-
-/* .quick-msg.exchange { content: "\u{1f5d8}" } */
-/* .quick-msg.mates { content: "#" } */
-/* .quick-msg.stall { content: "\u{23f8}" } */
-/* .quick-msg.watch_time { content:  "\u{1f551}"}  */
-
