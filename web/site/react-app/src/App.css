@@ -512,13 +512,12 @@ body .makeStyles-paper-161 {
   margin-top: 4px;
   padding: 0px 1em 2px 2px;
   position: relative;
-  right: 0px;
   text-align: right;
 }
 
 .message.self {
-  background-color: rgba(170, 20, 255, 0.2);
-  box-shadow: 0px 0px 10px 2px rgba(100, 20, 255, 0.7);
+  background-color: rgba(170, 50, 255, 0.3);
+  box-shadow: 0px 0px 10px 2px rgba(140, 80, 255, 0.2);
   text-align: left;
 }
 
@@ -532,7 +531,6 @@ body .makeStyles-paper-161 {
 .quick-msg {
   height: min(1.8vw, 4vh);
   width: min(1.8vw, 4vh);
-  font-size: min(2vw, 4vh);
 }
 
 .quick-msg.white, .quick-msg.black {
@@ -542,16 +540,31 @@ body .makeStyles-paper-161 {
 }
 
 .quick-msg .MuiSvgIcon-root {
+  font-size: min(1.8vw, 4vh);
   height: calc(min(1.8vw, 4vh) + 2px);
   width: calc(min(1.8vw, 4vh) + 2px);
-  color: rgba(255, 20, 100, 0.95);
-  box: 1px 1px 1em rgba(255, 0, 155, 0.5);
-  transform: translate(-5%, -5%);
+  color: rgba(255, 60, 140, 0.8);
+  transform: translate(-2%, 10%);
+}
+
+.message {
+  font-size: 1.2rem;
+}
+
+.message .quick-msg {
+  position: relative;
+  top: -2px;
+  height: min(2vw, 4vh);
+  width: min(2vw, 4vh);
+  font-size: min(2vw, 4vh);
+  padding: 1px 3px;
 }
 
 .message .quick-msg .MuiSvgIcon-root {
   position: relative;
-  top: 6px;
+  top: 2px;
+  height: min(2.2vw, 4.4vh);
+  width: min(2.2vw, 4.4vh);
 }
 
 #game_messages_quick_buttons .MuiSvgIcon-root {
@@ -586,7 +599,16 @@ body .makeStyles-paper-161 {
   margin-left: -0.1rem;
   margin-top: -0.6rem;
   padding: 2px 2px;
+  text-align: center;
 }
+
+.message .quick-msg.exchange,
+.message .quick-msg.mates,
+.message .quick-msg.stall,
+.message .quick-msg.watch_time {
+  font-size: min(2vw, 4vh);
+}
+
 
 .quick-msg.exchange .text, .quick-msg.mates .text {
   color: rgba(255, 0, 170);
