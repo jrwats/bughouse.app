@@ -10,18 +10,18 @@ import BlockIcon from '@material-ui/icons/Block';
 
 const getQuickContent = ({key, self, playerColor}) => {
   const piece = QuickMessagesPiece[key];
-  let color = piece == null ? null : 
+  let color = piece == null ? null :
     (key.startsWith('NEED_') ? playerColor : opposite(playerColor));
   color = self ? color : opposite(color);
   const classes = [
-    'quick-msg', 
+    'quick-msg',
     piece || key.toLowerCase(),
-    color, 
+    color,
     (key.startsWith('NO_') ? ' no' : '')
   ];
-  const btnClass = classes.filter(c => !!c).join(' ');  
-  const content = key.startsWith('NO_') ? 
-    <BlockIcon /> : 
+  const btnClass = classes.filter(c => !!c).join(' ');
+  const content = key.startsWith('NO_') ?
+    <BlockIcon /> :
     (QuickMessagesText[key] || '\u{3000}');
   return (
     <span key={key} className={btnClass}>
@@ -70,7 +70,7 @@ const GameMessages = ({playerColor, gameID}) => {
       id: gameID,
       sender: uid,
       type: "text",
-      text: textInput.current.querySelector("input").value 
+      text: textInput.current.querySelector("input").value
     });
     evt.preventDefault();
     input.value = '';
@@ -83,12 +83,12 @@ const GameMessages = ({playerColor, gameID}) => {
       if (gameID !== id) {
         console.error(`game_msg; ${gameID} != ${id}`);
       }
-      let message = type === 'text' ? 
-        {text: data.text} : 
+      let message = type === 'text' ?
+        {text: data.text} :
         {quick: data.quick}; // TODO - enum?
 
       messages.current.push({
-        self: sender === uid, 
+        self: sender === uid,
         type,
         ...message
       });
@@ -101,8 +101,8 @@ const GameMessages = ({playerColor, gameID}) => {
     }
   }, [socket]);
 
-  const btnColumns = BUTTON_GROUPS.map(btnGroup => {
-    const rows = btnGroup.map(key => {
+  const btnRows = BUTTON_GROUPS.map(btnGroup => {
+    const btns = btnGroup.map(key => {
       const content = getQuickContent({self: true, key, playerColor});
       return (
         <Button
@@ -121,7 +121,7 @@ const GameMessages = ({playerColor, gameID}) => {
         </Button>
       );
     });
-    return (<div style={{flex: "auto"}}>{rows}</div>);
+    return (<div style={{flex: "auto", flexWrap: "nowrap"}}>{btns}</div>);
   });
 
   return (
@@ -139,8 +139,8 @@ const GameMessages = ({playerColor, gameID}) => {
       </div>
       <div id="game_messages_quick_buttons">
         <Typography className="alien" variant="h5">Quick messages</Typography>
-        <div style={{display: "flex", flexWrap: "nowrap"}}>
-          {btnColumns}
+        <div style={{display: "flex", flexDirection: "column" }}>
+          {btnRows}
         </div>
       </div>
       <div id="game_messages" ref={scrollRef}>

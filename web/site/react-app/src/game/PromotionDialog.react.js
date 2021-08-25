@@ -40,7 +40,7 @@ function PromotionDialog(props) {
     >
       <Grid container alignItems="center" spacing={1}>
         {["n", "b", "r", "q"].map((piece) => (
-          <Grid item xs={3} spacing={8}>
+          <Grid key={piece} item xs={3} spacing={8}>
             <span
               onClick={() => handleListItemClick(piece)}
               style={{

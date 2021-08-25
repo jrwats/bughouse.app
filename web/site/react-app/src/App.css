@@ -265,9 +265,9 @@ body .mono {
 
 .playerData {
   color: rgba(120, 70, 240, 0.95);
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   max-height: 5vh;
-  padding-bottom: 1em;
+  padding: 0.5em 0;
   display: flex;
   max-width: min(95%, 90vh);
   justify-content: space-around;
@@ -275,7 +275,7 @@ body .mono {
 }
 
 .playerData.ticking {
-  animation: ticking-glow 0.5s infinite alternate;
+  animation: ticking-glow 0.333333333333s infinite alternate;
   color: rgba(255, 150, 255, 1.0);
   text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.8);
   /* box-shadow: */
@@ -401,8 +401,9 @@ body .makeStyles-paper-161 {
   border-width: clamp(1px, min(.2vw, .4vh), 2px);
   border-style: solid;
   color: #303030;
-  left: calc(min(4vw, 8vh) - .8em);
-  transform: translate(0px, calc(min(4vw, 8vh) - .6em));
+  /* left: 50%; */
+  top: 20%;
+  transform: translate(40%, 90%);
   z-index: 100;
   font-family: 'SpaceMono';
   padding: .12em .2em .2em .15em;
@@ -442,12 +443,16 @@ body .makeStyles-paper-161 {
 
 
 .holdings {
-  background: linear-gradient(to left, #401c4d, rgba(130, 30, 255, 0.4));
-  /* background-color: #401c4d; */
+  background: linear-gradient(to left,
+    rgba(255, 80, 130, 0.3),
+    rgba(130, 30, 255, 0.4)
+    );
+  /* background: rgba(130, 80, 240, 0.4); */
+  border-radius: 0.4vw;
   box-shadow:
-    inset     0px 0 20px 5px rgba(255, 44, 255, 0.95),
-              0px 0 8px  2px rgba(255, 34, 255, 0.90),
-              0px 0 30px 4px rgba(255, 44, 255, 0.80);
+    inset     0px 0 3px 3px rgba(255, 44, 255, 0.80),
+              0px 0 8px  2px rgba(255, 34, 255, 0.70),
+              0px 0 15px 3px rgba(255, 44, 255, 0.60);
 }
 
 .holdings.black {
@@ -469,7 +474,9 @@ body .makeStyles-paper-161 {
 
 #game_messages_quick_buttons {
   position: relative;
-  flex: auto;
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
   max-height: 50vh;
   border-radius: 0.5em;
   background-color: #401c4d;
@@ -523,8 +530,8 @@ body .makeStyles-paper-161 {
 }
 
 .quick-msg {
-  height: min(2vw, 4vh);
-  width: min(2vw, 4vh);
+  height: min(1.8vw, 4vh);
+  width: min(1.8vw, 4vh);
   font-size: min(2vw, 4vh);
 }
 
@@ -535,10 +542,11 @@ body .makeStyles-paper-161 {
 }
 
 .quick-msg .MuiSvgIcon-root {
-  height: calc(min(2vw, 4vh) + 3px);
-  width: calc(min(2vw, 4vh) + 3px);
+  height: calc(min(1.8vw, 4vh) + 2px);
+  width: calc(min(1.8vw, 4vh) + 2px);
   color: rgba(255, 20, 100, 0.95);
   box: 1px 1px 1em rgba(255, 0, 155, 0.5);
+  transform: translate(-5%, -5%);
 }
 
 .message .quick-msg .MuiSvgIcon-root {

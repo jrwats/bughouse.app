@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
@@ -7,6 +7,9 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemText from "@material-ui/core/ListItemText";
+import VolumeOffIcon from '@material-ui/icons/VolumeOff';
+import VolumeUpIcon from '@material-ui/icons/VolumeUp';
+
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
 import MenuIcon from "@material-ui/icons/Menu";
@@ -47,10 +50,30 @@ const StyledMenuItem = withStyles((theme) => ({
   },
 }))(MenuItem);
 
+const SoundMenuItem = () => {
+  const off = parseInt(localStorage.getItem('soundOff') || "0");
+  let [soundDisabled, setSoundDisabled] = useState(off);
+  const icon = soundDisabled
+    ? <VolumeUpIcon fontSize="small" />
+    : <VolumeOffIcon fontSize="small" />
+
+  const onClick = (_e) => {
+    localStorage.setItem('soundOff', soundDisabled ? 0 : 1);
+    setSoundDisabled(!soundDisabled);
+  };
+
+  return (
+    <StyledMenuItem onClick={onClick}>
+      <ListItemIcon>{icon}</ListItemIcon>
+      <ListItemText primary={`Sound ${soundDisabled ? 'on' : 'off'}`} />
+    </StyledMenuItem>
+  )
+}
+
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { socket } = useContext(SocketContext);
-  const { isGuest, handle } = useContext(ViewerContext);
+  const { handle } = useContext(ViewerContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -92,16 +115,14 @@ const SideMenu = ({ style }) => {
             <ListItemText primary="Dashboard" />
           </StyledMenuItem>
         </Link>
-        {isGuest ? null : (
-          <Link to="/profile">
-            <StyledMenuItem>
-              <ListItemIcon>
-                <AccountCircleIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </StyledMenuItem>
-          </Link>
-        )}
+        <Link to="/profile">
+          <StyledMenuItem>
+            <ListItemIcon>
+              <AccountCircleIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="Profile" />
+          </StyledMenuItem>
+        </Link>
         {/*
         <Link to="/fics_console">
           <StyledMenuItem>
@@ -140,6 +161,9 @@ const SideMenu = ({ style }) => {
           </ListItemIcon>
           <ListItemText primary={`Sign out ${handle}`} />
         </StyledMenuItem>
+        <div style={{borderTop: "1px solid #303030" }}>
+          <SoundMenuItem />
+        </div>
       </StyledMenu>
     </div>
   );

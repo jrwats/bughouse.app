@@ -130,12 +130,11 @@ const Arena = ({ gamePath }) => {
     >
       <SideMenu style={{ position: "absolute" }} />
       <div style={{display: "flex"}}>
-        <div style={{flex: "1 1 50vw"}}>
+        <div style={{flex: "1 1 45vw", height: "min(45vw, 90vh)"}}>
           {boards[0]}
         </div>
-        <div style={{flex: "1 1 50vw"}}>
-          
-          <div style={{display: "flex"}}>
+        <div style={{flex: "1 1 55vw", height: "min(45vw, 90vh)"}}>
+          <div style={{display: "flex", height: "100%"}}>
             {game_messages}
             <div style={{flex: "auto"}}>
               {boards[1]}

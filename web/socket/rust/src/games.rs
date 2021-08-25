@@ -3,7 +3,7 @@ use bughouse::{BoardID, BughouseMove, Color, ALL_COLORS, BOARD_IDS};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use num_integer::div_rem;
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::{ConnectionMgr, UserID};
@@ -36,7 +36,7 @@ impl Games {
             // server,
             games: RwLock::new(HashMap::new()),
             user_games: RwLock::new(HashMap::new()),
-            observers: Observers::new(),
+            observers: Observers::new(conns.clone()),
             conns,
         }
     }
@@ -227,8 +227,10 @@ impl Games {
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         for player in Players::new(&players).get_players().iter() {
             self.conns.send_to_user(&player.get_uid(), &msg);
+            println!("  player notify: {}", player.get_uid());
         }
-        self.observers.notify(game.get_id(), &msg);
+        let players = Self::get_player_set(ar_game.clone());
+        self.observers.notify(game.get_id(), &msg, players);
         msg
     }
 
@@ -269,11 +271,21 @@ impl Games {
         }
     }
 
+    fn get_player_set(ar_game: Arc<RwLock<Game>>) -> HashSet<UserID> {
+        let game = ar_game.read().unwrap();
+        let mut players = HashSet::new();
+        for player in Players::new(game.get_players()).get_players().iter()
+        {
+            players.insert(player.get_uid());
+        }
+        players
+    }
+
     pub fn update_game_observers(&self, ar_game: Arc<RwLock<Game>>) {
         let game_json =
             GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
         Self::debug_print_clocks(ar_game.clone());
-        self.notify_observers(ar_game.clone(), game_json);
+        self.notify_observers(ar_game, game_json);
     }
 
     pub fn is_in_game(&self, uid: &UserID) -> bool {

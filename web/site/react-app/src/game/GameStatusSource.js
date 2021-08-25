@@ -21,7 +21,6 @@ class GameStatusSource extends EventEmitter {
 
   _onGameRow(data) {
     console.log(`GameStatusSource row ${JSON.stringify(data)}`);
-    debugger;
     const game = this.getGame(data.id);
     game.setTimeControl(data.time_ctrl);
     game.setMoves(data.moves);

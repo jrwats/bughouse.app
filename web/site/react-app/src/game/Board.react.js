@@ -10,6 +10,24 @@ import invariant from "invariant";
 import { PIECES } from "./Piece";
 import { SocketContext } from "../socket/SocketProvider";
 import { opposite } from "chessground/util";
+import MoveSound from "../sound/nes/Move.mp3";
+import GenericNotifySound from "../sound/nes/GenericNotify.mp3";
+
+let lastPlay = Date.now();
+const playAudio = (file) => {
+  // "debounce"
+  const now = Date.now();
+  const soundOff = parseInt(localStorage.getItem('soundOff') || 0);
+  if (now - lastPlay < 200 || soundOff) {
+    return;
+  }
+  console.log(`Playing ${file}`);
+  lastPlay = now;
+  const audio = new Audio(file);
+  audio.volume = 0.5;
+  audio.play();
+  console.log(`${file}.play`);
+}
 
 const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
@@ -30,12 +48,10 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     if (el == null) {
       return;
     }
-    console.log(`rect: ${JSON.stringify(el.getBoundingClientRect())}`);
     const height = el.offsetHeight;
     const width = el.offsetWidth;
     let newSz = Math.floor(Math.min(height, width));
     newSz -= newSz % 32;
-    console.log(`height: ${height}, width: ${width}, newSz: ${newSz}`);
     setSz(newSz);
   };
 
@@ -57,14 +73,19 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       console.log(`board.react.update(...)`);
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
+      const prevFen = chessgroundRef?.current?.cg?.state?.fen;
+      if (fen != null && board.fen !== prevFen) {
+        const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
+        const file = handleColor === colorToMove ? GenericNotifySound : MoveSound;
+        playAudio(file);
+      }
       setFEN(board.fen);
-      console.log(`fen: ${board.fen}`);
       setHandleColor(chessboard.getHandleColor(handle));
       setHoldings(holdings);
       setViewOnly(
         forming ||
         !chessboard.isInitialized() ||
-        chessboard.getGame().isAnalysis() || 
+        chessboard.getGame().isAnalysis() ||
         chessboard.getHandleColor(handle) == null
       );
     };
@@ -96,20 +117,20 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
   return (
-    <div style={{ 
+    <div style={{
       display: "flex",
       flexDirection: "column",
       height: "100%",
-      width: "100%" 
+      width: "100%"
       }}>
       <BoardGutter
         forming={forming}
         color={opposite(orientation)}
         chessboard={chessboard}
       />
-      <div style={{ 
+      <div style={{
         position: "relative", // for alert
-        flex: "8 1 min(80vh, 44vw)",
+        flex: "8 1 auto",
         display: "flex",
         maxHeight: "min(85vh, 44vw)",
         }}
@@ -136,9 +157,9 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             chessboard={chessboard}
             viewOnly={viewOnly}
           />
-          <div ref={boardWrapperRef} style={{ 
+          <div ref={boardWrapperRef} style={{
             position: "relative",
-            flex: "8 1 min(85vh, 40vw)" 
+            flex: "8 1 auto"
             }}>
             <div
               style={{
@@ -173,7 +194,9 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
                     id: gameID,
                     move: `${from}${to}`,
                   });
-                  // Done so that a gameUpdate will trigger a re-render if the move was illegal
+
+                  // Done so that a gameUpdate will trigger a
+                  // re-render if the move was illegal
                   setFEN(null);
                 }}
                 animation={{ enabled: true, duration: 100 }}

@@ -7,7 +7,7 @@ console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
 const hostname = window.location.hostname;
 const PROD_URL = "wss://ws.bughouse.app/ws/";
-const DEV_URL = `ws://${hostname}:8080/ws/`;
+const DEV_URL = `ws://${hostname}:${process.env.WS_PORT || 8081}/ws/`;
 const WS_URL =
   process.env.REACT_APP_SOCKET_URL ||
   (process.env.NODE_ENV === "production" ? PROD_URL : DEV_URL);
@@ -42,6 +42,7 @@ const PASSTHRU_EVENTS = [
 const NOISY_EVENTS = {
   game_start: 1,
   game_row: 1,
+  game_update: 1,
 };
 
 /**

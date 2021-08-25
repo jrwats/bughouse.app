@@ -32,6 +32,7 @@ class ViewerSingleton extends EventEmitter {
       this._viewer = { ...DEFAULT_CONTEXT, ...data };
     }
     this._viewer = { ...this._viewer, ...data };
+    this._viewer.isGuest = data.guest;
     this.emit("update", this._viewer);
   }
 
@@ -42,7 +43,7 @@ class ViewerSingleton extends EventEmitter {
   _setViewer(user) {
     this._viewer = {
       handle: null,
-      isGuest: false,
+      guest: false,
       firebaseUser: user,
       uid: null,
       fid: user?.uid,

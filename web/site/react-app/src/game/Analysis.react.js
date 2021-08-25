@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 import AnalysisMoves from "./AnalysisMoves.react";
-import SideMenu from "../SideMenu.react";
+// import SideMenu from "../SideMenu.react";
 import Board from "./Board.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
@@ -33,14 +33,14 @@ const Analysis = ({ gamePath }) => {
     />,
   ];
   return (
-    <div style={{width: "100%", display: "flex"}}>
-      <div style={{flex: "3 1 40vw"}}>
+    <div style={{width: "100%", height: "100%", display: "flex"}}>
+      <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>
         {boards[0]}
       </div>
       <div style={{flex: "0 1 auto"}}>
         <AnalysisMoves game={game} />
       </div>
-      <div style={{flex: "3 1 40vw"}}>
+      <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>
         {boards[1]}
       </div>
     </div>

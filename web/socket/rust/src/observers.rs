@@ -1,7 +1,8 @@
 use actix::prelude::*;
-use std::collections::HashMap;
-use std::sync::RwLock;
+use std::collections::{HashSet, HashMap};
+use std::sync::{Arc, RwLock};
 
+use crate::connection_mgr::{ConnectionMgr, UserID};
 use crate::game::GameID;
 use crate::hash::hash;
 use crate::messages::ClientMessage;
@@ -12,13 +13,15 @@ pub type Recipients = HashMap<AnonConnID, Recipient<ClientMessage>>;
 pub struct Observers {
     game_to_observers: RwLock<HashMap<GameID, Recipients>>,
     observer_to_games: RwLock<HashMap<AnonConnID, GameID>>,
+    conns: Arc<ConnectionMgr>,
 }
 
 impl Observers {
-    pub fn new() -> Self {
+    pub fn new(conns: Arc<ConnectionMgr>) -> Self {
         Observers {
             game_to_observers: RwLock::new(HashMap::new()),
             observer_to_games: RwLock::new(HashMap::new()),
+            conns,
         }
     }
 
@@ -53,10 +56,22 @@ impl Observers {
         }
     }
 
-    pub fn notify(&self, game_id: &GameID, msg: &ClientMessage) {
+    pub fn notify(
+        &self,
+        game_id: &GameID,
+        msg: &ClientMessage,
+        players: HashSet<UserID>,
+        ) {
         let observers = self.game_to_observers.read().unwrap();
         if let Some(observers) = observers.get(&game_id) {
-            for (_, recipient) in observers.iter() {
+            for (conn_id, recipient) in observers.iter() {
+                if let Some(uid) = self.conns.uid_from_conn(conn_id) {
+                    if players.contains(&uid) {
+                        println!("  deduping {} for {}", conn_id, uid);
+                        continue;
+                    }
+                }
+                println!("  obs notify: {}", conn_id);
                 let res = recipient.do_send(msg.clone());
                 if let Err(e) = res {
                     eprintln!("Failed sending anon msg: {}", e);
