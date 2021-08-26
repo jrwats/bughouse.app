@@ -14,7 +14,7 @@ import Piece, { PIECES, LETTERS, NAMES } from "./Piece";
 function timeCtrlToMs(timeCtrl) {
   return timeCtrl.base * 60 * 1000 + (timeCtrl.inc * 1000)
 }
- 
+
 function initHoldings() {
   return Object.values(LETTERS).reduce((agg, k) => {
     agg[k] = 0;
@@ -41,6 +41,8 @@ class AnalysisBoard {
   }
 
   makeMove(move) {
+    let capturedPiece = this.promos.get(move.dest) ||
+      this.pieces.get(move.dest);
     if (move.src == null) { // drop
       this.holdings[move.boardID][move.piece]--;
       this.pieces.set(move.dest, {
@@ -56,14 +58,34 @@ class AnalysisBoard {
         });
         this.promos.set(move.dest, {role: 'pawn', color: move.color});
       } else {
+        const piece = this.pieces.get(move.src);
+        if (piece.role === 'king' &&
+          distanceSq(key2pos(move.src), key2pos(move.dest)) > 1) {
+          // Castling: also move the rook
+          const rookSrc = `${move.dest[0] === 'g' ? 'h' : 'a'}${move.dest[1]}`;
+          const rookDest = `${move.dest[0] === 'g' ? 'f' : 'd'}${move.dest[1]}`;
+          this.pieces.set(rookDest, this.pieces.get(rookSrc));
+          this.pieces.delete(rookSrc);
+        } else if (piece.role === 'pawn' &&
+          move.dest[0] !== move.src[0] &&
+          capturedPiece == null) {
+          // en-passant - capture square just "under" destination
+          const capturedKey = `${move.dest[0]}${move.src[1]}`;
+          capturedPiece = this.promos.get(capturedKey) ||
+            this.pieces.get(capturedKey);
+          this.pieces.delete(capturedKey);
+        }
         this.promos.set(move.dest, this.promos.get(move.src));
         this.pieces.set(move.dest, this.pieces.get(move.src));
       }
       this.pieces.delete(move.src);
+      this.promos.delete(move.src);
     }
     this.toMove = this.toMove === 'w' ? 'b' : 'w';
-    this.clocks[move.color === 'white' ? 0 : 1] += this.timeCtrl.inc - (move.ms - this.lastTime);
+    this.clocks[move.color === 'white' ? 0 : 1] +=
+      (1000 * this.timeCtrl.inc) - (move.ms - this.lastTime);
     this.lastTime = move.ms;
+    return capturedPiece;
   }
 
   addHolding(piece) {
@@ -108,20 +130,21 @@ class AnalysisBoard {
     const piece = LETTERS[srcPiece.role].toUpperCase();
     switch (srcPiece.role) {
       case PIECES.PAWN:
-        if (capture == null) {
+        // comparing columns handles en-passant case
+        if (capture == null && move.dest[0] == move.src[0]) {
           return move.dest;
         } else {
           // TODO enable "shorthand"
           return `${move.src[0]}x${move.dest}`;
         }
-      case PIECES.KNIGHT: 
+      case PIECES.KNIGHT:
       case PIECES.BISHOP:
       case PIECES.ROOK:
       case PIECES.QUEEN:
         return `${piece}${captureX}${move.dest}`;
       case PIECES.KING: {
         if (distanceSq(key2pos(move.src), key2pos(move.dest)) > 1) {
-          return move.dest[1] === '2' ? 'O-O' : 'O-O-O';
+          return move.dest[0] === 'g' ? 'O-O' : 'O-O-O';
         }
         return `${piece}${captureX}${move.dest}`;
       }
@@ -140,10 +163,8 @@ class AnalysisState {
 
   toAnalysisMove(move) {
     const board = this._boards[move.boardID];
-    const capturedPiece = board.promos.get(move.dest) ||
-      board.pieces.get(move.dest);
     const label = board.getAlgebraicNotation(move);
-    board.makeMove(move);
+    const capturedPiece = board.makeMove(move);
     this._boards[1 - move.boardID].addHolding(capturedPiece);
     return {
       ...move,
