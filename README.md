@@ -1,5 +1,7 @@
 # Bughouse
 
+All frontend/backend code for [bughouse.app](https://bughouse.app)
+
 ## Architecture
 
 ### Chess Server Backend
