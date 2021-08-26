@@ -37,7 +37,7 @@ const Analysis = ({ gamePath }) => {
       <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>
         {boards[0]}
       </div>
-      <div style={{flex: "0 1 auto"}}>
+      <div style={{flex: "1 1 auto"}}>
         <AnalysisMoves game={game} />
       </div>
       <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>

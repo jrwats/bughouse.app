@@ -4,7 +4,7 @@ import { EventEmitter } from "events";
 const _ticker = new EventEmitter();
 setInterval(() => {
   _ticker.emit("tick");
-}, 200);
+}, 50);
 
 const ClockDisplay = ({ color, chessboard, forming }) => {
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
@@ -33,6 +33,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
       if (
         forming ||
         state.gameOver ||
+        chessboard.getGame().isAnalysis() ||
         chessboard.getColorToMove() !== color ||
         Date.now() < chessboard.getStart()
       ) {

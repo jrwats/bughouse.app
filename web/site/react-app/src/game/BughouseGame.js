@@ -1,9 +1,9 @@
 import { EventEmitter } from "events";
 import invariant from "invariant";
+import AnalysisState from "./AnalysisState";
 import ScreenLock from "./ScreenLock";
 import ChessBoard from "./ChessBoard";
 import Piece from "./Piece";
-import { pos2key, allKeys } from "chessground/util";
 
 const ResultKind = {
   FLAGGED: 0,
@@ -12,12 +12,6 @@ const ResultKind = {
 
 function _getColor(idx) {
   return idx === 0 ? "white" : "black";
-}
-
-function toKey(sqIdx) {
-  const file = sqIdx % 8;
-  const rank = Math.floor(sqIdx / 8);
-  return pos2key([file, rank]);
 }
 
 class BughouseGame extends EventEmitter {
@@ -48,7 +42,7 @@ class BughouseGame extends EventEmitter {
     }
   }
 
-  update({ id, rated, delayStartMillis, a, b }) {
+  update({ rated, delayStartMillis, a, b }) {
     console.log(`BughouseGame.update(...)`);
     this._rated = rated;
     this._setStart(delayStartMillis);
@@ -85,29 +79,8 @@ class BughouseGame extends EventEmitter {
   // val < 0 = drop move
   // val > 0 = normal move
   setMoves(serializedMoves) {
-    // NOTE: keys already come in sorted order, but w/e
-    let moveNums = [0, 0];
-    this._moves = Object.keys(serializedMoves)
-      .map(k => parseInt(k))
-      .sort((a,b) => a - b)
-      .map(k => {
-        const boardID = k & 0x1;
-        const ms = k >> 1; // milliseconds since start
-        let serMove = serializedMoves[k];
-        const num = Math.floor(moveNums[boardID] / 2) + 1;
-        ++moveNums[boardID];
-        let move = {boardID, num, ms};
-        if (serMove < 1) {
-          serMove = -serMove
-          move.piece = Piece.fromIdx(serMove >> 6); // drop
-          move.dest = toKey(serMove & 0x3f);
-        } else {
-          move.piece = Piece.fromIdx((serMove >> 6) & 0x7); // promo
-          move.dest = toKey(serMove & 0x3f);
-          move.src = toKey((serMove >> 9) & 0x3f);
-        }
-        return move;
-    });
+    const state = new AnalysisState(this._timeCtrl);
+    this._moves = state.formMoves(serializedMoves);
     this.emit("update", this);
   }
 
@@ -116,11 +89,7 @@ class BughouseGame extends EventEmitter {
   }
 
   setTimeControl(timeCtrlStr) {
-    let [base, inc] = timeCtrlStr.split('|');
-    this._timeCtrl = {
-      base: parseInt(base),
-      inc: parseInt(inc)
-    };
+    this._timeCtrl = BughouseGame.deserializeTimeCtrl(timeCtrlStr);
   }
 
   getStart() {
@@ -177,6 +146,11 @@ class BughouseGame extends EventEmitter {
     ScreenLock.release();
     this.emit("gameOver", data);
     this.emit("update", data);
+  }
+
+  static deserializeTimeCtrl(timeCtrlStr) {
+    let [base, inc] = timeCtrlStr.split('|');
+    return { base: parseInt(base), inc: parseInt(inc) };
   }
 
   static init({ id, delayStartMillis, a, b }) {

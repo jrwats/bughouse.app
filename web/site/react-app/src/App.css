@@ -635,3 +635,37 @@ body .makeStyles-paper-161 {
   -webkit-filter: url(#red-filter);
   filter: url(#red-filter);
 }
+
+#analysis_moves {
+  font-family: SpaceMono;
+}
+
+.move {
+  cursor: pointer;
+  width: 35%;
+  position: relative;
+  display: inline-block;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.move.clear:before {
+  display: table;
+  clear: both;
+}
+
+.move.a {
+  text-align: left;
+  background: rgba(120, 30, 255, 0.5);
+}
+
+.move.a.black {
+}
+
+.move.b {
+  left: 2em;
+  background: rgba(255, 30, 255, 0.5);
+  right: 0px;
+  /* float: right; */
+}
+

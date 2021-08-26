@@ -25,7 +25,6 @@ class GameStatusSource extends EventEmitter {
     game.setTimeControl(data.time_ctrl);
     game.setMoves(data.moves);
     game.setIsAnalysis(true);
-    // game.setMoves(data.moves);
     const [[aw, ab], [bw, bb]] = data.players;
     game.getBoardA().update({
       board: {white: aw, black: ab},
