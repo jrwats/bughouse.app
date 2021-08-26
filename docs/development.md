@@ -1,4 +1,4 @@
-# Guide to running bughouse.app localy
+# Guide to running bughouse.app locally
 Make sure you have `yarn` and `node` (version 12.x.x) available.  [NVM](https://github.com/nvm-sh/nvm) is your friend for `node.js` version sanity.
 
 # Make localhost SSL certs
