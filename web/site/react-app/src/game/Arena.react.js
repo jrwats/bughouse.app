@@ -118,27 +118,26 @@ const Arena = ({ gamePath }) => {
   if (orientation & Orientation.FLIPPED) {
     boards.reverse();
   }
-  const game_messages = color == null ? null : (
-    <div id="msg_wrapper" style={{flex: "1 1 1em"}}>
-      <GameMessages playerColor={color} gameID={gameID} />
-    </div>
-  );
+  const game_messages =
+    color == null ? null : (
+      <div id="msg_wrapper" style={{ flex: "1 1 1em" }}>
+        <GameMessages playerColor={color} gameID={gameID} />
+      </div>
+    );
   return (
     <div
       id="arena"
       style={{ position: "relative", height: "100%", width: "100%" }}
     >
       <SideMenu style={{ position: "absolute" }} />
-      <div style={{display: "flex"}}>
-        <div style={{flex: "1 1 44vw", height: "min(44vw, 100vh)"}}>
+      <div style={{ display: "flex" }}>
+        <div style={{ flex: "1 1 44vw", height: "min(44vw, 100vh)" }}>
           {boards[0]}
         </div>
-        <div style={{flex: "1 1 52vw", height: "min(44vw, 100vh)"}}>
-          <div style={{display: "flex", height: "100%"}}>
+        <div style={{ flex: "1 1 52vw", height: "min(44vw, 100vh)" }}>
+          <div style={{ display: "flex", height: "100%" }}>
             {game_messages}
-            <div style={{flex: "auto"}}>
-              {boards[1]}
-            </div>
+            <div style={{ flex: "auto" }}>{boards[1]}</div>
           </div>
         </div>
       </div>

@@ -8,7 +8,9 @@ const GameStartCountdown = ({ start }) => {
   let [count, setCount] = useState(getSecsTilStart());
   let interval = useRef(null);
   const msTilStart = start - Date.now();
-  const updateClock = () => { setCount(getSecsTilStart()) };
+  const updateClock = () => {
+    setCount(getSecsTilStart());
+  };
 
   // Use both an interval every 200ms and attempt to time a clock update
   // precisely with the second as well.
@@ -19,7 +21,9 @@ const GameStartCountdown = ({ start }) => {
         clearInterval(interval.current);
       }
     }, INTERVAL);
-    return () => { clearInterval(interval.current); };
+    return () => {
+      clearInterval(interval.current);
+    };
   }, [start]);
 
   useEffect(() => {

@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import AnalysisState from "./AnalysisState";
 // import { opposite } from "chessground/util";
 
-const AnalysisMoves = ({game}) => {
+const AnalysisMoves = ({ game }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
   useEffect(() => {
     const onGameUpdate = () => {
       setMoves(game.getMoves());
-    }
-    game.on('update', onGameUpdate);
+    };
+    game.on("update", onGameUpdate);
     return () => {
-      game.off('update', onGameUpdate);
+      game.off("update", onGameUpdate);
     };
   }, [game]);
 
@@ -19,14 +19,14 @@ const AnalysisMoves = ({game}) => {
       game.update(mv.state);
     };
     const prev = moves[idx - 1];
-    let num = `${mv.num}.${mv.color === 'black' ? '..' : ''} `;
+    let num = `${mv.num}.${mv.color === "black" ? ".." : ""} `;
     let clear = <div key={idx} />;
     let spacer = null;
     if (prev?.boardID === mv.boardID && prev?.num === mv.num) {
       num = null;
       clear = null;
-    } else if (mv.color === 'black') {
-      const className = `move ${mv.boardID ? 'b' : 'a'} ${mv.color}`;
+    } else if (mv.color === "black") {
+      const className = `move ${mv.boardID ? "b" : "a"} ${mv.color}`;
       spacer = <div key={`${idx}`} className={className} />;
     }
     return (
@@ -36,17 +36,19 @@ const AnalysisMoves = ({game}) => {
         <div
           onClick={onClick}
           key={`${mv.boardID}_${mv.num}_${mv.color}`}
-          className={`move ${mv.boardID ? 'b' : 'a'} ${mv.color}`}>
-          {num}{mv.label}
+          className={`move ${mv.boardID ? "b" : "a"} ${mv.color}`}
+        >
+          {num}
+          {mv.label}
         </div>
       </>
     );
   });
   return (
-    <div id="analysis_moves" style={{width: "20vw"}}>
+    <div id="analysis_moves" style={{ width: "20vw" }}>
       {uiMoves}
     </div>
   );
-}
+};
 
 export default AnalysisMoves;

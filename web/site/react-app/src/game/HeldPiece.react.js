@@ -57,7 +57,7 @@ const HeldPiece = ({
     <div
       ref={relRef}
       style={{
-        position: 'relative',
+        position: "relative",
         visibility: visibility,
         height: "20%",
         width: "100%",
@@ -66,7 +66,7 @@ const HeldPiece = ({
     >
       <Draggable
         nodeRef={pieceRef}
-        bounds={undefined /* `#${boardID}`*/ }
+        bounds={undefined /* `#${boardID}`*/}
         disabled={disabled}
         onStop={onStop}
         onDrag={onDrag}

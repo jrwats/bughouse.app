@@ -13,7 +13,7 @@ import UsersProvider from "./user/UsersProvider";
 import ViewerProvider from "./user/ViewerProvider";
 import { Router } from "@reach/router";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
-import purple from '@material-ui/core/colors/purple';
+import purple from "@material-ui/core/colors/purple";
 // import deepPurple from '@material-ui/core/colors/purple';
 
 Presence.init();
@@ -28,22 +28,20 @@ const GuestTable = ({ gamePath }) => {
 };
 
 const App = () => {
-  const darkTheme = createMuiTheme(
-    {
-      palette: {
-        type: "dark",
-        primary: purple,
-        // {
-        //   main: purple[700],
-        //   dark: purple[400],
-        // },
-        secondary: {
-          main: '#a22e63',// purple[200],
-          dark: '#e23e73',// purple[200],
-        }
-      }
-    }
-  );
+  const darkTheme = createMuiTheme({
+    palette: {
+      type: "dark",
+      primary: purple,
+      // {
+      //   main: purple[700],
+      //   dark: purple[400],
+      // },
+      secondary: {
+        main: "#a22e63", // purple[200],
+        dark: "#e23e73", // purple[200],
+      },
+    },
+  });
   const { user } = useContext(AuthContext);
   return (
     <SocketProvider user={user}>

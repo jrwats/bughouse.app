@@ -55,7 +55,7 @@ const Holdings = ({
     .map((c) => c.toUpperCase());
   const whiteHoldings = chars.filter((c) => c === c.toUpperCase());
   const containerRef = useRef(null);
-  const getPlayerHoldings = (color, playerHoldings) => 
+  const getPlayerHoldings = (color, playerHoldings) => (
     <PlayerHoldings
       boardID={boardID}
       gameID={gameID}
@@ -65,7 +65,8 @@ const Holdings = ({
       color={color}
       holdings={playerHoldings}
       viewOnly={color !== orientation}
-    />;
+    />
+  );
   return (
     <div
       className="holdings"
@@ -81,11 +82,11 @@ const Holdings = ({
     >
       {getPlayerHoldings(
         opposite(orientation),
-        orientation === "white" ? blackHoldings : whiteHoldings,
+        orientation === "white" ? blackHoldings : whiteHoldings
       )}
       {getPlayerHoldings(
         orientation,
-        orientation === "white" ? whiteHoldings : blackHoldings,
+        orientation === "white" ? whiteHoldings : blackHoldings
       )}
       {/* <PlayerHoldings */}
       {/*   boardID={boardID} */}

@@ -12,7 +12,7 @@ const Main = (props) => {
   console.log("Main");
   return (
     <div style={{ width: "100%", height: "100%" }}>
-      <div style={{position: "absolute"}}>
+      <div style={{ position: "absolute" }}>
         <SideMenu />
         <span className="bug-logo-text small">
           <span className="solid">bughouse.</span>app

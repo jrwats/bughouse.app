@@ -4,7 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import HandleDisplay from "./HandleDisplay.react";
 import { SocketContext } from "../socket/SocketProvider";
 import FeaturedVideoIcon from "@material-ui/icons/FeaturedVideo";
-import AssessmentIcon from '@material-ui/icons/Assessment';
+import AssessmentIcon from "@material-ui/icons/Assessment";
 import Button from "@material-ui/core/Button";
 import { Link } from "@reach/router";
 
@@ -26,13 +26,11 @@ const GameOverMessage = ({ chessboard }) => {
     msg = "You lost";
   } else {
     msg = (
-      <div style={{display: "flex", flexWrap: "wrap"}}>
-        <div style={{flex: "auto"}}>
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        <div style={{ flex: "auto" }}>
           <HandleDisplay color={winnerColor} handle={winnerHandle} />
         </div>
-        <div style={{flex: "auto", paddingLeft: ".2em" }}>
-          won
-        </div>
+        <div style={{ flex: "auto", paddingLeft: ".2em" }}>won</div>
       </div>
     );
   }
@@ -50,18 +48,27 @@ const GameOverMessage = ({ chessboard }) => {
           <div className="bug-logo-text h5 ">{msg}</div>
           <div style={{ paddingTop: "8px" }}>{chessboard.getReason()}</div>
           <div style={{ display: "flex", marginTop: "min(3vw, 7vh)" }}>
-            <div style={{flex: "auto"}}>
+            <div style={{ flex: "auto" }}>
               <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
                 <Button variant="contained" color="primary">
-                  <FeaturedVideoIcon fontSize="small" style={{ paddingRight: ".6em" }} />
+                  <FeaturedVideoIcon
+                    fontSize="small"
+                    style={{ paddingRight: ".6em" }}
+                  />
                   Dashboard
                 </Button>
               </Link>
             </div>
-            <div style={{flex: "auto", marginLeft: "1em"}}>
-              <Link to={`/analysis/${gameID}`} style={{ marginTop: "min(3vw, 7vh)" }}>
+            <div style={{ flex: "auto", marginLeft: "1em" }}>
+              <Link
+                to={`/analysis/${gameID}`}
+                style={{ marginTop: "min(3vw, 7vh)" }}
+              >
                 <Button variant="contained" color="primary">
-                  <AssessmentIcon fontSize="small" style={{ paddingRight: ".6em" }} />
+                  <AssessmentIcon
+                    fontSize="small"
+                    style={{ paddingRight: ".6em" }}
+                  />
                   Analyze
                 </Button>
               </Link>

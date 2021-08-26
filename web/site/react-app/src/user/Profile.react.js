@@ -11,7 +11,7 @@ import Loading from "../Loading.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "./ViewerProvider";
 import { makeStyles } from "@material-ui/core/styles";
-import purple from '@material-ui/core/colors/purple';
+import purple from "@material-ui/core/colors/purple";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -32,12 +32,12 @@ const HandleEdit = ({ handle }) => {
       setEditing(false);
       setSubmitting(false);
     };
-    socket.on('handle_update', onUpdate);
-    socket.on('login', onUpdate);
+    socket.on("handle_update", onUpdate);
+    socket.on("login", onUpdate);
     return () => {
-      socket.off('handle_update', onUpdate);
-      socket.off('login', onUpdate);
-    }
+      socket.off("handle_update", onUpdate);
+      socket.off("login", onUpdate);
+    };
   }, [socket]);
 
   if (!editing) {
@@ -70,7 +70,7 @@ const HandleEdit = ({ handle }) => {
 
   return (
     <form onSubmit={onSubmit} noValidate autoComplete="off">
-      <div  style={{width: "100%"}}>
+      <div style={{ width: "100%" }}>
         <TextField
           ref={textInput}
           id="handle"
@@ -78,17 +78,32 @@ const HandleEdit = ({ handle }) => {
           defaultValue={handle}
         />
       </div>
-      <div style={{margin: "4px 0px"}}>
-        <span style={{marginTop: "4px"}}>
-          <Button variant="contained" color={submitting ? "secondary" : "primary"} onClick={onSubmit}>
+      <div style={{ margin: "4px 0px" }}>
+        <span style={{ marginTop: "4px" }}>
+          <Button
+            variant="contained"
+            color={submitting ? "secondary" : "primary"}
+            onClick={onSubmit}
+          >
             <SpellcheckIcon fontSize="small" />
             <span style={{ marginLeft: ".2em" }}>
-              {submitting ? <Loading style={{padding: "0 2rem"}} size="1.0rem" /> : "Submit"}
+              {submitting ? (
+                <Loading style={{ padding: "0 2rem" }} size="1.0rem" />
+              ) : (
+                "Submit"
+              )}
             </span>
           </Button>
         </span>
-        <span style={{margin: "4px 4px 4px 4px"}}>
-          <Button variant="contained" disabled={submitting} color="secondary" onClick={(_) => { setEditing(false); }}>
+        <span style={{ margin: "4px 4px 4px 4px" }}>
+          <Button
+            variant="contained"
+            disabled={submitting}
+            color="secondary"
+            onClick={(_) => {
+              setEditing(false);
+            }}
+          >
             <CloseIcon fontSize="small" />
             <span style={{ marginLeft: ".2em" }}>Cancel</span>
           </Button>
@@ -106,7 +121,7 @@ const Profile = (props) => {
   return (
     <div style={{ flexGrow: 1 }}>
       <HandleEdit handle={handle} />
-      <Grid container item xs={12} spacing={3} style={{marginTop: "1rem"}}>
+      <Grid container item xs={12} spacing={3} style={{ marginTop: "1rem" }}>
         <Grid item sm={4}>
           <Paper className={classes.paper}>
             Rating: {rating}, Deviation: {deviation}

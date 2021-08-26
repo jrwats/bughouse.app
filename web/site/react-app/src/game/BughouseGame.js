@@ -149,7 +149,7 @@ class BughouseGame extends EventEmitter {
   }
 
   static deserializeTimeCtrl(timeCtrlStr) {
-    let [base, inc] = timeCtrlStr.split('|');
+    let [base, inc] = timeCtrlStr.split("|");
     return { base: parseInt(base), inc: parseInt(inc) };
   }
 

@@ -13,12 +13,12 @@ export const NAMES = {
 
 // TODO Issue PR to chessground and expose these
 export const LETTERS = {
-  pawn: 'p',
-  rook: 'r',
-  knight: 'n',
-  bishop: 'b',
-  queen: 'q',
-  king: 'k',
+  pawn: "p",
+  rook: "r",
+  knight: "n",
+  bishop: "b",
+  queen: "q",
+  king: "k",
 };
 
 export const PIECES = {
@@ -31,17 +31,17 @@ export const PIECES = {
 };
 
 // Keep in sync with bughouse: https://crates.io/crates/bughouse
-const IDX_2_PIECE = ['p', 'n', 'b', 'r', 'q', 'k'];
+const IDX_2_PIECE = ["p", "n", "b", "r", "q", "k"];
 
 export const fromIdx = (idx) => {
   return IDX_2_PIECE[idx] || null;
-}
+};
 
 const Piece = {
   NAMES,
   PIECES,
   LETTERS,
-  fromIdx
+  fromIdx,
 };
 
 export default Piece;

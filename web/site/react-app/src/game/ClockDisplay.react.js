@@ -61,7 +61,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const mins = Math.floor(state.ms / 1000.0 / 60.0);
   const secs = Math.floor((state.ms / 1000.0) % 60);
   return (
-    <span className="h6 alien" style={{paddingTop: "4px", minWidth: "4rem"}}>
+    <span className="h6 alien" style={{ paddingTop: "4px", minWidth: "4rem" }}>
       {mins}:{(secs < 10 ? "0" : "") + secs}
     </span>
   );

@@ -7,8 +7,8 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import VolumeOffIcon from '@material-ui/icons/VolumeOff';
-import VolumeUpIcon from '@material-ui/icons/VolumeUp';
+import VolumeOffIcon from "@material-ui/icons/VolumeOff";
+import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
@@ -51,24 +51,26 @@ const StyledMenuItem = withStyles((theme) => ({
 }))(MenuItem);
 
 const SoundMenuItem = () => {
-  const off = parseInt(localStorage.getItem('soundOff') || "0");
+  const off = parseInt(localStorage.getItem("soundOff") || "0");
   let [soundDisabled, setSoundDisabled] = useState(off);
-  const icon = soundDisabled
-    ? <VolumeUpIcon fontSize="small" />
-    : <VolumeOffIcon fontSize="small" />
+  const icon = soundDisabled ? (
+    <VolumeUpIcon fontSize="small" />
+  ) : (
+    <VolumeOffIcon fontSize="small" />
+  );
 
   const onClick = (_e) => {
-    localStorage.setItem('soundOff', soundDisabled ? 0 : 1);
+    localStorage.setItem("soundOff", soundDisabled ? 0 : 1);
     setSoundDisabled(!soundDisabled);
   };
 
   return (
     <StyledMenuItem onClick={onClick}>
       <ListItemIcon>{icon}</ListItemIcon>
-      <ListItemText primary={`Sound ${soundDisabled ? 'on' : 'off'}`} />
+      <ListItemText primary={`Sound ${soundDisabled ? "on" : "off"}`} />
     </StyledMenuItem>
-  )
-}
+  );
+};
 
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -161,7 +163,7 @@ const SideMenu = ({ style }) => {
           </ListItemIcon>
           <ListItemText primary={`Sign out ${handle}`} />
         </StyledMenuItem>
-        <div style={{borderTop: "1px solid #303030" }}>
+        <div style={{ borderTop: "1px solid #303030" }}>
           <SoundMenuItem />
         </div>
       </StyledMenu>

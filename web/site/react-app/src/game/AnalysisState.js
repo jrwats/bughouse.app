@@ -7,12 +7,12 @@
  * already done that.
  */
 
-import {read, write}from "chessground/fen";
+import { read, write } from "chessground/fen";
 import { distanceSq, key2pos, pos2key, allKeys } from "chessground/util";
 import Piece, { PIECES, LETTERS, NAMES } from "./Piece";
 
 function timeCtrlToMs(timeCtrl) {
-  return timeCtrl.base * 60 * 1000 + (timeCtrl.inc * 1000)
+  return timeCtrl.base * 60 * 1000 + timeCtrl.inc * 1000;
 }
 
 function initHoldings() {
@@ -34,45 +34,52 @@ class AnalysisBoard {
     this.timeCtrl = timeCtrl;
     this.holdings = [initHoldings(), initHoldings()]; // white black holdings
     this.clocks = [ms, ms];
-    this.pieces = read('start');
+    this.pieces = read("start");
     this.promos = new Map();
-    this.toMove = 'w';
+    this.toMove = "w";
     this.lastTime = 0;
   }
 
   makeMove(move) {
-    let capturedPiece = this.promos.get(move.dest) ||
-      this.pieces.get(move.dest);
-    if (move.src == null) { // drop
+    let capturedPiece =
+      this.promos.get(move.dest) || this.pieces.get(move.dest);
+    if (move.src == null) {
+      // drop
       this.holdings[move.boardID][move.piece]--;
       this.pieces.set(move.dest, {
         role: NAMES[move.piece],
-        color: move.color
+        color: move.color,
       });
-    } else { // move
+    } else {
+      // move
       // If a captured piece is a promo, it goes back as a pawn
-      if (move.piece != null) { // promo
+      if (move.piece != null) {
+        // promo
         this.pieces.set(move.dest, {
           role: NAMES[move.piece],
-          color: move.color
+          color: move.color,
         });
-        this.promos.set(move.dest, {role: 'pawn', color: move.color});
+        this.promos.set(move.dest, { role: "pawn", color: move.color });
       } else {
         const piece = this.pieces.get(move.src);
-        if (piece.role === 'king' &&
-          distanceSq(key2pos(move.src), key2pos(move.dest)) > 1) {
+        if (
+          piece.role === "king" &&
+          distanceSq(key2pos(move.src), key2pos(move.dest)) > 1
+        ) {
           // Castling: also move the rook
-          const rookSrc = `${move.dest[0] === 'g' ? 'h' : 'a'}${move.dest[1]}`;
-          const rookDest = `${move.dest[0] === 'g' ? 'f' : 'd'}${move.dest[1]}`;
+          const rookSrc = `${move.dest[0] === "g" ? "h" : "a"}${move.dest[1]}`;
+          const rookDest = `${move.dest[0] === "g" ? "f" : "d"}${move.dest[1]}`;
           this.pieces.set(rookDest, this.pieces.get(rookSrc));
           this.pieces.delete(rookSrc);
-        } else if (piece.role === 'pawn' &&
+        } else if (
+          piece.role === "pawn" &&
           move.dest[0] !== move.src[0] &&
-          capturedPiece == null) {
+          capturedPiece == null
+        ) {
           // en-passant - capture square just "under" destination
           const capturedKey = `${move.dest[0]}${move.src[1]}`;
-          capturedPiece = this.promos.get(capturedKey) ||
-            this.pieces.get(capturedKey);
+          capturedPiece =
+            this.promos.get(capturedKey) || this.pieces.get(capturedKey);
           this.pieces.delete(capturedKey);
         }
         this.promos.set(move.dest, this.promos.get(move.src));
@@ -81,9 +88,9 @@ class AnalysisBoard {
       this.pieces.delete(move.src);
       this.promos.delete(move.src);
     }
-    this.toMove = this.toMove === 'w' ? 'b' : 'w';
-    this.clocks[move.color === 'white' ? 0 : 1] +=
-      (1000 * this.timeCtrl.inc) - (move.ms - this.lastTime);
+    this.toMove = this.toMove === "w" ? "b" : "w";
+    this.clocks[move.color === "white" ? 0 : 1] +=
+      1000 * this.timeCtrl.inc - (move.ms - this.lastTime);
     this.lastTime = move.ms;
     return capturedPiece;
   }
@@ -92,12 +99,12 @@ class AnalysisBoard {
     if (piece == null) {
       return;
     }
-    const holdings = this.holdings[piece.color === 'white' ? 0 : 1];
+    const holdings = this.holdings[piece.color === "white" ? 0 : 1];
     ++holdings[LETTERS[piece.role]];
   }
 
   getHoldingsStr() {
-    let str = '';
+    let str = "";
     for (const holdings of this.holdings) {
       for (const p in holdings) {
         for (let i = 0; i < holdings[p]; ++i) {
@@ -126,7 +133,7 @@ class AnalysisBoard {
     // TODO egregiously incomplete (not handling ambiguities)
     const srcPiece = this.pieces.get(move.src);
     const capture = this.pieces.get(move.dest);
-    const captureX = capture ? 'x' : '';
+    const captureX = capture ? "x" : "";
     const piece = LETTERS[srcPiece.role].toUpperCase();
     switch (srcPiece.role) {
       case PIECES.PAWN:
@@ -144,7 +151,7 @@ class AnalysisBoard {
         return `${piece}${captureX}${move.dest}`;
       case PIECES.KING: {
         if (distanceSq(key2pos(move.src), key2pos(move.dest)) > 1) {
-          return move.dest[0] === 'g' ? 'O-O' : 'O-O-O';
+          return move.dest[0] === "g" ? "O-O" : "O-O-O";
         }
         return `${piece}${captureX}${move.dest}`;
       }
@@ -153,12 +160,8 @@ class AnalysisBoard {
 }
 
 class AnalysisState {
-
   constructor(timeCtrl) {
-    this._boards = [
-      new AnalysisBoard(timeCtrl),
-      new AnalysisBoard(timeCtrl)
-    ];
+    this._boards = [new AnalysisBoard(timeCtrl), new AnalysisBoard(timeCtrl)];
   }
 
   toAnalysisMove(move) {
@@ -172,7 +175,7 @@ class AnalysisState {
       state: {
         a: this._boards[0].getState(),
         b: this._boards[1].getState(),
-      }
+      },
     };
   }
 
@@ -181,10 +184,10 @@ class AnalysisState {
     const ms = key >> 1; // milliseconds since start
     const num = Math.floor(moveNums[boardID] / 2) + 1;
     ++moveNums[boardID];
-    const color = moveNums[boardID] % 2 === 1 ? 'white' : 'black';
-    let move = {boardID, color, num, ms};
+    const color = moveNums[boardID] % 2 === 1 ? "white" : "black";
+    let move = { boardID, color, num, ms };
     if (serMove < 1) {
-      serMove = -serMove
+      serMove = -serMove;
       move.piece = Piece.fromIdx(serMove >> 6); // drop
       move.dest = toKey(serMove & 0x3f);
     } else {
@@ -200,11 +203,10 @@ class AnalysisState {
     let moveNums = [0, 0];
     const self = this;
     return Object.keys(serializedMoves)
-      .map(k => parseInt(k))
+      .map((k) => parseInt(k))
       .sort((a, b) => a - b)
-      .map(k => self.deserialize(k, serializedMoves[k], moveNums))
+      .map((k) => self.deserialize(k, serializedMoves[k], moveNums));
   }
-
 }
 
 export default AnalysisState;

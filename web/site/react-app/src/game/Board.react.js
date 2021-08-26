@@ -17,7 +17,7 @@ let lastPlay = Date.now();
 const playAudio = (file) => {
   // "debounce"
   const now = Date.now();
-  const soundOff = parseInt(localStorage.getItem('soundOff') || 0);
+  const soundOff = parseInt(localStorage.getItem("soundOff") || 0);
   if (now - lastPlay < 200 || soundOff) {
     return;
   }
@@ -27,7 +27,7 @@ const playAudio = (file) => {
   audio.volume = 0.5;
   audio.play();
   console.log(`${file}.play`);
-}
+};
 
 const Board = ({ chessboard, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
@@ -66,7 +66,6 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     };
   }, [boardWrapperRef]);
 
-
   const game = chessboard.getGame();
   useEffect(() => {
     const onUpdate = (_) => {
@@ -76,7 +75,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       const prevFen = chessgroundRef?.current?.cg?.state?.fen;
       if (fen != null && board.fen !== prevFen) {
         const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
-        const file = handleColor === colorToMove ? GenericNotifySound : MoveSound;
+        const file =
+          handleColor === colorToMove ? GenericNotifySound : MoveSound;
         playAudio(file);
       }
       setFEN(board.fen);
@@ -84,9 +84,9 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
       setHoldings(holdings);
       setViewOnly(
         forming ||
-        !chessboard.isInitialized() ||
-        chessboard.getGame().isAnalysis() ||
-        chessboard.getHandleColor(handle) == null
+          !chessboard.isInitialized() ||
+          chessboard.getGame().isAnalysis() ||
+          chessboard.getHandleColor(handle) == null
       );
     };
     const onGameOver = () => {
@@ -117,22 +117,26 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     alert = <GameOverMessage chessboard={chessboard} />;
   }
   return (
-    <div ref={boardWrapperRef} style={{
-      // display: "flex",
-      // flexDirection: "column",
-      // justifyContent: "center",
-      height: "100%",
-      width: "100%"
-      }}>
+    <div
+      ref={boardWrapperRef}
+      style={{
+        // display: "flex",
+        // flexDirection: "column",
+        // justifyContent: "center",
+        height: "100%",
+        width: "100%",
+      }}
+    >
       <BoardGutter
         forming={forming}
         color={opposite(orientation)}
         chessboard={chessboard}
       />
-      <div style={{
-        position: "relative", // for alert
-        // flex: "8 1 auto",
-        display: "flex",
+      <div
+        style={{
+          position: "relative", // for alert
+          // flex: "8 1 auto",
+          display: "flex",
         }}
       >
         {/* <Box */}
@@ -157,16 +161,18 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
             chessboard={chessboard}
             viewOnly={viewOnly}
           />
-          <div style={{
-            position: "relative",
-            flex: "8 1 auto",
-            height: "100%",
-            }}>
+          <div
+            style={{
+              position: "relative",
+              flex: "8 1 auto",
+              height: "100%",
+            }}
+          >
             <div
               style={{
                 position: "absolute",
                 height: sz == null ? "100%" : sz + "px",
-                width: sz == null ? "100%" : sz + "px"
+                width: sz == null ? "100%" : sz + "px",
               }}
             >
               <Chessground

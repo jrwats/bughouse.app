@@ -27,11 +27,11 @@ class GameStatusSource extends EventEmitter {
     game.setIsAnalysis(true);
     const [[aw, ab], [bw, bb]] = data.players;
     game.getBoardA().update({
-      board: {white: aw, black: ab},
+      board: { white: aw, black: ab },
       // moves: data.moves[0],
     });
     game.getBoardB().update({
-      board: {white: bw, black: bb},
+      board: { white: bw, black: bb },
       // moves: data.moves[1],
     });
     navigate(`/analysis/${data.id}`);

@@ -15,7 +15,7 @@ const Analysis = ({ gamePath }) => {
 
   useEffect(() => {
     console.log(`requesting analysis`);
-    socket && socket.sendEvent('analyze', {id: gameID});
+    socket && socket.sendEvent("analyze", { id: gameID });
   }, [socket]);
 
   const boards = [
@@ -33,14 +33,14 @@ const Analysis = ({ gamePath }) => {
     />,
   ];
   return (
-    <div style={{width: "100%", height: "100%", display: "flex"}}>
-      <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>
+    <div style={{ width: "100%", height: "100%", display: "flex" }}>
+      <div style={{ flex: "3 1 40vw", height: "min(40vw, 90vh)" }}>
         {boards[0]}
       </div>
-      <div style={{flex: "1 1 auto"}}>
+      <div style={{ flex: "1 1 auto" }}>
         <AnalysisMoves game={game} />
       </div>
-      <div style={{flex: "3 1 40vw", height: "min(40vw, 90vh)"}}>
+      <div style={{ flex: "3 1 40vw", height: "min(40vw, 90vh)" }}>
         {boards[1]}
       </div>
     </div>
