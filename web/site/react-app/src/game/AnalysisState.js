@@ -28,6 +28,12 @@ function toKey(sqIdx) {
   return pos2key([file, rank]);
 }
 
+// assumes piece.role is KING
+function isCastle(move) {
+  return move.src[1] === move.dest[1] &&
+    Math.abs(move.src[0] - move.dest[0]) > 1
+}
+
 class AnalysisBoard {
   constructor(timeCtrl) {
     const ms = timeCtrlToMs(timeCtrl);
@@ -62,10 +68,7 @@ class AnalysisBoard {
         this.promos.set(move.dest, { role: "pawn", color: move.color });
       } else {
         const piece = this.pieces.get(move.src);
-        if (
-          piece.role === "king" &&
-          distanceSq(key2pos(move.src), key2pos(move.dest)) > 1
-        ) {
+        if (piece.role === "king" && isCastle(move)) {
           // Castling: also move the rook
           const rookSrc = `${move.dest[0] === "g" ? "h" : "a"}${move.dest[1]}`;
           const rookDest = `${move.dest[0] === "g" ? "f" : "d"}${move.dest[1]}`;
@@ -103,16 +106,19 @@ class AnalysisBoard {
     ++holdings[LETTERS[piece.role]];
   }
 
-  getHoldingsStr() {
-    let str = "";
-    for (const holdings of this.holdings) {
-      for (const p in holdings) {
-        for (let i = 0; i < holdings[p]; ++i) {
-          str += p;
-        }
+  _getHeldStr(holdings) {
+    let str = ''
+    for (const p in holdings) {
+      for (let i = 0; i < holdings[p]; ++i) {
+        str += p;
       }
     }
     return str;
+  }
+
+  getHoldingsStr() {
+    const [white, black] = this.holdings.map(h => this._getHeldStr(h));
+    return white.toUpperCase() + black;
   }
 
   getState() {
@@ -150,7 +156,7 @@ class AnalysisBoard {
       case PIECES.QUEEN:
         return `${piece}${captureX}${move.dest}`;
       case PIECES.KING: {
-        if (distanceSq(key2pos(move.src), key2pos(move.dest)) > 1) {
+        if (isCastle(move)) {
           return move.dest[0] === "g" ? "O-O" : "O-O-O";
         }
         return `${piece}${captureX}${move.dest}`;
@@ -195,17 +201,22 @@ class AnalysisState {
       move.dest = toKey(serMove & 0x3f);
       move.src = toKey((serMove >> 9) & 0x3f);
     }
-    return this.toAnalysisMove(move);
+    return move;
   }
 
   formMoves(serializedMoves) {
     // NOTE: keys *should* already come in sorted order, but w/e
     let moveNums = [0, 0];
     const self = this;
-    return Object.keys(serializedMoves)
+    const deserializedMoves = Object.keys(serializedMoves)
       .map((k) => parseInt(k))
       .sort((a, b) => a - b)
       .map((k) => self.deserialize(k, serializedMoves[k], moveNums));
+    const dbgStr = deserializedMoves.map(m =>
+      `${m.boardID}.${m.color === 'black' ? '..' : ''}${m.num}: ${m.src}=>${m.dest}`
+    ).join('\n');
+    debugger;
+    return deserializedMoves.map(m => this.toAnalysisMove(m));
   }
 }
 
