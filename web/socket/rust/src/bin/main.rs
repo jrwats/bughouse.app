@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 use actix::prelude::*;
 use actix_files as fs;
 use actix_web::*;
@@ -10,32 +7,9 @@ use std::io;
 use std::sync::Arc;
 use web::Data;
 
-mod b66;
-mod bug_web_sock;
-mod bughouse_server;
-mod connection_mgr;
-mod db;
-mod error;
-mod firebase;
-mod game;
-mod game_json;
-mod game_row;
-mod games;
-mod guest;
-// mod adjectives;
-// mod guest;
-// mod nouns;
-mod hash;
-mod messages;
-mod observers;
-mod players;
-mod rating;
-mod seeks;
-mod time_control;
-mod users;
-use bug_web_sock::{BugContext, BugWebSock};
-use bughouse_server::{BughouseServer, ServerHandler};
-use db::Db;
+use bughouse_app::bug_web_sock::{BugContext, BugWebSock};
+use bughouse_app::bughouse_server::{BughouseServer, ServerHandler};
+use bughouse_app::db::Db;
 
 pub async fn ws_route(
     req: HttpRequest,

@@ -1,12 +1,20 @@
 [package]
-name = "bughouse_websocket_gameserver"
+name = "bughouse_app"
 version = "0.0.1"
 authors = ["John Watson <jrwats@gmail.com>"]
 edition = "2018"
 
+[lib]
+name = "bughouse_app"
+path = "src/lib.rs"
+
 [[bin]]
 name = "bug-wss"
-path = "src/main.rs"
+path = "src/bin/main.rs"
+
+# [[bin]]
+# name = "b66"
+# path = "src/bin/b66.rs"
 
 [dependencies]
 # actix = "0.10"
