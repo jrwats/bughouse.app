@@ -12,9 +12,9 @@ path = "src/lib.rs"
 name = "bug-wss"
 path = "src/bin/main.rs"
 
-# [[bin]]
-# name = "b66"
-# path = "src/bin/b66.rs"
+[[bin]]
+name = "b66"
+path = "src/bin/b66.rs"
 
 [dependencies]
 # actix = "0.10"
