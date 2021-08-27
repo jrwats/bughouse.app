@@ -638,6 +638,8 @@ body .makeStyles-paper-161 {
 
 #analysis_moves {
   font-family: SpaceMono;
+  font-size: min(1rem, 1vw);
+  max-width: calc(100% - 8px);
 }
 
 .move {
@@ -669,3 +671,21 @@ body .makeStyles-paper-161 {
   /* float: right; */
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 30, 170, 0.8);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 30, 255);
+}
