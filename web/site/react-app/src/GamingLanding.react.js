@@ -46,7 +46,8 @@ const GamingLanding = () => {
             setExpansion(ActionExpansion.FORM_GAME);
           }}
         >
-          Play with Friends
+          Create Table
+          {/* Play with Friends */}
         </Button>
       </div>
     </>

@@ -9,6 +9,13 @@ import { withStyles } from "@material-ui/core/styles";
 import { purple } from "@material-ui/core/colors";
 import { deepPurple } from "@material-ui/core/colors";
 
+import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
+import NativeSelect from '@material-ui/core/NativeSelect';
+
 import { SocketContext } from "./socket/SocketProvider";
 
 const BugSwitch = withStyles({
@@ -32,6 +39,42 @@ function getMark(val, suffix) {
   };
 }
 
+const TimeSelect = ({label, name, helper, value, values, onChange}) => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  return (
+    <FormControl >
+      {isMobile ? (
+        <>
+          <InputLabel id="select-base-label">{label}</InputLabel>
+          <NativeSelect
+            labelId={`select-${name}-label`}
+            id={`select-${name}`}
+            value={value}
+            name={name}
+            onChange={onChange}
+          >
+            {values.map(v => <option value={v}>{v}</option>)}
+          </NativeSelect>
+        </>
+      ) : (
+        <>
+          <InputLabel id="select-base-label">{label}</InputLabel>
+          <Select
+            labelId={`select-${name}-label`}
+            id={`select-${name}`}
+            value={value}
+            name={name}
+            onChange={onChange}
+          >
+            {values.map(v => <MenuItem value={v}>{v}</MenuItem>)}
+          </Select>
+        </>
+      )}
+      <FormHelperText>{helper}</FormHelperText>
+    </FormControl>
+  );
+}
+
 const DEFAULT_BASE = 3;
 const DEFAULT_INC = 0;
 const FormGame = ({ onCancel }) => {
@@ -52,6 +95,9 @@ const FormGame = ({ onCancel }) => {
   const handleChange = (event) => {
     setState({ ...state, [event.target.name]: event.target.checked });
   };
+  const handleSelect = (event) => {
+    setState({ ...state, [event.target.name]: event.target.value });
+  };
 
   const mins = [1, 2, 3, 4, 5, 10, 20];
   const baseMarks = mins.map((v, idx) => getMark(v, "")); // /'m'));
@@ -59,7 +105,7 @@ const FormGame = ({ onCancel }) => {
   const baseSeconds = secs.map((v, idx) => getMark(v, "")); // /'m'));
 
   return (
-    <div style={{ marginLeft: "100px", flexGrow: 1 }}>
+    <div style={{ marginLeft: "1rem", flexGrow: 1 }}>
       <Grid container spacing={1}>
         <Grid component="label" container alignItems="center" spacing={1}>
           <Grid item>
@@ -72,50 +118,26 @@ const FormGame = ({ onCancel }) => {
               name="rated"
             />
           </Grid>
-        </Grid>
-        <Grid container spacing={2}>
           <Grid item xs={2}>
-            <Typography id="discrete-slider" gutterBottom>
-              Base (minutes)
-            </Typography>
+            <TimeSelect label="Base"
+              name="base"
+              helper="in minutes"
+              value={state.base}
+              onChange={handleSelect}
+              values={[1, 2, 3, 4, 5, 10, 20]} />
           </Grid>
-          <Grid item xs={4}>
-            <Slider
-              defaultValue={DEFAULT_BASE}
-              getAriaValueText={(val) => `${val} minutes`}
-              aria-labelledby="discrete-slider"
-              valueLabelDisplay="auto"
-              onChangeCommitted={(_e, val) => {
-                setState({ ...state, base: val });
-              }}
-              step={null}
-              max={mins[mins.length - 1]}
-              marks={baseMarks}
-            />
+          <Grid item xs={2}>
+            <TimeSelect label="Increment"
+              name="inc"
+              helper="in seconds"
+              value={state.inc}
+              onChange={handleSelect}
+              values={secs} />
           </Grid>
         </Grid>
         <Grid container spacing={2}>
-          <Grid item xs={2}>
-            <Typography id="discrete-slider-inc" gutterBottom>
-              Increment (seconds)
-            </Typography>
-          </Grid>
-          <Grid item xs={4}>
-            <Slider
-              defaultValue={DEFAULT_INC}
-              getAriaValueText={(val) => `${val} seconds`}
-              aria-labelledby="discrete-slider-inc"
-              valueLabelDisplay="auto"
-              onChangeCommitted={(_e, val) => {
-                setState({ ...state, inc: val });
-              }}
-              step={null}
-              max={secs[secs.length - 1]}
-              marks={baseSeconds}
-            />
-          </Grid>
         </Grid>
-        <Grid container item xs={3}>
+        <Grid container item xs={4}>
           <Button variant="contained" color="primary" onClick={onCreate}>
             Create Table
           </Button>
