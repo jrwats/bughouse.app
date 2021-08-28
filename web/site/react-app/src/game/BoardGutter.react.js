@@ -9,14 +9,14 @@ function getHandleDisplay(handle, canVacate, onSit, onVacate) {
   if (handle == null) {
     return (
       <Button variant="contained" color="primary" onClick={onSit}>
-        Sit
+        Play
       </Button>
     );
   }
   const vacate = canVacate ? (
     <Button variant="contained" color="secondary" onClick={onVacate}>
       <ExitToAppIcon style={{ paddingRight: "10px" }} />
-      Vacate
+      Leave
     </Button>
   ) : null;
   return (
