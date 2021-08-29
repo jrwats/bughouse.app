@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import AnalysisState from "./AnalysisState";
-// import { opposite } from "chessground/util";
+import { initial } from "chessground/fen";
 
 const AnalysisMoves = ({ game }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
@@ -20,9 +20,10 @@ const AnalysisMoves = ({ game }) => {
       const delta = e.key === 'ArrowRight' ? 1 : 
         (e.key === 'ArrowLeft' ? -1 : 0)
       idx.current = Math.min(Math.max(-1 ,idx.current + delta), moves.length - 1);
-      if (idx.current > 0) {
-        game.update(moves[idx.current].state);
-      }
+      const state = idx.current >= 0
+        ? moves[idx.current].state
+        : { a: {board: {fen: initial}}, b: {board: {fen: initial}}};
+      game.update(state);
       e.preventDefault();
     }
     window.addEventListener('keydown', onKey);

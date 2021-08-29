@@ -17,10 +17,8 @@ class ChessBoard extends EventEmitter {
     console.log(`ChessBoard.update(...) ${this._id}: ${board.fen}`);
     // invariant(id === this._id, `ChessBoard id mismatch? ${id} != $[this._id}`);
     // deep merge
-    const whiteHandle =
-      "handle" in board?.white ? board.white.handle : this._board.white.handle;
-    const blackHandle =
-      "handle" in board?.black ? board.black.handle : this._board.black.handle;
+    const whiteHandle = board?.white?.handle ?? this._board.white.handle;
+    const blackHandle = board?.black?.handle ?? this._board.black.handle;
     this._board = {
       fen: board.fen || this._board.fen,
       white: {
