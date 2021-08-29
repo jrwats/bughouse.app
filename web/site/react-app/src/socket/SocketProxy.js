@@ -35,6 +35,8 @@ const PASSTHRU_EVENTS = [
   "online_players_update",
   "partners",
   "pending",
+  "public_tables",
+  "public_table",
   "table",
   "unpartneredHandles",
 ];
@@ -43,6 +45,8 @@ const NOISY_EVENTS = {
   game_start: 1,
   game_row: 1,
   game_update: 1,
+  public_tables: 1,
+  public_table: 1,
 };
 
 /**

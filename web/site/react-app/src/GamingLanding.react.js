@@ -1,7 +1,7 @@
 import Button from "@material-ui/core/Button";
 import React, { useContext, useState } from "react";
 
-import FormGame from "./FormGame.react";
+import FormTable from "./FormTable.react";
 import { UsersContext } from "./user/UsersProvider";
 import Seeks from "./Seeks.react";
 
@@ -19,7 +19,7 @@ const GamingLanding = () => {
   if (expansion === ActionExpansion.SEEKS) {
     return <Seeks onCancel={onCancel} />;
   } else if (expansion === ActionExpansion.FORM_GAME) {
-    return <FormGame onCancel={onCancel} />;
+    return <FormTable onCancel={onCancel} />;
   }
 
   return (

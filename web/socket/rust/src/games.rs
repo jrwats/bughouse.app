@@ -46,9 +46,10 @@ impl Games {
         id: GameID,
         time_ctrl: TimeControl,
         rated: bool,
+        public: bool,
         user: Arc<RwLock<User>>,
     ) -> Result<ClientMessage, Error> {
-        let game = Game::table(id, time_ctrl, rated, user.clone());
+        let game = Game::table(id, time_ctrl, rated, public, user.clone());
         let locked_game = Arc::new(RwLock::new(game));
         {
             let mut games = self.games.write().unwrap();
@@ -333,5 +334,23 @@ impl Games {
         } else {
             None
         }
+    }
+
+    pub fn sub_public_tables(&self, recipient: Recipient<ClientMessage>) {
+        // TODO
+    }
+
+    pub fn unsub_public_tables(&self, recipient: Recipient<ClientMessage>) {
+        // TODO
+    }
+
+    pub fn get_public_table_json(&self) -> HashMap<GameID, serde_json::Value> {
+        let mut jsons = HashMap::new();
+        let games = self.games.read().unwrap();
+        for (gid, game) in games.iter().filter(|(_id, g)| g.read().unwrap().public) {
+            let game_json = GameJson::new(game.clone(), GameJsonKind::Table);
+            jsons.insert(*gid, game_json.to_val());
+        }
+        jsons
     }
 }

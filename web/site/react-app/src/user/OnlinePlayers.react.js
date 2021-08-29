@@ -1,6 +1,7 @@
 import Paper from "@material-ui/core/Paper";
 import React, { useContext, useEffect, useState } from "react";
 import { SocketContext } from "../socket/SocketProvider";
+import StyledTableRow from "../StyledTableRow.react";
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -12,13 +13,6 @@ import TableSortLabel from "@material-ui/core/TableSortLabel";
 
 import { UsersContext } from "./UsersProvider";
 
-const StyledTableRow = withStyles((theme) => ({
-  root: {
-    "&:nth-of-type(odd)": {
-      backgroundColor: theme.palette.action.hover,
-    },
-  },
-}))(TableRow);
 
 const useStyles = makeStyles({
   table: {

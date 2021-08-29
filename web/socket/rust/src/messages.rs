@@ -39,7 +39,7 @@ pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
     CheckGame(GameID),
     CreateGame(TimeControl, bool, GamePlayers),
-    FormTable(TimeControl, bool, UserID),
+    FormTable(TimeControl, bool, bool, UserID),
     GetGameRow(GameID, Recipient<ClientMessage>),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
     SetHandle(String, UserID),

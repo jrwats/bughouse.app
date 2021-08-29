@@ -226,7 +226,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT id, start_time, result, time_ctrl, rated, players, moves
+                "SELECT id, start_time, result, time_ctrl, rated, public, players, moves
                 FROM bughouse.games
                 WHERE id = ?",
                 (game_id,),
@@ -522,15 +522,16 @@ impl Db {
         time: &ScyllaTimestamp,
         time_ctrl: &TimeControl,
         rated: bool,
+        public: bool,
         rating_snapshots: &TableSnapshot,
     ) -> Result<GameID, Error> {
         self.session
             .query(
                 "INSERT INTO bughouse.games
-             (id, start_time, time_ctrl, rated, players)
-              VALUES (?, ?, ?, ?, ?)"
+             (id, start_time, time_ctrl, rated, public, players)
+              VALUES (?, ?, ?, ?, ?, ?)"
                     .to_string(),
-                (id, time, time_ctrl, rated, rating_snapshots),
+                (id, time, time_ctrl, rated, public, rating_snapshots),
             )
             .await?;
         Ok(id)
@@ -564,11 +565,12 @@ impl Db {
         &self,
         time_ctrl: &TimeControl,
         rated: bool,
+        public: bool,
         rating_snapshots: &TableSnapshot,
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(Utc::now())?;
         let zero_time = ScyllaTimestamp(Duration::zero());
-        self.insert_game(id, &zero_time, time_ctrl, rated, rating_snapshots)
+        self.insert_game(id, &zero_time, time_ctrl, rated, public, rating_snapshots)
             .await
     }
 
@@ -585,6 +587,7 @@ impl Db {
             &Self::to_timestamp(start),
             time_ctrl,
             rated,
+            false, // public is only relevant to "tables" (unstarted games)
             rating_snapshots,
         )
         .await

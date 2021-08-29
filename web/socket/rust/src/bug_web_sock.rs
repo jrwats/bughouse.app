@@ -236,6 +236,21 @@ impl BugWebSock {
         Ok(())
     }
 
+    fn get_field_bool(
+        val: &Value,
+        field: &str,
+        kind: &str,
+    ) -> Result<bool, Error> {
+        let bool_res = val[field].as_bool().ok_or(Error::MalformedClientMsg {
+            reason: format!(
+                "Missing '{}' field for time' field for '{}'",
+                field, kind
+            ),
+            msg: val.to_string(),
+        })?;
+        Ok(bool_res)
+    }
+
     fn get_field_str(
         val: &Value,
         field: &str,
@@ -272,7 +287,7 @@ impl BugWebSock {
         kind: &str,
     ) -> Result<uuid::Uuid, Error> {
         let id_str = Self::get_field_str(val, field, kind)?;
-        let game_id = B66::decode_uuid(&id_str).ok_or_else(|| {
+        let id = B66::decode_uuid(&id_str).ok_or_else(|| {
             Error::MalformedClientMsg {
                 reason: format!(
                     "Couldn't parse '{}' as uuid in '{}'",
@@ -281,7 +296,7 @@ impl BugWebSock {
                 msg: val.to_string(),
             }
         })?;
-        Ok(game_id)
+        Ok(id)
     }
 
     fn authed_handler(
@@ -309,8 +324,9 @@ impl BugWebSock {
                 let res =
                     self.data.server.queue_set_handle(handle_str, &self.id);
             }
-            "form" => {
+            "create_table" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;
+                let public = Self::get_field_bool(val, "public", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
                 let rated = val["rated"].as_bool().ok_or_else(|| {
                     Error::MalformedClientMsg {
@@ -322,7 +338,7 @@ impl BugWebSock {
                 let res = self
                     .data
                     .server
-                    .queue_formation(time_ctrl, rated, &self.id);
+                    .queue_formation(time_ctrl, rated, public, &self.id);
                 if let Err(e) = res {
                     eprintln!("table formation error: {}", e);
                 }
@@ -365,6 +381,20 @@ impl BugWebSock {
                     eprintln!("sit err: {}", e);
                 }
                 println!("vacate: {:?}", val);
+            }
+            "sub_public_tables" => {
+                self.data
+                    .server
+                    .sub_public_tables(ctx.address().recipient());
+                // TODO enable paging?
+                // (Not until we have 100s of concurrent tables...)
+                let tables_msg = self.data.server.get_public_tables_msg()?;
+                ctx.text(tables_msg);
+            }
+            "unsub_public_tables" => {
+                self.data
+                    .server
+                    .unsub_public_tables(ctx.address().recipient());
             }
             "sub_online_players" => {
                 self.data

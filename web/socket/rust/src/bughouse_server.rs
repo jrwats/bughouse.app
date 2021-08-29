@@ -114,8 +114,8 @@ impl Handler<ServerMessage> for ServerHandler {
                     self.srv(ctx).start_new_game(time_ctrl, rated, players);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::FormTable(time_ctrl, rated, uid) => {
-                let fut = self.srv(ctx).form_table(time_ctrl, rated, uid);
+            ServerMessageKind::FormTable(time_ctrl, rated, public, uid) => {
+                let fut = self.srv(ctx).form_table(time_ctrl, rated, public, uid);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::GetGameRow(game_id, recipient) => {
@@ -233,11 +233,40 @@ impl BughouseServer {
         self.conns.clone()
     }
 
+    pub fn sub_public_tables(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("subscribing tables");
+        self.games.sub_public_tables(recipient);
+        Ok(())
+    }
+
+    pub fn unsub_public_tables(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("subscribing online");
+        self.games.unsub_public_tables(recipient);
+        Ok(())
+    }
+
+    pub fn get_public_tables_msg(
+        &'static self,
+        ) -> Result<ByteString, Error> {
+        let public_tables = self.games.get_public_table_json();
+        let json = json!({
+            "kind": "public_tables",
+            "tables": public_tables,
+        });
+        Ok(ByteString::from(json.to_string()))
+    }
+
     pub fn sub_online_players(
         &'static self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        println!("subbing online");
+        println!("subscribing online");
         self.conns.sub_online_players(recipient)
     }
 
@@ -245,8 +274,23 @@ impl BughouseServer {
         &'static self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        println!("unsubbing online");
+        println!("unsubscribing online");
         self.conns.unsub_online_players(recipient)
+    }
+
+    pub fn get_online_players_msg(
+        &'static self,
+        _cursor: Option<UserID>,
+        _count: u64,
+        _order_by: Option<&str>,
+    ) -> Result<ByteString, Error> {
+        let players =
+            ConnectionMgr::get_online_players(self.conns.online_users());
+        let json = json!({
+            "kind": "online_players",
+            "players": players,
+        });
+        Ok(ByteString::from(json.to_string()))
     }
 
     pub fn add_seek(
@@ -448,21 +492,6 @@ impl BughouseServer {
         Ok(())
     }
 
-    pub fn get_online_players_msg(
-        &'static self,
-        _cursor: Option<UserID>,
-        _count: u64,
-        _order_by: Option<&str>,
-    ) -> Result<ByteString, Error> {
-        let players =
-            ConnectionMgr::get_online_players(self.conns.online_users());
-        let json = json!({
-            "kind": "online_players",
-            "players": players,
-        });
-        Ok(ByteString::from(json.to_string()))
-    }
-
     pub async fn set_handle(
         &'static self,
         handle: String,
@@ -594,11 +623,12 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         rated: bool,
+        public: bool,
         conn_id: &ConnID,
     ) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id)?;
         self.loopback.do_send(ServerMessage::new(
-            ServerMessageKind::FormTable(time_ctrl, rated, uid),
+            ServerMessageKind::FormTable(time_ctrl, rated, public, uid),
         ))?;
         Ok(())
     }
@@ -607,6 +637,7 @@ impl BughouseServer {
         &'static self,
         time_ctrl: TimeControl,
         rated: bool,
+        public: bool,
         uid: UserID,
     ) -> Result<ClientMessage, Error> {
         println!("form_table");
@@ -614,11 +645,11 @@ impl BughouseServer {
         println!("user ID: {}", uid);
         let snaps = self.get_table_rating_snapshots(user.clone());
         println!("snaps: {:?}", snaps);
-        let res = self.db.form_table(&time_ctrl, rated, &snaps).await;
+        let res = self.db.form_table(&time_ctrl, rated, public, &snaps).await;
         match res {
             Ok(id) => {
                 println!("id: {}", id);
-                let msg = self.games.form_table(id, time_ctrl, rated, user)?;
+                let msg = self.games.form_table(id, time_ctrl, rated, public, user)?;
                 Ok(msg)
             }
             Err(e) => {

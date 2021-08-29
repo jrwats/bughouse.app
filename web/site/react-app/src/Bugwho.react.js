@@ -4,6 +4,7 @@ import React from "react";
 // import Offers from "./Offers.react";
 import Box from "@material-ui/core/Box";
 import GamingLanding from "./GamingLanding.react";
+import PublicTables from "./PublicTables.react";
 // import GamesList from "./GamesList.react";
 // import Challenges from "./Challenges.react";
 import UsersProvider from "./user/UsersProvider";
@@ -38,6 +39,9 @@ const Bugwho = (props) => {
               {/* <Grid item alignItems="center" spacing={1} xs={4}> */}
               <OnlinePlayers />
               {/* </Grid> */}
+            </Box>
+            <Box p={1}>
+              <PublicTables />
             </Box>
             <Box p={1}>
               {/* <Grid item  spacing={1} xs={3}> */}

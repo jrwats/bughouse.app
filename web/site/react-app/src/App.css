@@ -229,6 +229,7 @@
 }
 
 body {
+  overflow-x: hidden;
   margin: 2px;
   /* fallback for old browsers */
   background: #232333;

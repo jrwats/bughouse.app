@@ -93,19 +93,21 @@ const TimeSelect = ({  name, helper, value, values, onChange }) => {
 
 const DEFAULT_BASE = 3;
 const DEFAULT_INC = 0;
-const FormGame = ({ onCancel }) => {
+const FormTable = ({ onCancel }) => {
   const { socket } = useContext(SocketContext);
   const [state, setState] = React.useState({
-    rated: true,
-    base: DEFAULT_BASE,
+    public: true,
     inc: DEFAULT_INC,
+    base: DEFAULT_BASE,
+    rated: true,
   });
 
   const onCreate = () => {
     console.log(`Creating ${state.base}|${state.inc}`);
-    socket.sendEvent("form", {
+    socket.sendEvent("create_table", {
       time: `${state.base}|${state.inc}`,
       rated: state.rated,
+      public: state.public,
     });
   };
   const handleChange = (event) => {
@@ -120,25 +122,35 @@ const FormGame = ({ onCancel }) => {
     <div style={{ marginTop: "14px", maxWidth: "40rem", marginLeft: "1rem", flexGrow: 1 }}>
       <Grid id="form_table" container spacing={4}>
         <Grid container alignItems="center" spacing={1}>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
+            <Typography>{state.public ? "Public" : "Private"}</Typography>
+          </Grid>
+          <Grid item xs={2}>
             <Typography>{state.rated ? "Rated" : "Unrated"}</Typography>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <Typography>Base</Typography>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <Typography>Increment</Typography>
           </Grid>
         </Grid>
         <Grid container alignItems="center" spacing={1}>
-          <Grid item xs={3} classes={{root: classes.switchRoot}}>
+          <Grid item xs={2} classes={{root: classes.switchRoot}}>
+            <BugSwitch
+              checked={state.public}
+              onChange={handleChange}
+              name="public"
+            />
+          </Grid>
+          <Grid item xs={2} classes={{root: classes.switchRoot}}>
             <BugSwitch
               checked={state.rated}
               onChange={handleChange}
               name="rated"
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
               <TimeSelect
                 name="base"
                 helper="in minutes"
@@ -147,7 +159,7 @@ const FormGame = ({ onCancel }) => {
                 values={[1, 2, 3, 4, 5, 10, 20]}
               />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
               <TimeSelect
                 name="inc"
                 helper="in seconds"
@@ -177,4 +189,4 @@ const FormGame = ({ onCancel }) => {
   );
 };
 
-export default FormGame;
+export default FormTable;
