@@ -41,7 +41,7 @@ const Analysis = ({ gamePath }) => {
         style={{
           flex: "1 1 auto",
           overflowX: "visible",
-          overflowY: "scroll",
+          overflowY: "auto",
           height: "min(40vw, 90vh)",
         }}
       >
