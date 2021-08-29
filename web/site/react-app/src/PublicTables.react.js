@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "./socket/SocketProvider";
+import Box from "@material-ui/core/Box";
 import Paper from "@material-ui/core/Paper";
 import StyledTableRow from "./StyledTableRow.react";
 import Table from "@material-ui/core/Table";
@@ -30,21 +31,20 @@ const useStyles = makeStyles({
 
 const PublicTableRow = ({table}) => {
   const {a, b, id, rated} = table;
-  if (a?.board?.white == null) {
-    debugger;
-  }
   return (
     <StyledTableRow key={id}>
       <TableCell align="right">{rated ? "\u{2713}" : ""}</TableCell>
       <TableCell scope="row">
-        <div>
-          {a?.board?.white?.handle}
-          {a?.board?.black?.handle}
-        </div>
-        <div>
-          {b?.board?.white?.handle}
-          {b?.board?.black?.handle}
-        </div>
+        <Box display="flex" flexWrap="wrap">
+          <Box p={1}>
+            <div> {a?.board?.white?.handle}</div>
+            <div> {a?.board?.black?.handle}</div>
+          </Box>
+          <Box p={1}>
+            <div> {b?.board?.white?.handle}</div>
+            <div> {b?.board?.black?.handle}</div>
+          </Box>
+        </Box>
       </TableCell>
     </StyledTableRow>
   );
@@ -60,7 +60,6 @@ const PublicTables = () => {
   useEffect(() => {
     const onTables = (data) => {
       tables.current = data.tables;
-      debugger;
       setTables(tables.current);
       for (const id in tables.current) {
         console.log(id);
@@ -81,7 +80,6 @@ const PublicTables = () => {
       let cmp = a[orderBy] < b[orderBy] ? -1 : a[orderBy] > b[orderBy] ? 1 : 0;
       return order === "asc" ? cmp : -cmp;
     });
-debugger;
   const createSortHandler = (property) => (event) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -96,7 +94,7 @@ debugger;
   ];
   return (
     <div>
-      <div>Public Tables</div>
+      <div className="alien subtitle">Open Tables</div>
       <TableContainer component={Paper}>
         <Table className={classes.table} aria-label="simple table">
           <TableHead>

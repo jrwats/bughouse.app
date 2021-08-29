@@ -147,7 +147,7 @@ const GameMessages = ({ playerColor, gameID }) => {
         </svg>
       </div>
       <div id="game_messages_quick_buttons">
-        <Typography className="alien" variant="h5">
+        <Typography className="alien subtitle" variant="h5">
           Quick messages
         </Typography>
         <div style={{ display: "flex", flexDirection: "column" }}>

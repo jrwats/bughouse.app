@@ -124,6 +124,14 @@
   font-family: 'AlienEncountersSolid', 'Roboto';
 }
 
+.alien.subtitle {
+  font-family: "AlienEncounters", "Roboto", "Helvetica";
+  font-weight: 300;
+  text-align: center;
+  color: rgba(180, 0, 255, 0.8);
+  font-size: min(1.3rem, 3vw, 4vh);
+}
+
 @keyframes small-glow {
   to {
     text-shadow: 0 0 10px red;
