@@ -344,12 +344,14 @@ impl Games {
         // TODO
     }
 
-    pub fn get_public_table_json(&self) -> HashMap<GameID, serde_json::Value> {
+    pub fn get_public_table_json(&self) -> HashMap<String, serde_json::Value> {
         let mut jsons = HashMap::new();
         let games = self.games.read().unwrap();
-        for (gid, game) in games.iter().filter(|(_id, g)| g.read().unwrap().public) {
+        for (_gid, game) in games.iter().filter(|(_id, g)| g.read().unwrap().public) {
             let game_json = GameJson::new(game.clone(), GameJsonKind::Table);
-            jsons.insert(*gid, game_json.to_val());
+            let val = game_json.to_val();
+            let id = val["id"].as_str().unwrap();
+            jsons.insert(id.to_string(), game_json.to_val());
         }
         jsons
     }

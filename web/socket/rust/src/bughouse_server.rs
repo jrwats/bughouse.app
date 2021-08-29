@@ -254,10 +254,9 @@ impl BughouseServer {
     pub fn get_public_tables_msg(
         &'static self,
         ) -> Result<ByteString, Error> {
-        let public_tables = self.games.get_public_table_json();
         let json = json!({
             "kind": "public_tables",
-            "tables": public_tables,
+            "tables": self.games.get_public_table_json(),
         });
         Ok(ByteString::from(json.to_string()))
     }
