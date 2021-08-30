@@ -1,5 +1,5 @@
 use crate::db::Db;
-use crate::messages::{ClientMessage, ClientMessageKind};
+use crate::messages::{ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage};
 use actix::prelude::*;
 use bytestring::ByteString;
 use serde_json::json;
@@ -40,6 +40,7 @@ pub struct ConnectionMgr {
     users: Arc<Users>,
     conns: RwLock<HashMap<ConnID, SockConn>>,
     user_conns: RwLock<HashMap<UserID, HashSet<ConnID>>>,
+    user_handlers: RwLock<HashSet<Recipient<UserStateMessage>>>,
     fid_users: RwLock<HashMap<String, UserID>>,
     subs: RwLock<HashSet<Recipient<ClientMessage>>>,
 }
@@ -51,6 +52,7 @@ impl ConnectionMgr {
             users,
             conns: RwLock::new(HashMap::new()),
             user_conns: RwLock::new(HashMap::new()),
+            user_handlers: RwLock::new(HashSet::new()),
             fid_users: RwLock::new(HashMap::new()),
             subs: RwLock::new(HashSet::new()),
         }
@@ -243,12 +245,35 @@ impl ConnectionMgr {
         Ok(())
     }
 
+    pub fn add_user_handler(&self, recipient: Recipient<UserStateMessage>) {
+        let mut whandlers = self.user_handlers.write().unwrap();
+        whandlers.insert(recipient);
+    }
+
+    pub fn rm_user_handler(&self, recipient: Recipient<UserStateMessage>) {
+        let mut whandlers = self.user_handlers.write().unwrap();
+        whandlers.remove(&recipient);
+    }
+
     fn on_online_user(&self, uid: UserID) -> Result<(), Error> {
         self.notify_online_subs([uid].iter().cloned().collect(), HashSet::new())
     }
 
     fn on_offline_user(&self, uid: UserID) -> Result<(), Error> {
+        let msg = UserStateMessage::new(UserStateKind::Offline(uid));
+        self.notify_user_handlers(msg);
         self.notify_online_subs(HashSet::new(), [uid].iter().cloned().collect())
+    }
+
+    fn notify_user_handlers(&self, msg: UserStateMessage) -> Result<(), Error> {
+        let rhandlers = self.user_handlers.read().unwrap();
+        for handler in rhandlers.iter() {
+            let res = handler.do_send(msg.clone());
+            if let Err(e) = res {
+                eprintln!("Failed sending to user handler: {}", e);
+            }
+        }
+        Ok(())
     }
 
     fn notify_online_subs(

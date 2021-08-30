@@ -58,6 +58,24 @@ impl ServerMessage {
     }
 }
 
+#[derive(Clone)]
+pub enum UserStateKind {
+    Offline(UserID),
+    Online(UserID),
+}
+
+#[derive(Message, Clone)]
+#[rtype(result = "Result<(), Error>")]
+pub struct UserStateMessage {
+    pub kind: UserStateKind,
+}
+
+impl UserStateMessage {
+    pub fn new(kind: UserStateKind) -> Self {
+        UserStateMessage { kind }
+    }
+}
+
 /// Authentication with firebase
 // #[rtype(result = "Result<ConnID, Error>")]
 #[derive(Message)]

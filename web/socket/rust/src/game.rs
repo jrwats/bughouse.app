@@ -118,6 +118,24 @@ impl Game {
         }
     }
 
+    pub fn get_user_seat(&self, uid: &UserID) -> Option<(usize, usize)> {
+        for (board, players) in self.players.iter().enumerate() {
+            for (color, maybe_player) in players.iter().enumerate() {
+                if let Some(player) = maybe_player {
+                    if player.read().unwrap().id == *uid {
+                        return Some((board, color));
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    pub fn is_table(&self) -> bool {
+        let [[aw, ab], [bw, bb]] = &self.players;
+        aw.is_none() || ab.is_none() || bw.is_none() || bb.is_none()
+    }
+
     pub fn handle(maybe_user: &Option<Arc<RwLock<User>>>) -> Option<String> {
         if let Some(user_lock) = maybe_user {
             let user = user_lock.read().unwrap();

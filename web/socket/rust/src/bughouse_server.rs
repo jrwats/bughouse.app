@@ -14,13 +14,14 @@ use std::sync::{Arc, RwLock};
 // use timer::Timer;
 // use std::thread;
 
+use crate::b66::B66;
 use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
 use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers, GameResult};
 use crate::game_json::GameJson;
-use crate::games::Games;
+use crate::games::{Games, GameUserHandler};
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -37,7 +38,7 @@ pub struct BughouseServer {
     conns: Arc<ConnectionMgr>,
     seeks: Seeks,
     loopback: Recipient<ServerMessage>,
-    games: Games,
+    games: Arc<Games>,
     partners: HashMap<UserID, UserID>,
     db: Arc<Db>,
     // timer: Arc<Timer>,
@@ -212,12 +213,16 @@ impl BughouseServer {
         // let db = Db::new().await?;
         let users = Arc::new(Users::new(db.clone()));
         let conns = Arc::new(ConnectionMgr::new(db.clone(), users.clone()));
+        let games = Arc::new(Games::new(conns.clone()));
+        let game_user_handler = GameUserHandler::new(games.clone());
+        let addr = game_user_handler.start();
+        conns.add_user_handler(addr.recipient());
         BughouseServer {
-            conns: conns.clone(),
+            conns,
             users: users.clone(),
             loopback,
             seeks: Seeks::new(users),
-            games: Games::new(conns),
+            games,
             partners: HashMap::new(),
             db,
             // timer,
@@ -304,8 +309,9 @@ impl BughouseServer {
                 reason: "User not yet authenticated".to_string(),
             })?;
         let user = user_lock.read().unwrap();
-        if self.games.is_in_game(user.get_uid()) {
-            return Err(Error::InGame(user.handle.to_string()));
+        if let Some(game) = self.games.get_user_game(&user.id) {
+            let rgame = game.read().unwrap();
+            return Err(Error::InGame(user.handle.to_string(), B66::encode_uuid(rgame.get_id())));
         }
         println!("adding seeker");
         self.seeks.add_seeker(&time_ctrl, &user.id)?;
@@ -567,7 +573,7 @@ impl BughouseServer {
         let user = self.user_from_uid(&uid).await?;
         let game = self.games.sit(game_id, board_id, color, user)?;
         let msg = self.update_seats(game.clone()).await?;
-        if !Games::is_table(game.clone()) {
+        if !game.read().unwrap().is_table() {
             self.start_game(game).await?;
         }
         Ok(msg)

@@ -63,8 +63,8 @@ pub enum Error {
     #[error("TimeControlParseError: {0}")]
     TimeControlParseError(TimeControlParseError),
 
-    #[error("User is in game already: {0}")]
-    InGame(String),
+    #[error("User {0} is in game already: {1}")]
+    InGame(String, String),
 
     #[error("Unexpected: {0}")]
     Unexpected(String),

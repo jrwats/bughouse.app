@@ -13,7 +13,7 @@ use crate::error::Error;
 use crate::subscriptions::Subscriptions;
 use crate::game::{Game, GameID, GamePlayers};
 use crate::game_json::{GameJson, GameJsonKind};
-use crate::messages::{ClientMessage, ClientMessageKind};
+use crate::messages::{ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage};
 use crate::observers::Observers;
 use crate::players::Players;
 use crate::time_control::TimeControl;
@@ -35,6 +35,41 @@ pub enum TableUpdateType {
     Add,
     Remove,
     Update,
+}
+
+pub struct GameUserHandler {
+    games: Arc<Games>
+}
+
+impl Actor for GameUserHandler {
+    /// Just need ability to communicate with other actors.
+    type Context = Context<Self>;
+}
+
+impl Handler<UserStateMessage> for GameUserHandler  {
+    type Result = Result<(), Error>;
+
+    fn handle(
+        &mut self,
+        msg: UserStateMessage,
+        _ctx: &mut Context<Self>,
+    ) -> Self::Result {
+        match msg.kind {
+            UserStateKind::Offline(uid) => {
+                self.games.on_offline_user(uid);
+            }
+            UserStateKind::Online(_uid) => {
+                // no-op
+            }
+        }
+        Ok(())
+    }
+}
+
+impl GameUserHandler {
+    pub fn new(games: Arc<Games>) -> Self {
+        GameUserHandler { games }
+    }
 }
 
 impl Games {
@@ -67,7 +102,7 @@ impl Games {
             let mut games = self.games.write().unwrap();
             games.insert(id, locked_game.clone());
         }
-        self.set_user_game(user, id);
+        self.set_user_game(user, id)?;
         let game_json =
             GameJson::new(locked_game.clone(), GameJsonKind::FormTable);
         self.notify_game_observers(locked_game.clone(), game_json);
@@ -75,31 +110,26 @@ impl Games {
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
-    pub fn get_user_seat(
-        players: &GamePlayers,
-        candidate: Arc<RwLock<User>>,
-    ) -> Option<(BoardID, Color)> {
-        let needle = candidate.read().unwrap();
-        for (board_idx, boards) in players.iter().enumerate() {
-            for (color_idx, maybe_user) in boards.iter().enumerate() {
-                if let Some(user) = maybe_user {
-                    let candidate = user.read().unwrap();
-                    if needle.id == candidate.id {
-                        return Some((
-                            BOARD_IDS[board_idx],
-                            ALL_COLORS[color_idx],
-                        ));
-                    }
-                }
-            }
-        }
-        None
+    fn rm_user_game(&self, uid: &UserID) {
+        let mut wgames = self.user_games.write().unwrap();
+        wgames.remove(uid);
     }
 
-    fn set_user_game(&self, user: Arc<RwLock<User>>, game_id: GameID) {
-        let uid = user.read().unwrap().id;
+    fn set_user_game(&self, user: Arc<RwLock<User>>, game_id: GameID) -> Result<(), Error> {
+        self.ensure_game_id_matches(user.clone(), &game_id)?;
         let mut user_games = self.user_games.write().unwrap();
-        user_games.insert(uid, game_id);
+        user_games.insert(user.read().unwrap().id, game_id);
+        Ok(())
+    }
+
+    fn ensure_game_id_matches(&self, user: Arc<RwLock<User>>, game_id: &GameID) -> Result<(), Error> {
+        let ruser = user.read().unwrap();
+        if let Some(user_game_id) = self.user_games.read().unwrap().get(&ruser.id) {
+            if game_id != user_game_id {
+                return Err(Error::InGame(ruser.handle.to_string(), B66::encode_uuid(game_id)));
+            }
+        }
+        Ok(())
     }
 
     pub fn sit(
@@ -113,6 +143,7 @@ impl Games {
         let game_clone = game.clone();
         let clone = user.clone();
         let ruser = clone.read().unwrap();
+        self.ensure_game_id_matches(user.clone(), &game_id)?;
         {
             let mut wgame = game_clone.write().unwrap();
             if wgame.players[board_id.to_index()][color.to_index()].is_some() {
@@ -126,23 +157,22 @@ impl Games {
                 return Err(Error::SeatGuestAtRatedGame(ruser.id, game_id));
             }
             if let Some((prev_board, prev_color)) =
-                Self::get_user_seat(&wgame.players, user.clone())
+                wgame.get_user_seat(&user.read().unwrap().id)
             {
-                wgame.players[prev_board.to_index()][prev_color.to_index()] =
-                    None;
+                wgame.players[prev_board][prev_color] = None;
             }
             wgame.players[board_id.to_index()][color.to_index()] =
                 Some(user.clone());
         }
-        self.set_user_game(user.clone(), game_id);
+        self.set_user_game(user.clone(), game_id)?;
         self.notify_public_subs(TableUpdateType::Update, game.clone());
         println!("sitting: {:?}", game.read().unwrap().players);
         Ok(game)
     }
 
-   pub fn vacate(
-       &self,
-       game_id: GameID,
+    pub fn vacate(
+        &self,
+        game_id: GameID,
         board_id: BoardID,
         color: Color,
         uid: UserID,
@@ -179,7 +209,7 @@ impl Games {
         }
         self.notify_public_subs(TableUpdateType::Update, game.clone());
         Ok(game)
-   }
+    }
 
    pub fn start_game(
        &self,
@@ -302,18 +332,6 @@ impl Games {
            }
        }
        println!("");
-   }
-
-   pub fn is_table(ar_game: Arc<RwLock<Game>>) -> bool {
-       let game = ar_game.read().unwrap();
-       for board in game.players.iter() {
-           for player in board {
-               if player.is_none() {
-                   return true;
-               }
-           }
-       }
-       false
    }
 
    pub fn get_kind(ar_game: Arc<RwLock<Game>>) -> GameJsonKind {
@@ -442,10 +460,34 @@ impl Games {
        return (id.to_string(), val);
    }
 
+   fn is_table(game: Arc<RwLock<Game>>) -> bool {
+       game.read().unwrap().is_table()
+   }
+
+   fn on_offline_user(&self, uid: UserID) {
+       if let Some(game) = self.get_user_game(&uid) {
+           if Self::is_table(game.clone()) {
+               {
+                   let mut wgame = game.write().unwrap();
+                   let (board_idx, color_idx) = wgame.get_user_seat(&uid).unwrap();
+                   wgame.players[board_idx][color_idx] = None;
+               }
+               let game_json = GameJson::new(game.clone(), GameJsonKind::Table);
+               self.notify_game_observers(game.clone(), game_json);
+               self.notify_public_subs(TableUpdateType::Update, game);
+           }
+       }
+       self.rm_user_game(&uid);
+   }
+
+   fn is_public(game: &Arc<RwLock<Game>>) -> bool {
+       game.read().unwrap().public
+   }
+
    pub fn get_public_table_json(&self) -> HashMap<String, serde_json::Value> {
        let mut jsons = HashMap::new();
        let games = self.games.read().unwrap();
-       for (_gid, game) in games.iter().filter(|(_id, g)| g.read().unwrap().public) {
+       for (_gid, game) in games.iter().filter(|g| Self::is_public(g.1)) {
            let (id, json) = Self::get_table_json(game.clone(), GameJsonKind::Table);
            jsons.insert(id.to_string(), json);
        }
