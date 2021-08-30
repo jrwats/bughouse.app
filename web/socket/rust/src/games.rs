@@ -314,7 +314,6 @@ impl Games {
        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
        for player in Players::new(&players).get_players().iter() {
            self.conns.send_to_user(&player.get_uid(), &msg);
-           println!("  player notify: {}", player.get_uid());
        }
        let players = Self::get_player_set(ar_game.clone());
        self.game_observers.notify(game.get_id(), &msg, players);

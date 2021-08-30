@@ -67,7 +67,6 @@ impl Observers {
             for (conn_id, recipient) in observers.iter() {
                 if let Some(uid) = self.conns.uid_from_conn(conn_id) {
                     if players.contains(&uid) {
-                        println!("  deduping {} for {}", conn_id, uid);
                         continue;
                     }
                 }

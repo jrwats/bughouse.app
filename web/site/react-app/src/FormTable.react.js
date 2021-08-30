@@ -68,7 +68,7 @@ const TimeSelect = ({  name, helper, value, values, onChange }) => {
             onChange={onChange}
           >
             {values.map((v) => (
-              <option value={v}>{v}</option>
+              <option key={v} value={v}>{v}</option>
             ))}
           </NativeSelect>
         </>
@@ -81,7 +81,7 @@ const TimeSelect = ({  name, helper, value, values, onChange }) => {
             onChange={onChange}
           >
             {values.map((v) => (
-              <MenuItem value={v}>{v}</MenuItem>
+              <MenuItem key={v} value={v}>{v}</MenuItem>
             ))}
           </Select>
         </>
