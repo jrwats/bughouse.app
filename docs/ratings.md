@@ -3,9 +3,9 @@ Algorithm to calculate ratings change for a game against a given opponent:
 
  1. Before a game, calculate initial rating and RD for each player.
 
-     o If no games yet, initial rating assumed to be 1720. Otherwise, use
+     * If no games yet, initial rating assumed to be 1720. Otherwise, use
        existing rating. (The 1720 is not printed out, however.)
-     o If no RD yet, initial RD assumed to be 350 if you have no games, or 70
+     * If no RD yet, initial RD assumed to be 350 if you have no games, or 70
        if your rating is carried over from ICC. Otherwise, calculate new RD,
        based on the RD that was obtained after the most recent game played,
        and on the amount of time (t) that has passed since that game, as
