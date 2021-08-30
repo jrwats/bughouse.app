@@ -18,6 +18,7 @@ pub mod messages;
 pub mod observers;
 pub mod players;
 pub mod rating;
+pub mod subscriptions;
 pub mod seeks;
 pub mod time_control;
 pub mod users;

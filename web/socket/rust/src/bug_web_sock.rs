@@ -307,7 +307,6 @@ impl BugWebSock {
     ) -> Result<(), Error> {
         self.ensure_authed()?;
         let recipient = ctx.address().recipient();
-        println!("handling: {}", kind);
         match kind {
             "seek" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;
@@ -323,6 +322,9 @@ impl BugWebSock {
                 let handle_str = Self::get_field_str(val, "handle", kind)?;
                 let res =
                     self.data.server.queue_set_handle(handle_str, &self.id);
+                if let Err(e) = res {
+                    eprintln!("Couldn't set handle: {}", e);
+                }
             }
             "create_table" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;

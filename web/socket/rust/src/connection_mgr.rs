@@ -220,7 +220,7 @@ impl ConnectionMgr {
                 } else {
                     Some(ruser.rating)
                 };
-                (B66::encode_uuid(*uid), ruser.handle.clone(), rating)
+                (B66::encode_uuid(uid), ruser.handle.clone(), rating)
             })
             .collect()
     }
@@ -264,7 +264,7 @@ impl ConnectionMgr {
                     .collect(),
             );
         let offline_ids: Vec<String> =
-            offline.iter().map(|uid| B66::encode_uuid(*uid)).collect();
+            offline.iter().map(|uid| B66::encode_uuid(uid)).collect();
         let json = json!({
             "kind": "online_players_update",
             "offline": offline_ids,

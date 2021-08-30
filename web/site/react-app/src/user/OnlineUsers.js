@@ -88,6 +88,7 @@ class OnlineUsers extends EventEmitter {
 
     const onOnlineUpdate = (data) => {
       console.log(`online_players_update: ${data}`);
+      console.log(data);
       for (const uid of data.offline) {
         delete this._users[uid];
       }

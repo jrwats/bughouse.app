@@ -58,6 +58,8 @@ class GameStatusSource extends EventEmitter {
       this._games[data.id].update(data);
     } else {
       this._games[data.id] = BughouseGame.init(data);
+    }
+    if (data.kind === 'form_table') {
       navigate(`/table/${data.id}`);
     }
   }

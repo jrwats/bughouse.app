@@ -6,6 +6,7 @@ use std::sync::{Arc, RwLock};
 
 use crate::b66::B66;
 use crate::game::{Game, GameID, GameResult};
+use crate::time_control::TimeControl;
 
 #[derive(Clone, Copy, Debug)]
 pub enum GameJsonKind {
@@ -68,6 +69,7 @@ pub struct GameJson {
     id: GameID,
     kind: GameJsonKind,
     rated: bool,
+    time_ctrl: TimeControl,
     result: Option<GameResult>,
     start_in_ms: i32,
     a: BoardJson,
@@ -93,6 +95,7 @@ impl GameJson {
         GameJson {
             kind,
             id: *game.get_id(),
+            time_ctrl: game.time_ctrl.clone(),
             rated: game.rated,
             result: game.get_result(),
             start_in_ms: Self::start_in_ms(game.get_start()),
@@ -104,9 +107,10 @@ impl GameJson {
     pub fn to_val(&self) -> Value {
         json!({
             "kind": self.kind,
-            "id": B66::encode_uuid(self.id),
+            "id": B66::encode_uuid(&self.id),
             "rated": self.rated,
             "result": self.result,
+            "timeCtrl": self.time_ctrl,
             "delayStartMillis": self.start_in_ms,
             "a": {
                 "holdings": self.a.holdings,

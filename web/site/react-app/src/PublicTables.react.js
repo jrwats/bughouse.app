@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { navigate } from "@reach/router";
+import Button from "@material-ui/core/Button";
 import { SocketContext } from "./socket/SocketProvider";
 import Box from "@material-ui/core/Box";
 import Paper from "@material-ui/core/Paper";
@@ -31,10 +33,14 @@ const useStyles = makeStyles({
 
 const PublicTableRow = ({table}) => {
   const {a, b, id, rated} = table;
+  const onView = (evt) => {
+    navigate(`/table/${id}`);
+  }
   return (
     <StyledTableRow key={id}>
-      <TableCell align="right">{rated ? "\u{2713}" : ""}</TableCell>
-      <TableCell scope="row">
+      <TableCell>{rated ? "\u{2713}" : ""}</TableCell>
+      <TableCell>{table.timeCtrl}</TableCell>
+      <TableCell>
         <Box display="flex" flexWrap="wrap">
           <Box p={1}>
             <div> {a?.board?.white?.handle}</div>
@@ -46,6 +52,11 @@ const PublicTableRow = ({table}) => {
           </Box>
         </Box>
       </TableCell>
+      <TableCell >
+        <Button variant="contained" color="primary" onClick={onView}>
+          View
+        </Button>
+      </TableCell>
     </StyledTableRow>
   );
 };
@@ -53,29 +64,35 @@ const PublicTableRow = ({table}) => {
 const PublicTables = () => {
   const { socket } = useContext(SocketContext);
   const tables = useRef({});
-  const [uiTables, setTables] = useState({});
+  const [uiTables, setTables] = useState({val: tables.current});
   const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("rating");
 
   useEffect(() => {
+    const onTable = (data) => {
+      if (data.add || data.update) {
+        tables.current[data.id] = data.table;
+      } else { // remove
+        delete tables.current[data.id];
+      }
+      setTables({val: tables.current});
+    };
     const onTables = (data) => {
       tables.current = data.tables;
-      setTables(tables.current);
-      for (const id in tables.current) {
-        console.log(id);
-        console.log(tables[id]);
-      }
+      setTables({val: tables.current});
     };
+    socket.on('public_table', onTable);
     socket.on('public_tables', onTables);
     socket.sendEvent("sub_public_tables", {});
     return () => {
       socket.sendEvent("unsub_public_tables", {});
+    socket.off('public_table', onTable);
     socket.off('public_tables', onTables);
     };
   }, [socket]);
 
-  const tableRows = Object.keys(uiTables)
-    .map((gid) => uiTables[gid])
+  const tableRows = Object.keys(uiTables?.val || {})
+    .map((gid) => uiTables.val[gid])
     .sort((a, b) => {
       let cmp = a[orderBy] < b[orderBy] ? -1 : a[orderBy] > b[orderBy] ? 1 : 0;
       return order === "asc" ? cmp : -cmp;
@@ -90,7 +107,9 @@ const PublicTables = () => {
   const classes = useStyles();
   const headCells = [
     { id: "rated", numeric: false, label: "Rated" },
+    { id: "time_ctrl", numeric: false, label: "Time" },
     { id: "players", numeric: false, label: "Players" },
+    { id: "join", numeric: false, label: "" },
   ];
   return (
     <div>
@@ -125,7 +144,7 @@ const PublicTables = () => {
           </TableHead>
           <TableBody>
             {tableRows.map((table) => (
-              <PublicTableRow table={table} />
+              <PublicTableRow key={table.id} table={table} />
             ))}
           </TableBody>
         </Table>

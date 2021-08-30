@@ -58,7 +58,7 @@ impl B66 {
         Some(res)
     }
 
-    pub fn encode_uuid(uuid: Uuid) -> String {
+    pub fn encode_uuid(uuid: &Uuid) -> String {
         B66::encode_num(uuid.as_u128())
     }
 
@@ -92,9 +92,9 @@ mod test {
         let d8 = [255; 8];
         let max_uuid =
             Uuid::from_fields(std::u32::MAX, std::u16::MAX, std::u16::MAX, &d8);
-        let enc = B66::encode_uuid(max_uuid.unwrap());
+        let enc = B66::encode_uuid(&max_uuid.unwrap());
         println!("enc: {}", enc);
         assert!(enc == "26Ml1pJBwNhCfTRurCkzXv");
-        assert!(B66::encode_uuid(Uuid::nil()) == "");
+        assert!(B66::encode_uuid(&Uuid::nil()) == "");
     }
 }

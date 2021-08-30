@@ -98,7 +98,6 @@ impl Rating {
             } else {
                 0f64
             };
-            let delta = (k_factor * (w - e)).round() as i16;
             snap.rating = snap.rating + ((k_factor * (w - e)).round() as i16);
             snap.deviation = denom.sqrt().powi(-1).round() as i16;
         }

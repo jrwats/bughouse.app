@@ -1,6 +1,5 @@
 use bughouse::{
-    BoardID, BughouseMove, Color, ALL_COLORS, ALL_PIECES, ALL_SQUARES,
-    BOARD_IDS, NUM_PIECES,
+    BughouseMove, ALL_COLORS, ALL_PIECES, ALL_SQUARES, BOARD_IDS, NUM_PIECES,
 };
 use chrono::Duration;
 use scylla::cql_to_rust::FromRow;
@@ -52,7 +51,7 @@ impl GameRow {
             Some(k) => k,
         };
         json!({
-            "id": B66::encode_uuid(self.id),
+            "id": B66::encode_uuid(&self.id),
             "kind": msg_kind,
             "start_time": self.start_time.num_milliseconds(),
             "result": result,

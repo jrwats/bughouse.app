@@ -582,38 +582,7 @@ impl BughouseServer {
     ) -> Result<ClientMessage, Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
         let uid = self.uid_from_conn(&conn_id)?;
-        let game = self
-            .get_game(&game_id)
-            .ok_or(Error::InvalidGameID(game_id))?;
-        {
-            let mut wgame = game.write().unwrap();
-            let bidx = board_id.to_index();
-            let cidx = color.to_index();
-            let seat = wgame.players[bidx][cidx].clone();
-            match seat {
-                None => {
-                    eprintln!(
-                        "Seat already empty: {}, {}, {:?}",
-                        game_id, board_id, color
-                    );
-                    return Err(Error::SeatEmpty(game_id, board_id, cidx));
-                }
-                Some(user) => {
-                    let ruser = user.read().unwrap();
-                    if uid != ruser.id {
-                        eprintln!(
-                            "Can only vacate self: {}, {}, {:?}",
-                            game_id, board_id, color
-                        );
-                        return Err(Error::SeatUnowned(
-                            game_id, board_id, cidx,
-                        ));
-                    } else {
-                        wgame.players[bidx][cidx] = None;
-                    }
-                }
-            }
-        }
+        let game = self.games.vacate(game_id, board_id, color, uid)?;
         self.observe(game.read().unwrap().get_id(), recipient);
         self.update_seats(game).await
     }

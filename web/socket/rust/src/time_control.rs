@@ -1,3 +1,4 @@
+use serde::Serialize;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::fmt;
@@ -28,6 +29,15 @@ impl TimeControl {
     pub fn get_id(&self) -> TimeID {
         format!("{}", self)
     }
+}
+
+impl Serialize for TimeControl {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            serializer.serialize_str(&self.to_string())
+        }
 }
 
 impl fmt::Display for TimeControl {

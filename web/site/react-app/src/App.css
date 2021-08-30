@@ -144,8 +144,8 @@
   }
 }
 
-@media screen and (max-width: 800px) {
-  .bug-logo-text { font-size: 4.5rem; }
+.bug-logo-text { 
+  font-size: min(4.5rem, 8vw, 16vh); 
 }
 
 @media screen and (max-width: 700px) {
@@ -153,7 +153,6 @@
     max-width: 6rem;
     max-height: 6rem;
   }
-  .bug-logo-text { font-size: 4rem; }
 }
 
 @media screen and (max-width: 600px) {
@@ -161,15 +160,6 @@
     max-width: 5rem;
     max-height: 5rem;
   }
-  .bug-logo-text { font-size: 3.5rem; }
-}
-
-@media screen and (max-width: 500px) {
- .bug-logo-text { font-size: 3rem; }
-}
-
-@media screen and (max-width: 400px) {
- .bug-logo-text { font-size: 2.5rem; }
 }
 
 .App-link {

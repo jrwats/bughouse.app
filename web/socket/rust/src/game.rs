@@ -62,7 +62,7 @@ pub struct Game {
     id: GameID,
     start: Option<DateTime<Utc>>,
     game: BughouseGame,
-    time_ctrl: TimeControl,
+    pub time_ctrl: TimeControl,
     pub players: GamePlayers,
     clocks: GameClocks,
     pub rated: bool,
