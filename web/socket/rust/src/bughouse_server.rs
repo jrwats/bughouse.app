@@ -21,7 +21,7 @@ use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID, GamePlayers, GameResult};
 use crate::game_json::GameJson;
-use crate::games::{Games, GameUserHandler};
+use crate::games::{GameUserHandler, Games};
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
@@ -78,6 +78,17 @@ impl ServerHandler {
             // self.timer.clone(),
         )
     }
+
+    async fn fwd_err(
+        fut: ResponseFuture<Result<ClientMessage, Error>>,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<ClientMessage, Error> {
+        let res = fut.await;
+        if let Err(e) = &res {
+            recipient.do_send(e.to_client_msg());
+        }
+        res
+    }
 }
 
 fn get_result(game: Arc<RwLock<Game>>) -> Option<GameResult> {
@@ -116,16 +127,25 @@ impl Handler<ServerMessage> for ServerHandler {
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::FormTable(time_ctrl, rated, public, uid) => {
-                let fut = self.srv(ctx).form_table(time_ctrl, rated, public, uid);
+                let fut =
+                    self.srv(ctx).form_table(time_ctrl, rated, public, uid);
                 Box::pin(async move { fut.await })
             }
             ServerMessageKind::GetGameRow(game_id, recipient) => {
                 let fut = self.srv(ctx).send_game_row(game_id, recipient);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::Sit(game_id, board_id, color, uid) => {
+            ServerMessageKind::Sit(
+                game_id,
+                board_id,
+                color,
+                uid,
+                recipient,
+            ) => {
                 let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
-                Box::pin(async move { fut.await })
+                Box::pin(async move {
+                    Self::fwd_err(Box::pin(fut), recipient).await
+                })
             }
             ServerMessageKind::SetHandle(handle, uid) => {
                 let fut = self.srv(ctx).set_handle(handle, uid);
@@ -256,9 +276,7 @@ impl BughouseServer {
         Ok(())
     }
 
-    pub fn get_public_tables_msg(
-        &'static self,
-        ) -> Result<ByteString, Error> {
+    pub fn get_public_tables_msg(&'static self) -> Result<ByteString, Error> {
         let json = json!({
             "kind": "public_tables",
             "tables": self.games.get_public_table_json(),
@@ -311,7 +329,10 @@ impl BughouseServer {
         let user = user_lock.read().unwrap();
         if let Some(game) = self.games.get_user_game(&user.id) {
             let rgame = game.read().unwrap();
-            return Err(Error::InGame(user.handle.to_string(), B66::encode_uuid(rgame.get_id())));
+            return Err(Error::InGame(
+                user.handle.to_string(),
+                B66::encode_uuid(rgame.get_id()),
+            ));
         }
         println!("adding seeker");
         self.seeks.add_seeker(&time_ctrl, &user.id)?;
@@ -529,11 +550,12 @@ impl BughouseServer {
         board_id: BoardID,
         color: Color,
         conn_id: &ConnID,
+        recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id)?;
         self.loopback
             .do_send(ServerMessage::new(ServerMessageKind::Sit(
-                *game_id, board_id, color, uid,
+                *game_id, board_id, color, uid, recipient,
             )))?;
         Ok(())
     }
@@ -614,16 +636,21 @@ impl BughouseServer {
         public: bool,
         uid: UserID,
     ) -> Result<ClientMessage, Error> {
-        println!("form_table");
+        if let Some(game) = self.games.get_user_game(&uid) {
+            let gid = B66::encode_uuid(game.read().unwrap().get_id());
+            return Err(Error::InGame(uid.to_string(), gid));
+        }
         let user = self.user_from_uid(&uid).await?;
-        println!("user ID: {}", uid);
+        println!("form_table, user ID: {}", uid);
         let snaps = self.get_table_rating_snapshots(user.clone());
         println!("snaps: {:?}", snaps);
         let res = self.db.form_table(&time_ctrl, rated, public, &snaps).await;
         match res {
             Ok(id) => {
                 println!("id: {}", id);
-                let msg = self.games.form_table(id, time_ctrl, rated, public, user)?;
+                let msg = self
+                    .games
+                    .form_table(id, time_ctrl, rated, public, user)?;
                 Ok(msg)
             }
             Err(e) => {

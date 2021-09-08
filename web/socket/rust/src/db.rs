@@ -570,8 +570,15 @@ impl Db {
     ) -> Result<GameID, Error> {
         let id: GameID = self.uuid_from_time(Utc::now())?;
         let zero_time = ScyllaTimestamp(Duration::zero());
-        self.insert_game(id, &zero_time, time_ctrl, rated, public, rating_snapshots)
-            .await
+        self.insert_game(
+            id,
+            &zero_time,
+            time_ctrl,
+            rated,
+            public,
+            rating_snapshots,
+        )
+        .await
     }
 
     pub async fn create_game(

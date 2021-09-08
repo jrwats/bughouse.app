@@ -1,15 +1,18 @@
 use bughouse::{BoardID, Error as BugError};
+use bytestring::ByteString;
 use scylla::cql_to_rust::FromRowError;
 use scylla::transport::errors::{NewSessionError, QueryError};
 use serde_json;
+use serde_json::json;
 use std::fmt;
+use std::sync::Arc;
 // use std::option::NoneError;
 use thiserror::Error;
 use uuid::Error as UuidError;
 
 use crate::connection_mgr::UserID;
 use crate::game::GameID;
-use crate::messages::{ClientMessage, ServerMessage};
+use crate::messages::{ClientMessage, ClientMessageKind, ServerMessage};
 
 #[derive(Debug)]
 pub struct TimeControlParseError {
@@ -179,6 +182,34 @@ impl From<BugError> for Error {
         Error::BugError(err)
     }
 }
+
+impl Error {
+    pub fn to_json(&self) -> serde_json::Value {
+        match self {
+            Error::InGame(_uid, game_id) => {
+                json!({
+                    "kind": "err",
+                    "err": {
+                        "kind": "in_game",
+                        "game_id": game_id,
+                    }
+                })
+            }
+            _ => {
+                json!({
+                    "kind": "err",
+                    "reason": self.to_string(),
+                })
+            }
+        }
+    }
+
+    pub fn to_client_msg(&self) -> ClientMessage {
+        let bytestr = Arc::new(ByteString::from(self.to_json().to_string()));
+        ClientMessage::new(ClientMessageKind::Text(bytestr))
+    }
+}
+
 // use crate::Error;
 // impl AuthError {
 //     pub fn new(r: &str) -> Self {

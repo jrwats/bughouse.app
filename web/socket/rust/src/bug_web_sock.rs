@@ -241,13 +241,14 @@ impl BugWebSock {
         field: &str,
         kind: &str,
     ) -> Result<bool, Error> {
-        let bool_res = val[field].as_bool().ok_or(Error::MalformedClientMsg {
-            reason: format!(
-                "Missing '{}' field for time' field for '{}'",
-                field, kind
-            ),
-            msg: val.to_string(),
-        })?;
+        let bool_res =
+            val[field].as_bool().ok_or(Error::MalformedClientMsg {
+                reason: format!(
+                    "Missing '{}' field for time' field for '{}'",
+                    field, kind
+                ),
+                msg: val.to_string(),
+            })?;
         Ok(bool_res)
     }
 
@@ -347,7 +348,6 @@ impl BugWebSock {
             }
             "analyze" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
-                let recipient = ctx.address().recipient();
                 self.data.server.queue_send_game_row(&game_id, recipient)?;
             }
             "sit" => {
@@ -360,7 +360,7 @@ impl BugWebSock {
                 let res = self
                     .data
                     .server
-                    .queue_sit(&game_id, board_id, color, &self.id);
+                    .queue_sit(&game_id, board_id, color, &self.id, recipient);
                 if let Err(e) = res {
                     eprintln!("sit err: {}", e);
                 }

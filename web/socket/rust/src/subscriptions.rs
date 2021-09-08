@@ -1,8 +1,8 @@
-use actix::prelude::*;
 use crate::messages::ClientMessage;
+use actix::prelude::*;
 use std::collections::HashSet;
 
-// Simple wrapper over a set of Recipients to which we 
+// Simple wrapper over a set of Recipients to which we
 // can send a certain subset of messages
 // (public table updates, games in progress updates, etc)
 // Handles recipients to whom we can no longer send messages by removing them from consideration
@@ -45,7 +45,7 @@ impl Subscriptions {
         let to_remove = self._notify(msg);
         // let mut wsubs = self.subs.write().unwrap();
         for recipient in to_remove.iter() {
-           self.subs.remove(recipient); 
+            self.subs.remove(recipient);
         }
     }
 }

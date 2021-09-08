@@ -1,13 +1,15 @@
-use serde::Serialize;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
+use serde::Serialize;
 use std::fmt;
 
 use crate::error::TimeControlParseError;
 
 pub type TimeID = String;
 
-#[derive(Clone, Hash, Debug, PartialEq, FromRow, FromUserType, IntoUserType)]
+#[derive(
+    Clone, Hash, Debug, PartialEq, FromRow, FromUserType, IntoUserType,
+)]
 pub struct TimeControl {
     base: i16, // Base time (in minutes) each player starts with
     inc: i16,  // increment in seconds
@@ -33,11 +35,11 @@ impl TimeControl {
 
 impl Serialize for TimeControl {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer,
-        {
-            serializer.serialize_str(&self.to_string())
-        }
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
 }
 
 impl fmt::Display for TimeControl {

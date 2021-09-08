@@ -1,5 +1,7 @@
 use crate::db::Db;
-use crate::messages::{ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage};
+use crate::messages::{
+    ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage,
+};
 use actix::prelude::*;
 use bytestring::ByteString;
 use serde_json::json;

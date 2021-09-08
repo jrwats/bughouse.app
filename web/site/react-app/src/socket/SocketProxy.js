@@ -185,7 +185,7 @@ class SocketProxy extends EventEmitter {
       console.error(`${this._gcn()} socket error`);
       console.error(err);
       this.emit("err", err);
-      if (err.err.kind === "auth") {
+      if (err.err?.kind === "auth") {
         this.destroy();
         this._connect();
       }

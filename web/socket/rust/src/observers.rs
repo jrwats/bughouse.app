@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::{ConnectionMgr, UserID};
@@ -61,7 +61,7 @@ impl Observers {
         game_id: &GameID,
         msg: &ClientMessage,
         players: HashSet<UserID>,
-        ) {
+    ) {
         let observers = self.game_to_observers.read().unwrap();
         if let Some(observers) = observers.get(&game_id) {
             for (conn_id, recipient) in observers.iter() {

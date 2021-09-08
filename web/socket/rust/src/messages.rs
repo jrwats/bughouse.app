@@ -43,7 +43,7 @@ pub enum ServerMessageKind {
     GetGameRow(GameID, Recipient<ClientMessage>),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
     SetHandle(String, UserID),
-    Sit(GameID, BoardID, Color, UserID),
+    Sit(GameID, BoardID, Color, UserID, Recipient<ClientMessage>),
     Vacate(GameID, BoardID, Color, Recipient<ClientMessage>),
 }
 
