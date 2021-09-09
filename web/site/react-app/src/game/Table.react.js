@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from "react";
+import Errors from "../Errors.react";
 import SideMenu from "../SideMenu.react";
 import Board from "./Board.react";
 import GameStatusSource from "./GameStatusSource";
@@ -60,6 +61,7 @@ const Table = ({ gamePath }) => {
       }}
     >
       <SideMenu style={{ position: "absolute" }} />
+      <Errors />
       <div style={{ display: "flex", height: "100%" }}>
         <div style={{ flex: "1 1 50vw", height: "min(45vw, 90vh)" }}>
           {boards[0]}

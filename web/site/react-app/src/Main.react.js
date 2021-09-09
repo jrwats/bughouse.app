@@ -1,6 +1,7 @@
 import Analysis from "./game/Analysis.react";
 import Bugwho from "./Bugwho.react";
 import Profile from "./user/Profile.react";
+import Errors from "./Errors.react";
 import React from "react";
 import SideMenu from "./SideMenu.react";
 import Table from "./game/Table.react";
@@ -17,6 +18,7 @@ const Main = (props) => {
         <span className="bug-logo-text small">
           <span className="solid">bughouse.</span>app
         </span>
+        <Errors />
       </div>
       <div className="main">
         <Router>

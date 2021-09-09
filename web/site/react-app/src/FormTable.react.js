@@ -3,7 +3,6 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import CloseIcon from "@material-ui/icons/Close";
 import Grid from "@material-ui/core/Grid";
-import Slider from "@material-ui/core/Slider";
 import Switch from "@material-ui/core/Switch";
 import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
@@ -13,7 +12,6 @@ import { deepPurple } from "@material-ui/core/colors";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from "@material-ui/core/FormHelperText";
-import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import NativeSelect from "@material-ui/core/NativeSelect";
@@ -47,13 +45,6 @@ const BugSwitch = withStyles({
   checked: {},
   track: {},
 })(Switch);
-
-function getMark(val, suffix) {
-  return {
-    value: val,
-    abel: `${val}${suffix}`,
-  };
-}
 
 const TimeSelect = ({  name, helper, value, values, onChange }) => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

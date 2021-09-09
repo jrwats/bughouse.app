@@ -45,7 +45,6 @@ const NOISY_EVENTS = {
   game_start: 1,
   game_row: 1,
   game_update: 1,
-  public_tables: 1,
   public_table: 1,
 };
 
@@ -182,8 +181,7 @@ class SocketProxy extends EventEmitter {
     };
 
     handlers["err"] = (err) => {
-      console.error(`${this._gcn()} socket error`);
-      console.error(err);
+      console.error(`${this._gcn()} socket error: ${JSON.stringify(err)}`);
       this.emit("err", err);
       if (err.err?.kind === "auth") {
         this.destroy();

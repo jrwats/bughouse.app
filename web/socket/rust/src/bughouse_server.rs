@@ -81,11 +81,17 @@ impl ServerHandler {
 
     async fn fwd_err(
         fut: ResponseFuture<Result<ClientMessage, Error>>,
-        recipient: Recipient<ClientMessage>,
+        server: &'static BughouseServer,
+        conn_id: ConnID,
     ) -> Result<ClientMessage, Error> {
         let res = fut.await;
         if let Err(e) = &res {
-            recipient.do_send(e.to_client_msg());
+            let recipient = server.get_recipient(&conn_id)?;
+            eprintln!("Got err: {}", e);
+            let res = recipient.try_send(e.to_client_msg());
+            if let Err(e) = res {
+                eprintln!("failed sending err: {}", e);
+            }
         }
         res
     }
@@ -126,10 +132,12 @@ impl Handler<ServerMessage> for ServerHandler {
                     self.srv(ctx).start_new_game(time_ctrl, rated, players);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::FormTable(time_ctrl, rated, public, uid) => {
-                let fut =
-                    self.srv(ctx).form_table(time_ctrl, rated, public, uid);
-                Box::pin(async move { fut.await })
+            ServerMessageKind::FormTable(time_ctrl, rated, public, conn_id) => {
+                let server = self.srv(ctx);
+                let fut = server.form_table(time_ctrl, rated, public, conn_id);
+                Box::pin(async move {
+                    Self::fwd_err(Box::pin(fut), server, conn_id).await
+                })
             }
             ServerMessageKind::GetGameRow(game_id, recipient) => {
                 let fut = self.srv(ctx).send_game_row(game_id, recipient);
@@ -139,12 +147,12 @@ impl Handler<ServerMessage> for ServerHandler {
                 game_id,
                 board_id,
                 color,
-                uid,
-                recipient,
+                conn_id,
             ) => {
-                let fut = self.srv(ctx).sit(game_id, board_id, color, uid);
+                let server = self.srv(ctx);
+                let fut = server.sit(game_id, board_id, color, conn_id);
                 Box::pin(async move {
-                    Self::fwd_err(Box::pin(fut), recipient).await
+                    Self::fwd_err(Box::pin(fut), server, conn_id).await
                 })
             }
             ServerMessageKind::SetHandle(handle, uid) => {
@@ -552,10 +560,9 @@ impl BughouseServer {
         conn_id: &ConnID,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        let uid = self.uid_from_conn(conn_id)?;
         self.loopback
             .do_send(ServerMessage::new(ServerMessageKind::Sit(
-                *game_id, board_id, color, uid, recipient,
+                *game_id, board_id, color, *conn_id
             )))?;
         Ok(())
     }
@@ -590,8 +597,9 @@ impl BughouseServer {
         game_id: GameID,
         board_id: BoardID,
         color: Color,
-        uid: UserID,
+        conn_id: ConnID,
     ) -> Result<ClientMessage, Error> {
+        let uid = self.uid_from_conn(&conn_id)?;
         let user = self.user_from_uid(&uid).await?;
         let game = self.games.sit(game_id, board_id, color, user)?;
         let msg = self.update_seats(game.clone()).await?;
@@ -622,9 +630,8 @@ impl BughouseServer {
         public: bool,
         conn_id: &ConnID,
     ) -> Result<(), Error> {
-        let uid = self.uid_from_conn(conn_id)?;
         self.loopback.do_send(ServerMessage::new(
-            ServerMessageKind::FormTable(time_ctrl, rated, public, uid),
+            ServerMessageKind::FormTable(time_ctrl, rated, public, *conn_id),
         ))?;
         Ok(())
     }
@@ -634,8 +641,9 @@ impl BughouseServer {
         time_ctrl: TimeControl,
         rated: bool,
         public: bool,
-        uid: UserID,
+        conn_id: ConnID,
     ) -> Result<ClientMessage, Error> {
+        let uid = self.uid_from_conn(&conn_id)?;
         if let Some(game) = self.games.get_user_game(&uid) {
             let gid = B66::encode_uuid(game.read().unwrap().get_id());
             return Err(Error::InGame(uid.to_string(), gid));
@@ -720,6 +728,12 @@ impl BughouseServer {
             }
         }
         Ok(ClientMessage::new(ClientMessageKind::Empty))
+    }
+
+    pub fn get_recipient(&self, conn_id: &ConnID) -> Result<Recipient<ClientMessage>, Error> {
+        self.conns.recipient_from_conn(conn_id).ok_or(Error::AuthError {
+            reason: "Not authed".to_string(),
+        })
     }
 
     fn uid_from_conn(&self, conn_id: &ConnID) -> Result<UserID, Error> {

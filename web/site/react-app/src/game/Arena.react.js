@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import Errors from "../Errors.react";
 import Board from "./Board.react";
 import GameStartCountdown from "./GameStartCountdown.react";
 import GameStatusSource from "./GameStatusSource";
@@ -129,6 +130,7 @@ const Arena = ({ gamePath }) => {
       id="arena"
       style={{ position: "relative", height: "100%", width: "100%" }}
     >
+      <Errors />
       <SideMenu style={{ position: "absolute" }} />
       <div style={{ display: "flex" }}>
         <div style={{ flex: "1 1 44vw", height: "min(44vw, 100vh)" }}>

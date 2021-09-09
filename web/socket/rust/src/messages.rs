@@ -39,11 +39,11 @@ pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),
     CheckGame(GameID),
     CreateGame(TimeControl, bool, GamePlayers),
-    FormTable(TimeControl, bool, bool, UserID),
+    FormTable(TimeControl, bool, bool, ConnID),
     GetGameRow(GameID, Recipient<ClientMessage>),
     RecordMove(Duration, GameID, BoardID, BughouseMove),
     SetHandle(String, UserID),
-    Sit(GameID, BoardID, Color, UserID, Recipient<ClientMessage>),
+    Sit(GameID, BoardID, Color, ConnID),
     Vacate(GameID, BoardID, Color, Recipient<ClientMessage>),
 }
 

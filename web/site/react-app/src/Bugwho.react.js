@@ -32,7 +32,7 @@ const Bugwho = (props) => {
             flexWrap="wrap"
             p={1}
             m={1}
-            sx={{ maxWidth: "3em" }}
+            sx={{ maxWidth: "90vw" }}
           >
             {/* <Grid container spacing={1}> */}
             <Box p={1}>

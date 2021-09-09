@@ -283,6 +283,11 @@ body .mono {
   /*             0px 0 30px 4px rgba(120, 44, 255, 0.80); */
 }
 
+.playerData.ticking .player::before, 
+.playerData.ticking .player::after {
+  content: "\2658"
+}
+
 @keyframes ticking-glow {
   to {
     text-shadow:
