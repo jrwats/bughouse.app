@@ -603,7 +603,7 @@ impl BughouseServer {
         let user = self.user_from_uid(&uid).await?;
         let game = self.games.sit(game_id, board_id, color, user)?;
         let msg = self.update_seats(game.clone()).await?;
-        if !game.read().unwrap().is_table() {
+        if !game.read().unwrap().has_empty_seat() {
             self.start_game(game).await?;
         }
         Ok(msg)

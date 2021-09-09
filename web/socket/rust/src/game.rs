@@ -21,19 +21,20 @@ pub type GamePlayers = [BoardPlayers; 2];
 pub type BoardClocks = [i32; 2];
 pub type GameClocks = [BoardClocks; 2];
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct GameResult {
     pub board: BoardID,
     pub winner: Color,
     pub kind: GameResultType,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum GameResultType {
     Flagged,
     Checkmate,
 }
 
+#[derive(PartialEq)]
 pub enum GameStatus {
     Over(GameResult),
     InProgress,
@@ -129,11 +130,6 @@ impl Game {
             }
         }
         None
-    }
-
-    pub fn is_table(&self) -> bool {
-        let [[aw, ab], [bw, bb]] = &self.players;
-        aw.is_none() || ab.is_none() || bw.is_none() || bb.is_none()
     }
 
     pub fn handle(maybe_user: &Option<Arc<RwLock<User>>>) -> Option<String> {
@@ -284,11 +280,12 @@ impl Game {
     }
 
     pub fn has_empty_seat(&self) -> bool {
-        let [[a_white, a_black], [b_white, b_black]] = &self.players;
-        a_white.is_none()
-            || a_black.is_none()
-            || b_white.is_none()
-            || b_black.is_none()
+        let [[aw, ab], [bw, bb]] = &self.players;
+        aw.is_none() || ab.is_none() || bw.is_none() || bb.is_none()
+    }
+
+    pub fn is_public_table(&self) -> bool {
+        self.public && self.get_status() == GameStatus::WaitingForPlayers
     }
 
     pub fn get_status(&self) -> GameStatus {

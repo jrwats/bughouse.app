@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 use crate::b66::B66;
 use crate::connection_mgr::{ConnectionMgr, UserID};
 use crate::error::Error;
-use crate::game::{Game, GameID, GamePlayers};
+use crate::game::{Game, GameID, GamePlayers, GameStatus};
 use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{
     ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage,
@@ -478,7 +478,7 @@ impl Games {
     }
 
     fn is_table(game: Arc<RwLock<Game>>) -> bool {
-        game.read().unwrap().is_table()
+        game.read().unwrap().has_empty_seat()
     }
 
     fn on_offline_user(&self, uid: UserID) {
@@ -494,13 +494,13 @@ impl Games {
                     GameJson::new(game.clone(), GameJsonKind::Table);
                 self.notify_game_observers(game.clone(), game_json);
                 self.notify_public_subs(TableUpdateType::Update, game);
+                self.rm_user_game(&uid);
             }
         }
-        self.rm_user_game(&uid);
     }
 
     fn is_public(game: &Arc<RwLock<Game>>) -> bool {
-        game.read().unwrap().public
+        game.read().unwrap().is_public_table()
     }
 
     pub fn get_public_table_json(&self) -> HashMap<String, serde_json::Value> {
