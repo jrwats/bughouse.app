@@ -3,6 +3,7 @@ import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import FeaturedVideoIcon from "@material-ui/icons/FeaturedVideo";
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -165,6 +166,18 @@ const SideMenu = ({ style }) => {
         </StyledMenuItem>
         <div style={{ borderTop: "1px solid #303030" }}>
           <SoundMenuItem />
+        </div>
+        <div style={{ borderTop: "1px solid #303030" }}>
+          <form id="paypal_form" action="https://www.paypal.com/donate" method="post" target="_top">
+            <input type="hidden" name="hosted_button_id" value="VLPN33836X4MC" />
+            <StyledMenuItem>
+              <ListItemIcon>
+                <MonetizationOnIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Donate" />
+            </StyledMenuItem>
+            <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+          </form>
         </div>
       </StyledMenu>
     </div>
