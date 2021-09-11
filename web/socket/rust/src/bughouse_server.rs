@@ -279,8 +279,26 @@ impl BughouseServer {
         &'static self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        println!("subscribing online");
+        println!("unsubscribing pub tables");
         self.games.unsub_public_tables(recipient);
+        Ok(())
+    }
+
+    pub fn sub_current_games(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("subscribing tables");
+        // self.games.sub_public_tables(recipient);
+        Ok(())
+    }
+
+    pub fn unsub_current_games(
+        &'static self,
+        recipient: Recipient<ClientMessage>,
+    ) -> Result<(), Error> {
+        println!("unsubscribing online");
+        // self.games.unsub_public_tables(recipient);
         Ok(())
     }
 

@@ -398,6 +398,22 @@ impl BugWebSock {
                     .server
                     .unsub_public_tables(ctx.address().recipient());
             }
+            "sub_current_games" => {
+                self.data
+                    .server
+                    .sub_online_players(ctx.address().recipient());
+                let players_msg = self.data.server.get_online_players_msg(
+                    None,
+                    u64::MAX,
+                    None,
+                )?;
+                ctx.text(players_msg);
+            }
+            "unsub_current_games" => {
+                self.data
+                    .server
+                    .unsub_current_games(ctx.address().recipient());
+            }
             "sub_online_players" => {
                 self.data
                     .server
