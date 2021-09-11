@@ -168,15 +168,15 @@ const SideMenu = ({ style }) => {
           <SoundMenuItem />
         </div>
         <div style={{ borderTop: "1px solid #303030" }}>
-          <form id="paypal_form" action="https://www.paypal.com/donate" method="post" target="_top">
+          <form id="paypal_form" action="https://www.paypal.com/donate" method="post" target="_blank">
+            <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
             <input type="hidden" name="hosted_button_id" value="VLPN33836X4MC" />
-            <StyledMenuItem>
+            <StyledMenuItem onClick={(_e) => { document.querySelector('#paypal_form').submit(); }}>
               <ListItemIcon>
                 <MonetizationOnIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText primary="Donate" />
             </StyledMenuItem>
-            <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
           </form>
         </div>
       </StyledMenu>
