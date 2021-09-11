@@ -10,6 +10,8 @@ use crate::time_control::TimeControl;
 
 #[derive(Clone, Copy, Debug)]
 pub enum GameJsonKind {
+    Current,   // Current game (singular) update
+    Currents,  // CurrentGames (batch)
     End,       // Game over
     FormTable, // Formation of a table
     Table,     // Table updates (sitting/leaving)
@@ -25,6 +27,8 @@ impl std::fmt::Display for GameJsonKind {
             GameJsonKind::Start => "game_start",
             GameJsonKind::Table => "table",
             GameJsonKind::Update => "game_update",
+            GameJsonKind::Currents => "current_games",
+            GameJsonKind::Current => "current_game",
         };
         f.write_str(string)
     }

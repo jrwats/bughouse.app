@@ -143,12 +143,7 @@ impl Handler<ServerMessage> for ServerHandler {
                 let fut = self.srv(ctx).send_game_row(game_id, recipient);
                 Box::pin(async move { fut.await })
             }
-            ServerMessageKind::Sit(
-                game_id,
-                board_id,
-                color,
-                conn_id,
-            ) => {
+            ServerMessageKind::Sit(game_id, board_id, color, conn_id) => {
                 let server = self.srv(ctx);
                 let fut = server.sit(game_id, board_id, color, conn_id);
                 Box::pin(async move {
@@ -289,7 +284,7 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         println!("subscribing tables");
-        // self.games.sub_public_tables(recipient);
+        self.games.sub_current_games(recipient);
         Ok(())
     }
 
@@ -298,7 +293,7 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         println!("unsubscribing online");
-        // self.games.unsub_public_tables(recipient);
+        self.games.unsub_current_games(recipient);
         Ok(())
     }
 
@@ -580,7 +575,7 @@ impl BughouseServer {
     ) -> Result<(), Error> {
         self.loopback
             .do_send(ServerMessage::new(ServerMessageKind::Sit(
-                *game_id, board_id, color, *conn_id
+                *game_id, board_id, color, *conn_id,
             )))?;
         Ok(())
     }
@@ -748,10 +743,15 @@ impl BughouseServer {
         Ok(ClientMessage::new(ClientMessageKind::Empty))
     }
 
-    pub fn get_recipient(&self, conn_id: &ConnID) -> Result<Recipient<ClientMessage>, Error> {
-        self.conns.recipient_from_conn(conn_id).ok_or(Error::AuthError {
-            reason: "Not authed".to_string(),
-        })
+    pub fn get_recipient(
+        &self,
+        conn_id: &ConnID,
+    ) -> Result<Recipient<ClientMessage>, Error> {
+        self.conns
+            .recipient_from_conn(conn_id)
+            .ok_or(Error::AuthError {
+                reason: "Not authed".to_string(),
+            })
     }
 
     fn uid_from_conn(&self, conn_id: &ConnID) -> Result<UserID, Error> {

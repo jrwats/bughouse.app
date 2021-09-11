@@ -1,6 +1,10 @@
-use crate::messages::ClientMessage;
 use actix::prelude::*;
+use bytestring::ByteString;
+use serde_json;
 use std::collections::HashSet;
+use std::sync::Arc;
+
+use crate::messages::{ClientMessage, ClientMessageKind};
 
 // Simple wrapper over a set of Recipients to which we
 // can send a certain subset of messages
@@ -41,6 +45,11 @@ impl Subscriptions {
         subs_to_remove
     }
 
+    pub fn notify_value(&mut self, val: serde_json::Value) {
+        let bytestr = Arc::new(ByteString::from(val.to_string()));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        self.notify(msg);
+    }
     pub fn notify(&mut self, msg: ClientMessage) {
         let to_remove = self._notify(msg);
         // let mut wsubs = self.subs.write().unwrap();

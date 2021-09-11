@@ -29,6 +29,7 @@ pub struct Games {
     user_games: RwLock<HashMap<UserID, GameID>>,
     game_observers: Observers,
     public_table_subs: RwLock<Subscriptions>,
+    current_game_subs: RwLock<Subscriptions>,
     conns: Arc<ConnectionMgr>,
 }
 
@@ -74,6 +75,7 @@ impl GameUserHandler {
     }
 }
 
+pub const CURRENT_MAX: usize = 10;
 impl Games {
     pub fn new(
         // db: Arc<Db>,
@@ -86,6 +88,7 @@ impl Games {
             user_games: RwLock::new(HashMap::new()),
             game_observers: Observers::new(conns.clone()),
             public_table_subs: RwLock::new(Subscriptions::new()),
+            current_game_subs: RwLock::new(Subscriptions::new()),
             conns,
         }
     }
@@ -234,6 +237,7 @@ impl Games {
         let game_json = GameJson::new(game.clone(), GameJsonKind::Start);
         println!("start: {:?}", game_json);
         self.notify_game_observers(game.clone(), game_json);
+        self.notify_current_subs(TableUpdateType::Add, game.clone());
         self.notify_public_subs(TableUpdateType::Remove, game);
         Ok(start)
     }
@@ -268,25 +272,30 @@ impl Games {
         Ok((locked_game, msg))
     }
 
-    fn rm_from_user_games(&self, game_id: &GameID) -> bool {
+    fn rm_from_user_games(
+        &self,
+        game_id: &GameID,
+    ) -> Option<Arc<RwLock<Game>>> {
         let games = self.games.read().unwrap();
         let res = games.get(game_id);
         if let Some(game) = res {
-            let game = game.read().unwrap();
-            let players = Players::new(game.get_players());
+            let rgame = game.read().unwrap();
+            let players = Players::new(rgame.get_players());
             let mut user_games = self.user_games.write().unwrap();
             for player in players.get_players() {
                 user_games.remove(&player.get_uid());
             }
-            return true;
+            return Some(game.clone());
         }
-        false
+        None
     }
 
     pub fn rm_game(&self, game_id: &GameID) {
-        if self.rm_from_user_games(game_id) {
+        if let Some(game) = self.rm_from_user_games(game_id) {
+            self.notify_current_subs(TableUpdateType::Remove, game);
             let mut wgames = self.games.write().unwrap();
             wgames.remove(game_id);
+            self.notify_next_current();
         }
     }
 
@@ -423,6 +432,94 @@ impl Games {
         }
     }
 
+    pub fn sub_current_games(&self, recipient: Recipient<ClientMessage>) {
+        let mut wsubs = self.current_game_subs.write().unwrap();
+        wsubs.sub(recipient);
+    }
+
+    pub fn unsub_current_games(&self, recipient: Recipient<ClientMessage>) {
+        let mut wsubs = self.current_game_subs.write().unwrap();
+        wsubs.unsub(recipient);
+    }
+
+    pub fn is_current(&self, gid: &GameID) -> bool {
+        let games = self.games.read().unwrap();
+        let mut idx = 0;
+        for (top_gid, _game) in
+            games.iter().filter(|g| !Self::is_table(g.1.clone()))
+        {
+            if top_gid == gid {
+                return true;
+            }
+            idx += 1;
+            if idx > CURRENT_MAX {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    pub fn get_current_games_json(&self) -> Value {
+        let games = self.games.read().unwrap();
+        let mut jsons: HashMap<String, Value> = HashMap::new();
+        for (_gid, game) in
+            games.iter().filter(|g| !Self::is_table(g.1.clone()))
+        {
+            let (id, value) =
+                Self::get_table_json(game.clone(), GameJsonKind::Currents);
+            jsons.insert(id, value);
+            if jsons.len() >= CURRENT_MAX {
+                break;
+            }
+        }
+        json!({ "kind": "current_games", "games": jsons })
+    }
+
+    // After removing a game, see if there is one to add (at the end)
+    fn notify_next_current(&self) {
+        let games = self.games.read().unwrap();
+        if let Some((_gid, game)) = games
+            .iter()
+            .filter(|g| !Self::is_table(g.1.clone()))
+            .nth(CURRENT_MAX - 1)
+        {
+            return self
+                .notify_current_subs(TableUpdateType::Add, game.clone());
+        }
+    }
+
+    fn notify_current_subs(
+        &self,
+        kind: TableUpdateType,
+        game: Arc<RwLock<Game>>,
+    ) {
+        if !self.is_current(game.read().unwrap().get_id()) {
+            return;
+        }
+        let msg = match kind {
+            TableUpdateType::Add | TableUpdateType::Update => {
+                let (id, json) =
+                    Self::get_table_json(game, GameJsonKind::Current);
+                json!({
+                    "kind": GameJsonKind::Current,
+                    "id": id,
+                    "add": kind == TableUpdateType::Add,
+                    "update": kind == TableUpdateType::Update,
+                    "game": json,
+                })
+            }
+            TableUpdateType::Remove => {
+                json!({
+                    "kind": GameJsonKind::Current,
+                    "id": B66::encode_uuid(game.read().unwrap().get_id()),
+                    "rm": true,
+                })
+            }
+        };
+        let mut wsubs = self.current_game_subs.write().unwrap();
+        wsubs.notify_value(msg);
+    }
+
     pub fn sub_public_tables(&self, recipient: Recipient<ClientMessage>) {
         let mut wsubs = self.public_table_subs.write().unwrap();
         wsubs.sub(recipient);
@@ -461,10 +558,8 @@ impl Games {
                 })
             }
         };
-        let bytestr = Arc::new(ByteString::from(msg.to_string()));
-        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         let mut wsubs = self.public_table_subs.write().unwrap();
-        wsubs.notify(msg);
+        wsubs.notify_value(msg);
     }
 
     fn get_table_json(

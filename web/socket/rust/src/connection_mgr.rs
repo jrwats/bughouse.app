@@ -189,7 +189,10 @@ impl ConnectionMgr {
         hash(recipient)
     }
 
-    pub fn recipient_from_conn(&self, conn_id: &ConnID) -> Option<Recipient<ClientMessage>> {
+    pub fn recipient_from_conn(
+        &self,
+        conn_id: &ConnID,
+    ) -> Option<Recipient<ClientMessage>> {
         let conns = self.conns.read().unwrap();
         let sock_conn = conns.get(conn_id)?;
         Some(sock_conn.recipient.clone())
