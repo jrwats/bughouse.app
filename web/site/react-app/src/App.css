@@ -375,6 +375,27 @@ body .mono {
   border-width: 1px;
 }
 
+/* Games: Table/Arena */
+.countCircle {
+  position: absolute;
+  line-height: min(1vw, 4vh);
+  font-weight: 800;
+  font-size: min(1.3vw, 4vh);
+  background-color: #f5f5f5;
+  border-radius: 32%;
+  display: inline-block;
+  border-color: #000;
+  border-width: clamp(1.2px, min(.2vw, .4vh), 1.8px);
+  border-style: solid;
+  color: #303030;
+  left: 50%;
+  top: 50%;
+  transform: translate(10%, 20%);
+  z-index: 100;
+  font-family: 'SpaceMono';
+  padding: .12em .2em .2em .15em;
+}
+
 #form_table .MuiInputLabel-shrink {
   /* transform: translate(0, 0); */
 }
@@ -453,27 +474,6 @@ body .makeStyles-paper-161 {
 
 .shadow {
   boxShadow: 10px 5px 5px #404040;
-}
-
-/* Games: Table/Arena */
-.countCircle {
-  position: absolute;
-  line-height: min(1vw, 4vh);
-  font-weight: 800;
-  font-size: min(1.3vw, 4vh);
-  background-color: #f5f5f5;
-  border-radius: 32%;
-  display: inline-block;
-  border-color: #000;
-  border-width: clamp(1px, min(.2vw, .4vh), 2px);
-  border-style: solid;
-  color: #303030;
-  /* left: 50%; */
-  top: 20%;
-  transform: translate(40%, 90%);
-  z-index: 100;
-  font-family: 'SpaceMono';
-  padding: .12em .2em .2em .15em;
 }
 
 .gameOver {

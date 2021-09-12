@@ -24,10 +24,10 @@ const CurrentGames = () => {
         id2game.current.set(data.id, src.getGame(data.id));
       } else if (data.rm) {
         console.error(`Scheduling removal: ${data.id}`);
-        // return setTimeout(() => {
-        //   id2game.current.delete(data.id);
-        //   setGames(Array.from(id2game.current.values()));
-        // }, 5000);
+        return setTimeout(() => {
+          id2game.current.delete(data.id);
+          setGames(Array.from(id2game.current.values()));
+        }, 5000);
       }
       setGames(Array.from(id2game.current.values()));
     };
