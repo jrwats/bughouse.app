@@ -486,7 +486,6 @@ impl BughouseServer {
         println!("send_game_row({}, {:?})", game_id, recipient);
         let res = self.db.get_game_row(&game_id).await;
         if let Err(e) = res {
-            eprintln!("err: {}", e);
             eprintln!("err: {:?}", e);
             return Err(e);
         }

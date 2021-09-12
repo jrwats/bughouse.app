@@ -338,7 +338,7 @@ body .mono {
 }
 
 .clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
-  font-size: clamp(.2em, min(1vw, 2vh), 1em);
+  font-size: clamp(.5em, min(1.5vw, 3vh), 1.5em);
 }
 
 #current_games {

@@ -226,7 +226,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT id, start_time, result, time_ctrl, rated, public, players, moves
+                "SELECT id, start_time, result, time_ctrl, rated, players, moves
                 FROM bughouse.games
                 WHERE id = ?",
                 (game_id,),
