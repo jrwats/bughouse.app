@@ -1,5 +1,6 @@
 import Button from "@material-ui/core/Button";
 import React, { useContext, useState } from "react";
+import Box from "@material-ui/core/Box";
 
 import FormTable from "./FormTable.react";
 import { UsersContext } from "./user/UsersProvider";
@@ -23,8 +24,11 @@ const GamingLanding = () => {
   }
 
   return (
-    <>
-      <div>
+    <Box
+      display="flex"
+      flexWrap="wrap"
+    >
+      <Box p={2}>
         <Button
           style={{ marginTop: "10px" }}
           variant="contained"
@@ -36,8 +40,8 @@ const GamingLanding = () => {
         >
           Seek Game
         </Button>
-      </div>
-      <div>
+      </Box>
+      <Box p={2}>
         <Button
           style={{ marginTop: "10px" }}
           variant="contained"
@@ -49,8 +53,8 @@ const GamingLanding = () => {
           Create Table
           {/* Play with Friends */}
         </Button>
-      </div>
-    </>
+      </Box>
+    </Box>
   );
 };
 

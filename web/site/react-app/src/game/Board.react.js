@@ -120,9 +120,8 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
     <div
       ref={boardWrapperRef}
       style={{
-        // display: "flex",
-        // flexDirection: "column",
-        // justifyContent: "center",
+        display: "flex",
+        flexDirection: "column",
         height: "100%",
         width: "100%",
       }}

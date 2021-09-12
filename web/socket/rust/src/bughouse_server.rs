@@ -279,11 +279,18 @@ impl BughouseServer {
         Ok(())
     }
 
+    pub fn get_current_games_json(
+        &'static self
+        ) -> Result<ByteString, Error> {
+        let json = self.games.get_current_games_json();
+        Ok(ByteString::from(json.to_string()))
+    }
+
     pub fn sub_current_games(
         &'static self,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        println!("subscribing tables");
+        println!("subscribing current games");
         self.games.sub_current_games(recipient);
         Ok(())
     }

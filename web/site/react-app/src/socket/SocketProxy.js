@@ -23,6 +23,8 @@ setInterval(() => {
 const PASSTHRU_EVENTS = [
   "bugwho",
   "form_table",
+  "current_games",
+  "current_game",
   "game_end",
   "game_start",
   "game_msg",

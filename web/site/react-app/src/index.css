@@ -17,6 +17,7 @@ code {
   display: inline-box;
   position: relative;
 }
+
 #paypal_form img {
   position: absolute;
 }

@@ -3,6 +3,7 @@ import React from "react";
 // import Teams from "./Teams.react";
 // import Offers from "./Offers.react";
 import Box from "@material-ui/core/Box";
+import CurrentGames from "./game/CurrentGames.react";
 import GamingLanding from "./GamingLanding.react";
 import PublicTables from "./PublicTables.react";
 // import GamesList from "./GamesList.react";
@@ -26,7 +27,9 @@ const Bugwho = (props) => {
     <UsersProvider>
       <GamesListProvider>
         <ChallengesProvider>
-          {/* <div style={{flexGrow: 1}}> */}
+          <Box p={2}>
+            <GamingLanding />
+          </Box>
           <Box
             display="flex"
             flexWrap="wrap"
@@ -34,19 +37,14 @@ const Bugwho = (props) => {
             m={1}
             sx={{ maxWidth: "90vw" }}
           >
-            {/* <Grid container spacing={1}> */}
             <Box p={1}>
-              {/* <Grid item alignItems="center" spacing={1} xs={4}> */}
               <OnlinePlayers />
-              {/* </Grid> */}
             </Box>
             <Box p={1}>
               <PublicTables />
             </Box>
             <Box p={1}>
-              {/* <Grid item  spacing={1} xs={3}> */}
-              <GamingLanding />
-              {/* </Grid> */}
+              <CurrentGames />
             </Box>
           </Box>
           {/* </Grid> */}

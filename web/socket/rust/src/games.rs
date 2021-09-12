@@ -292,9 +292,12 @@ impl Games {
 
     pub fn rm_game(&self, game_id: &GameID) {
         if let Some(game) = self.rm_from_user_games(game_id) {
+            println!("notifying current subs rm: {}", game_id);
             self.notify_current_subs(TableUpdateType::Remove, game);
-            let mut wgames = self.games.write().unwrap();
-            wgames.remove(game_id);
+            {
+                let mut wgames = self.games.write().unwrap();
+                wgames.remove(game_id);
+            }
             self.notify_next_current();
         }
     }
@@ -581,9 +584,12 @@ impl Games {
             if Self::is_table(game.clone()) {
                 {
                     let mut wgame = game.write().unwrap();
-                    let (board_idx, color_idx) =
-                        wgame.get_user_seat(&uid).unwrap();
-                    wgame.players[board_idx][color_idx] = None;
+                    if let Some((board_idx, color_idx)) = wgame.get_user_seat(&uid) {
+                        wgame.players[board_idx][color_idx] = None;
+                    } else {
+                        eprintln!("Found user game, but not SEAT?!");
+                        eprintln!("\t{}, {}", uid, wgame.get_id());
+                    }
                 }
                 let game_json =
                     GameJson::new(game.clone(), GameJsonKind::Table);

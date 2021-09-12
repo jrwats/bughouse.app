@@ -330,6 +330,20 @@ body .mono {
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
 }
+.clock {
+  margin-top: 4px;
+  padding-left: 1em;
+  min-width: 4em;
+  text-align: right;
+}
+
+#current_games .h6 {
+  font-size: min(0.75vw, 1.5vh);
+}
+
+#current_games .h6.alien {
+  margin-top: 8px;
+}
 
 .clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
   font-size: clamp(.5em, min(2vw, 3vh), 1.5em);

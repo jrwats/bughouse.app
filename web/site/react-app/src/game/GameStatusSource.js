@@ -10,13 +10,33 @@ class GameStatusSource extends EventEmitter {
     this._observing = {};
     this._games = {};
 
+    this._socket.on("current_game", (data) => this._onCurrentGame(data));
+    this._socket.on("current_games", (data) => this._onCurrentGames(data));
     this._socket.on("game_row", (data) => this._onGameRow(data));
     this._socket.on("game_update", (data) => this._onGameUpdate(data));
-    this._socket.on("game_over", (data) => this._onGameOver(data));
     this._socket.on("game_end", (data) => this._onGameOver(data));
     this._socket.on("game_start", (data) => this._onGameStart(data));
     this._socket.on("form_table", (data) => this._onTable(data));
     this._socket.on("table", (data) => this._onTable(data));
+  }
+
+  _onCurrentGame(data) {
+    if (data.add) {
+      this._games[data.id] = BughouseGame.init(data);
+    } else if (data.update) {
+      this._games[data.id].update(data);
+    } else if (data.rm) {
+      delete this._games[data.id];
+    }
+    this.emit('current_game', data);
+  }
+
+  _onCurrentGames({games}) {
+    for (const gid in games) {
+      this._games[gid] = BughouseGame.init(games[gid]);
+    }
+    const bughouseGames = Object.keys(games).map(gid => this._games[gid]);
+    this.emit('current_games', {games: bughouseGames});
   }
 
   _onGameRow(data) {
