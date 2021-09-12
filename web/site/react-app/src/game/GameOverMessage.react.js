@@ -8,7 +8,9 @@ import AssessmentIcon from "@material-ui/icons/Assessment";
 import Button from "@material-ui/core/Button";
 import { Link } from "@reach/router";
 
-const GameOverMessage = ({ chessboard }) => {
+import { BoardContext } from "./Board.react";
+
+const GameOverMessage = ({ context, chessboard }) => {
   const { handle } = useContext(SocketContext);
   const board = chessboard.getBoard();
   const winnerColor = chessboard.getWinner();
@@ -34,6 +36,21 @@ const GameOverMessage = ({ chessboard }) => {
       </div>
     );
   }
+
+  const dashLink = context === BoardContext.CURRENT
+    ? null
+    : <div style={{ flex: "auto" }}>
+      <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
+        <Button variant="contained" color="primary">
+          <FeaturedVideoIcon
+            fontSize="small"
+            style={{ paddingRight: ".6em" }}
+          />
+          Dashboard
+        </Button>
+      </Link>
+    </div>;
+
   return (
     <div className="gameOver">
       <Paper className="gameOverMsg" elevation={20}>
@@ -48,17 +65,7 @@ const GameOverMessage = ({ chessboard }) => {
           <div className="bug-logo-text h5 ">{msg}</div>
           <div style={{ paddingTop: "8px" }}>{chessboard.getReason()}</div>
           <div style={{ display: "flex", marginTop: "min(3vw, 7vh)" }}>
-            <div style={{ flex: "auto" }}>
-              <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
-                <Button variant="contained" color="primary">
-                  <FeaturedVideoIcon
-                    fontSize="small"
-                    style={{ paddingRight: ".6em" }}
-                  />
-                  Dashboard
-                </Button>
-              </Link>
-            </div>
+            {dashLink}
             <div style={{ flex: "auto", marginLeft: "1em" }}>
               <Link
                 to={`/analysis/${gameID}`}

@@ -29,7 +29,11 @@ const playAudio = (file) => {
   console.log(`${file}.play`);
 };
 
-const Board = ({ chessboard, forming, orientation, gameID, id }) => {
+export const BoardContext = {
+  CURRENT: "current",
+};
+
+const Board = ({ chessboard, context, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(forming);
   const [fen, setFEN] = useState(chessboard.getBoard().fen);
@@ -114,7 +118,7 @@ const Board = ({ chessboard, forming, orientation, gameID, id }) => {
 
   let alert = null;
   if (finished && !chessboard.getGame().isAnalysis()) {
-    alert = <GameOverMessage chessboard={chessboard} />;
+    alert = <GameOverMessage context={context} chessboard={chessboard} />;
   }
   return (
     <div

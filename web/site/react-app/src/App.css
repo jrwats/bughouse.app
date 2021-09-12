@@ -337,20 +337,42 @@ body .mono {
   text-align: right;
 }
 
+.clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
+  font-size: clamp(.2em, min(1vw, 2vh), 1em);
+}
+
 #current_games {
   max-width: 30vw;
 }
 
+#current_games .clamped {
+  font-size: clamp(.5em, min(1vw, 2vh), 1.5em);
+}
+
+#current_games  .h5 {
+  font-size: min(1vw, 2vh);
+}
+
 #current_games .h6 {
-  font-size: min(0.75vw, 1.5vh);
+  font-size: min(1vw, 2vh);
 }
 
 #current_games .h6.alien {
   margin-top: 8px;
 }
 
-.clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {
-  font-size: clamp(.5em, min(2vw, 3vh), 1.5em);
+#current_games .gameOver .gameOverMsg {
+  width: 100%;
+}
+
+#current_games .countCircle {
+  top: -20%;
+  left: 20%;
+  line-height: min(0.7vw, 1.4vh);
+  font-weight: 500;
+  font-size: min(1vw, 2.0vh);
+  border-radius: 32%;
+  border-width: 1px;
 }
 
 #form_table .MuiInputLabel-shrink {
@@ -472,10 +494,6 @@ body .makeStyles-paper-161 {
   border: #f0c 1px solid;
   border-radius: 1rem;
   background: rgba(30, 0, 60, 0.9);
-}
-
-#current_games .gameOver .gameOverMsg {
-  width: min(8vw, 16vh);
 }
 
 .cg-holder {
