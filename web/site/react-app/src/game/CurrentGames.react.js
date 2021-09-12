@@ -16,17 +16,20 @@ const CurrentGames = () => {
   useEffect(() => {
     const onCurrentGames = ({games}) => {
       id2game.current = games;
-      setGames(vals(id2game.current));
+      setGames(Array.from(games.values()));
     };
 
     const onCurrentGame = (data) => {
       if (data.add || data.update) {
-        id2game.current[data.id] = src.getGame(data.id);
+        id2game.current.set(data.id, src.getGame(data.id));
       } else if (data.rm) {
-        console.error(`Removing ${data.id}`);
-        delete id2game.current[data.id];
+        console.error(`Scheduling removal: ${data.id}`);
+        return setTimeout(() => {
+          id2game.current.delete(data.id);
+          setGames(Array.from(id2game.current.values()));
+        }, 5000);
       }
-      setGames(vals(id2game.current));
+      setGames(Array.from(id2game.current.values()));
     };
 
     src.on('current_games', onCurrentGames);

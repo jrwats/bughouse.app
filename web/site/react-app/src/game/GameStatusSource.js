@@ -35,7 +35,9 @@ class GameStatusSource extends EventEmitter {
     for (const gid in games) {
       this._games[gid] = BughouseGame.init(games[gid]);
     }
-    const bughouseGames = Object.keys(games).map(gid => this._games[gid]);
+    const bughouseGames = Object.keys(games).reduce(
+      (m, id) => m.set(id,  this._games[id]), new Map()
+    );
     this.emit('current_games', {games: bughouseGames});
   }
 

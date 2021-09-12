@@ -587,7 +587,7 @@ impl Games {
                     if let Some((board_idx, color_idx)) = wgame.get_user_seat(&uid) {
                         wgame.players[board_idx][color_idx] = None;
                     } else {
-                        eprintln!("Found user game, but not SEAT?!");
+                        eprintln!("!!! Found user game, but not SEAT?!");
                         eprintln!("\t{}, {}", uid, wgame.get_id());
                     }
                 }

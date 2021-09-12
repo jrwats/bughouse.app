@@ -337,6 +337,10 @@ body .mono {
   text-align: right;
 }
 
+#current_games {
+  max-width: 30vw;
+}
+
 #current_games .h6 {
   font-size: min(0.75vw, 1.5vh);
 }
@@ -468,6 +472,10 @@ body .makeStyles-paper-161 {
   border: #f0c 1px solid;
   border-radius: 1rem;
   background: rgba(30, 0, 60, 0.9);
+}
+
+#current_games .gameOver .gameOverMsg {
+  width: min(8vw, 16vh);
 }
 
 .cg-holder {
