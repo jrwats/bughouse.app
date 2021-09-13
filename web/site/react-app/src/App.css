@@ -366,11 +366,9 @@ body .mono {
 }
 
 #current_games .countCircle {
-  top: -20%;
-  left: 20%;
-  line-height: min(0.7vw, 1.4vh);
+  line-height: min(0.5vw, 1.0vh);
+  font-size: min(0.5vw, 1.0vh);
   font-weight: 500;
-  font-size: min(1vw, 2.0vh);
   border-radius: 32%;
   border-width: 1px;
 }
@@ -724,14 +722,47 @@ body .makeStyles-paper-161 {
   filter: url(#red-filter);
 }
 
-#analysis_moves {
+.analysis-moves {
   font-family: SpaceMono;
   font-size: min(1rem, 1vw);
   max-width: calc(100% - 8px);
 }
 
+.analysis-moves .titles {
+  font-family: "AlienEncountersSolid", "Roboto", "Helvetica";
+  font-weight: 500;
+  line-height: 2em;
+  padding-bottom: min(1vw, 2vh);
+}
+
+.analysis-moves .titles .a,
+.analysis-moves .titles .b {
+  border-radius: 0.3em;
+  text-align: center;
+}
+
+.analysis-moves .titles .arrow {
+  font-family: "AlienEncounters", "Roboto", "Helvetica";
+  font-weight: 900;
+  font-size: 1.8em;
+  padding: 1em 4px;
+  position: relative;
+  top: min(0.3vw);
+}
+
+.analysis-moves .flip-buttons {
+  width: 100%;
+}
+
+.analysis-moves .flip-buttons > span {
+  width: 40%;
+  position: relative;
+  display: inline-block;
+  padding: 1em 0.5em;
+}
+
+.analysis-moves .titles > *,
 .move {
-  cursor: pointer;
   width: 40%;
   position: relative;
   display: inline-block;
@@ -739,24 +770,18 @@ body .makeStyles-paper-161 {
   padding-right: 0.5em;
 }
 
-.move.clear:before {
-  display: table;
-  clear: both;
+.move {
+  cursor: pointer;
 }
 
+.analysis-moves .titles .a,
 .move.a {
-  text-align: left;
-  background: rgba(120, 30, 255, 0.5);
+  background: rgba(120, 30, 255, 0.3);
 }
 
-.move.a.black {
-}
-
+.analysis-moves .titles .b,
 .move.b {
-  /* left: 2em; */
-  background: rgba(255, 30, 255, 0.5);
-  right: 0px;
-  /* float: right; */
+  background: rgba(255, 30, 255, 0.4);
 }
 
 ::-webkit-scrollbar {

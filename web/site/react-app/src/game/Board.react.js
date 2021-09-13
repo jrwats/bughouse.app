@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import "./chessground.css";
 import BoardGutter from "./BoardGutter.react";
-import Box from "@material-ui/core/Box";
 import Chessground from "react-chessground";
 import GameOverMessage from "./GameOverMessage.react";
 import Holdings from "./Holdings.react";
@@ -33,10 +32,10 @@ export const BoardContext = {
   CURRENT: "current",
 };
 
-const Board = ({ chessboard, context, forming, orientation, gameID, id }) => {
+const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
   const [viewOnly, setViewOnly] = useState(forming);
-  const [fen, setFEN] = useState(chessboard.getBoard().fen);
+  const [boardFEN, setFEN] = useState(fen || chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
   const [handleColor, setHandleColor] = useState(
@@ -77,7 +76,7 @@ const Board = ({ chessboard, context, forming, orientation, gameID, id }) => {
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       const prevFen = chessgroundRef?.current?.cg?.state?.fen;
-      if (fen != null && board.fen !== prevFen) {
+      if (boardFEN != null && board.fen !== prevFen) {
         const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
         const file =
           handleColor === colorToMove ? GenericNotifySound : MoveSound;
@@ -142,7 +141,6 @@ const Board = ({ chessboard, context, forming, orientation, gameID, id }) => {
           display: "flex",
         }}
       >
-        {/* <Box */}
         <div
           id={id}
           style={{
@@ -181,10 +179,10 @@ const Board = ({ chessboard, context, forming, orientation, gameID, id }) => {
               <Chessground
                 ref={chessgroundRef}
                 key={chessboard.getID()}
-                fen={fen}
+                fen={boardFEN}
                 onMove={(from, to, e) => {
                   const pieces = chessgroundRef.current.cg.state.pieces;
-                  const sideToMove = fen.split(" ")[1];
+                  const sideToMove = boardFEN.split(" ")[1];
                   const colorToMove = sideToMove === "w" ? "white" : "black";
                   if (
                     handleColor === colorToMove &&

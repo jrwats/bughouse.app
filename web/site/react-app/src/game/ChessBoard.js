@@ -42,6 +42,10 @@ class ChessBoard extends EventEmitter {
     }
   }
 
+  forceUpdate() {
+    this.emit("update", this);
+  }
+
   isInitialized() {
     return this._initialized;
   }

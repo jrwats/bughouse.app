@@ -42,6 +42,14 @@ class BughouseGame extends EventEmitter {
     }
   }
 
+  // TODO: This should not be necessary. Update Board.react.js
+  // Force React to re-render
+  forceUpdate() {
+    this._a.forceUpdate();
+    this._b.forceUpdate();
+    this.emit("update", this);
+  }
+
   update({ rated, delayStartMillis, a, b }) {
     console.log(`BughouseGame.update(...)`);
     this._rated = rated;

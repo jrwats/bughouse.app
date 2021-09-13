@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import AnalysisState from "./AnalysisState";
 import { initial } from "chessground/fen";
 
-const AnalysisMoves = ({ game }) => {
+const AnalysisMoves = ({ game, flippedBoards }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
   let idx = useRef(-1);
   useEffect(() => {
@@ -39,7 +39,7 @@ const AnalysisMoves = ({ game }) => {
     };
     const prev = moves[mvIdx - 1];
     let num = `${mv.num}.${mv.color === "black" ? ".." : ""} `;
-    let clear = <div key={mvIdx} />;
+    let clear = <div key={`${mvIdx}_clear`} />;
     let spacer = null;
     if (prev?.boardID === mv.boardID && prev?.num === mv.num) {
       num = null;
@@ -49,7 +49,7 @@ const AnalysisMoves = ({ game }) => {
       spacer = <div key={`${mvIdx}_spacer`} className={className} />;
     }
     return (
-      <>
+      <React.Fragment key={`${mvIdx}_frag`}>
         {clear}
         {spacer}
         <div
@@ -60,11 +60,11 @@ const AnalysisMoves = ({ game }) => {
           {num}
           {mv.label}
         </div>
-      </>
+      </React.Fragment>
     );
   });
   return (
-    <div id="analysis_moves" style={{ width: "20vw" }}>
+    <div className="analysis-moves" style={{ width: "20vw" }}>
       {uiMoves}
     </div>
   );
