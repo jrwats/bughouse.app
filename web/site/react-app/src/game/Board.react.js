@@ -32,15 +32,21 @@ export const BoardContext = {
   CURRENT: "current",
 };
 
+const isViewOnly = (forming, handle, chessboard) =>
+  forming ||
+    !chessboard.isInitialized() ||
+    chessboard.getGame().isAnalysis() ||
+    chessboard.getHandleColor(handle) == null;
+
 const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
-  const [viewOnly, setViewOnly] = useState(forming);
   const [boardFEN, setFEN] = useState(fen || chessboard.getBoard().fen);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
   const [handleColor, setHandleColor] = useState(
     chessboard.getHandleColor(handle)
   );
+  const [viewOnly, setViewOnly] = useState(isViewOnly(forming, handle, chessboard));
   const [promoVisible, setPromoVisible] = useState(false);
   const [sz, setSz] = useState(null);
   const pendingMove = useRef({});
@@ -85,12 +91,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
       setFEN(board.fen);
       setHandleColor(chessboard.getHandleColor(handle));
       setHoldings(holdings);
-      setViewOnly(
-        forming ||
-          !chessboard.isInitialized() ||
-          chessboard.getGame().isAnalysis() ||
-          chessboard.getHandleColor(handle) == null
-      );
+      setViewOnly(isViewOnly(forming, handle, chessboard));
     };
     const onGameOver = () => {
       console.log(`onGameOver`);
@@ -207,6 +208,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                   // re-render if the move was illegal
                   setFEN(null);
                 }}
+                lastMove={chessboard.getLastMove()}
                 animation={{ enabled: true, duration: 100 }}
                 viewOnly={viewOnly}
                 orientation={orientation}

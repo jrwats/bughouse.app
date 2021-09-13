@@ -69,7 +69,8 @@ pub struct Game {
     pub rated: bool,
     pub public: bool,
     result: Option<GameResult>,
-    last_move: [DateTime<Utc>; 2], // Time of last move on either board
+    last_move_time: [DateTime<Utc>; 2], // Time of last move on either board
+    pub last_moves: [Option<BughouseMove>; 2], // Time of last move on either board
 }
 
 impl Game {
@@ -88,7 +89,8 @@ impl Game {
             game: BughouseGame::default(),
             players,
             clocks: [[base; 2]; 2],
-            last_move: [start; 2],
+            last_move_time: [start; 2],
+            last_moves: [None; 2],
             rated,
             public: false,
             result: None,
@@ -112,7 +114,8 @@ impl Game {
             game: BughouseGame::default(),
             players: [[Some(user), None], [None, None]],
             clocks: [[base; 2]; 2],
-            last_move: [nil_date; 2],
+            last_move_time: [nil_date; 2],
+            last_moves: [None; 2],
             rated,
             public,
             result: None,
@@ -156,7 +159,7 @@ impl Game {
     pub fn start(&mut self) -> DateTime<Utc> {
         let start = Self::new_start();
         self.start = Some(start);
-        self.last_move = [start; 2];
+        self.last_move_time = [start; 2];
         start
     }
 
@@ -178,6 +181,10 @@ impl Game {
 
     pub fn get_board(&self, board_id: BoardID) -> &BughouseBoard {
         self.game.get_board(board_id)
+    }
+
+    pub fn get_last_move(&self, board_id: BoardID) -> Option<BughouseMove> {
+        self.last_moves[board_id.to_index()]
     }
 
     pub fn side_to_move(&self, board_id: BoardID) -> Color {
@@ -230,9 +237,9 @@ impl Game {
         if self.start.is_none() || now < self.start.unwrap() {
             return;
         }
-        let elapsed = (now - self.last_move[idx]).num_milliseconds() as i32;
+        let elapsed = (now - self.last_move_time[idx]).num_milliseconds() as i32;
         let inc = self.time_ctrl.get_inc_ms() as i32;
-        self.last_move[idx] = now;
+        self.last_move_time[idx] = now;
         self.clocks[idx][moved_color.to_index()] += inc - elapsed;
     }
 
@@ -319,6 +326,7 @@ impl Game {
             return Err(Error::InvalidMoveTurn);
         }
         self.game.make_move(board_id, mv)?;
+        self.last_moves[board_id.to_index()] = Some(mv.clone());
         self.check_for_mate();
         self.update_clocks(board_id, color);
         Ok(board_id)

@@ -1,4 +1,4 @@
-use bughouse::{BoardID, Color};
+use bughouse::{BoardID, BughouseMove, Color};
 use chrono::prelude::*;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -57,6 +57,7 @@ pub struct PlayerJson {
 #[derive(Debug)]
 pub struct BoardFenJson {
     fen: String,
+    last_move: Option<BughouseMove>,
     white: PlayerJson,
     black: PlayerJson,
 }
@@ -78,6 +79,19 @@ pub struct GameJson {
     start_in_ms: i32,
     a: BoardJson,
     b: BoardJson,
+}
+
+fn get_squares(maybe_mv: &Option<BughouseMove>) -> Option<Vec<String>> {
+    if let Some(mv) = maybe_mv {
+        let mut squares = Vec::new();
+        if let Some(sq) = mv.get_source() {
+            squares.push(sq.to_string());
+        }
+        squares.push(mv.get_dest().to_string());
+        Some(squares)
+    } else {
+        None
+    }
 }
 
 impl GameJson {
@@ -120,6 +134,7 @@ impl GameJson {
                 "holdings": self.a.holdings,
                 "board": {
                     "fen": self.a.board.fen,
+                    "lastMove": get_squares(&self.a.board.last_move),
                     "white": {
                       "handle": self.a.board.white.handle,
                       "ms": self.a.board.white.ms,
@@ -134,6 +149,7 @@ impl GameJson {
                 "holdings": self.b.holdings,
                 "board": {
                     "fen": self.b.board.fen,
+                    "lastMove": get_squares(&self.b.board.last_move),
                     "white": {
                       "handle": self.b.board.white.handle,
                       "ms": self.b.board.white.ms,
@@ -162,6 +178,7 @@ fn get_board_json(
         // kind,
         board: BoardFenJson {
             fen: board.get_board().to_string(),
+            last_move: game.get_last_move(board_id),
             white: PlayerJson {
                 handle: Game::handle(maybe_white),
                 ms: clocks[Color::White.to_index()],
