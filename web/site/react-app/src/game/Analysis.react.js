@@ -14,8 +14,6 @@ const Analysis = ({ gamePath }) => {
   const [flippedColors, setFlippedColors] = useState(null);
   const gamesSrc = GameStatusSource.get(socket);
   const game = gamesSrc.getGame(gameID);
-  const [boardA, setBoardA] = useState({val: game.getBoardA()});
-  const [boardB, setBoardB] = useState({val: game.getBoardB()});
 
   useEffect(() => {
     console.log(`requesting analysis`);
@@ -24,9 +22,10 @@ const Analysis = ({ gamePath }) => {
 
   const onGameUpdate = () => {
     // debugger;
-    setBoardA({val: game.getBoardA()});
-    setBoardB({val: game.getBoardB()});
     game.forceUpdate();
+    // TODO:
+    // setTimeout shouldn't be required... we're fighting React here...
+    setTimeout(() => { game.forceUpdate(); }, 50)
   };
 
   const flipColors = (_e) => { setFlippedColors(!flippedColors); onGameUpdate(); };
@@ -35,20 +34,6 @@ const Analysis = ({ gamePath }) => {
   if (flippedBoards) {
     boards.reverse();
   }
-
-  // const boards = [
-  //   <Board
-  //     chessboard={flippedBoards ? boardB : boardA}
-  //     gameID={gameID}
-  //     orientation={flippedColors ? "black" : "white"}
-  //   />,
-  //   <Board
-  //     chessboard={flippedBoards ? boardA : boardB}
-  //     gameID={gameID}
-  //     orientation={flippedColors ? "white" : "black"}
-  //   />,
-  // ];
-  //
 
   return (
     <div style={{ width: "100%", height: "100%", display: "flex" }}>
@@ -82,11 +67,11 @@ const Analysis = ({ gamePath }) => {
             </span>
           </div>
           <div className="titles">
-            <span className={flippedBoards ? "b" : "a"}>
+            <span className="a">
               <span className="arrow">{"\u{2b60}"}</span>
               <span>Board {flippedBoards ? "B" : "A"}</span>
             </span>
-            <span className={flippedBoards ? "a" : "b"}>
+            <span className="b">
               <span>Board {flippedBoards ? "A" : "B"}</span>
               <span className="arrow">{"\u{2b62}"}</span>
             </span>
