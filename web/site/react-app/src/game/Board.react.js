@@ -77,6 +77,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
 
   const game = chessboard.getGame();
   useEffect(() => {
+    setViewOnly(isViewOnly(forming, handle, chessboard));
     const onUpdate = (_) => {
       console.log(`board.react.update(...)`);
       const board = chessboard.getBoard();
