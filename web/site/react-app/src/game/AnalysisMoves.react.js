@@ -5,6 +5,8 @@ import { initial } from "chessground/fen";
 const AnalysisMoves = ({ game, flippedBoards }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
   let idx = useRef(-1);
+  let [uiIdx, setIdx]= useState(idx.current);
+
   useEffect(() => {
     const onGameUpdate = () => {
       setMoves(game.getMoves());
@@ -23,6 +25,7 @@ const AnalysisMoves = ({ game, flippedBoards }) => {
       const state = idx.current >= 0
         ? moves[idx.current].state
         : { a: {board: {fen: initial}}, b: {board: {fen: initial}}};
+      setIdx(idx.current);
       game.update(state);
       e.preventDefault();
     }
@@ -35,6 +38,7 @@ const AnalysisMoves = ({ game, flippedBoards }) => {
   const uiMoves = moves.map((mv, mvIdx) => {
     const onClick = (_e) => {
       idx.current = mvIdx;
+      setIdx(mvIdx);
       game.update(mv.state);
     };
     const prev = moves[mvIdx - 1];
@@ -48,6 +52,8 @@ const AnalysisMoves = ({ game, flippedBoards }) => {
       const className = `move ${mv.boardID ? "b" : "a"} ${mv.color}`;
       spacer = <div key={`${mvIdx}_spacer`} className={className} />;
     }
+    const boardID = mv.boardID ? "b" : "a";
+    const selected = mvIdx === uiIdx ? 'selected' : '';
     return (
       <React.Fragment key={`${mvIdx}_frag`}>
         {clear}
@@ -55,7 +61,7 @@ const AnalysisMoves = ({ game, flippedBoards }) => {
         <div
           onClick={onClick}
           key={`${mv.boardID}_${mv.num}_${mv.color}`}
-          className={`move ${mv.boardID ? "b" : "a"} ${mv.color}`}
+          className={`move ${boardID} ${mv.color} ${selected}`}
         >
           {num}
           {mv.label}

@@ -784,6 +784,24 @@ body .makeStyles-paper-161 {
   background: rgba(255, 30, 255, 0.4);
 }
 
+.move.a.selected {
+  background: rgba(120, 30, 255, 0.2);
+}
+
+.move.b.selected {
+  background: rgba(255, 30, 255, 0.25);
+}
+
+.move.selected {
+  line-height: 1.4em;
+  border-radius: 0.3rem;
+  box-shadow:
+    inset     0px 0 8px 3px rgba(205, 0, 255, 0.95),
+              0px 0 20px 4px rgba(205, 0, 255, 0.80);
+              
+}
+
+
 ::-webkit-scrollbar {
   width: 8px;
 }
