@@ -52,7 +52,7 @@ class BughouseGame extends EventEmitter {
 
   update({ rated, delayStartMillis, a, b }) {
     console.log(`BughouseGame.update(...)`);
-    this._rated = rated;
+    this._rated = rated || this._rated;
     this._setStart(delayStartMillis);
     this._a.update(a);
     this._b.update(b);
@@ -151,9 +151,10 @@ class BughouseGame extends EventEmitter {
     boards[1 - board].setWinner(_getColor(1 - winner));
     this._reason = this._deriveReason(board, kind, winner);
     this._winner = data.result[0] === "1" ? "white" : "black";
-    ScreenLock.release();
     this.emit("gameOver", data);
+    this.update(data);
     this.emit("update", data);
+    ScreenLock.release();
   }
 
   static deserializeTimeCtrl(timeCtrlStr) {
