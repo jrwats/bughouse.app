@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import AnalysisState from "./AnalysisState";
 import { initial } from "chessground/fen";
 
-const AnalysisMoves = ({ game, flippedBoards }) => {
+const AnalysisMoves = ({ game }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
   let idx = useRef(-1);
   let [uiIdx, setIdx]= useState(idx.current);
@@ -19,7 +19,7 @@ const AnalysisMoves = ({ game, flippedBoards }) => {
 
   useEffect(() => {
     const onKey = (e) => {
-      const delta = e.key === 'ArrowRight' ? 1 : 
+      const delta = e.key === 'ArrowRight' ? 1 :
         (e.key === 'ArrowLeft' ? -1 : 0)
       idx.current = Math.min(Math.max(-1 ,idx.current + delta), moves.length - 1);
       const state = idx.current >= 0

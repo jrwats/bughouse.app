@@ -28,8 +28,16 @@ const Analysis = ({ gamePath }) => {
     setTimeout(() => { game.forceUpdate(); }, 50)
   };
 
-  const flipColors = (_e) => { setFlippedColors(!flippedColors); onGameUpdate(); };
-  const flipBoards = (_e) => { setFlippedBoards(!flippedBoards); onGameUpdate(); };
+  const flipColors = (_e) => {
+    setFlippedColors(!flippedColors);
+    onGameUpdate();
+  };
+  const flipBoards = (_e) => {
+    setFlippedColors(!flippedColors);
+    setFlippedBoards(!flippedBoards);
+    onGameUpdate();
+  };
+
   const boards = [game.getBoardA(), game.getBoardB()];
   if (flippedBoards) {
     boards.reverse();
