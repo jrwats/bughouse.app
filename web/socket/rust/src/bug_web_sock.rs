@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 use crate::b66::B66;
 use crate::bughouse_server::BughouseServer;
-use crate::connection_mgr::ConnID;
+use crate::connection_mgr::{ConnectionMgr, ConnID};
 use crate::db::Db;
 use crate::error::Error;
 use crate::game::GameID;
@@ -306,8 +306,16 @@ impl BugWebSock {
         val: &Value,
         ctx: &mut <Self as Actor>::Context,
     ) -> Result<(), Error> {
-        self.ensure_authed()?;
         let recipient = ctx.address().recipient();
+        let res = self.ensure_authed();
+        if res.is_err() {
+            eprintln!(
+                "unauthed {}, conn: {}",
+                kind,
+                ConnectionMgr::get_conn_id(&recipient)
+                );
+            res?;
+        }
         match kind {
             "seek" => {
                 let time_str = Self::get_field_str(val, "time", kind)?;

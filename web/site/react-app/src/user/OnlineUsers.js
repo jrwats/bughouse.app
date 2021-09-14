@@ -92,8 +92,9 @@ class OnlineUsers extends EventEmitter {
       for (const uid of data.offline) {
         delete this._users[uid];
       }
-      for (const uid in data.online) {
-        this._users[uid] = data.online[uid];
+      for (const user of data.online) {
+        const [uid, handle, rating] = user;
+        this._users[uid] = {uid, handle, rating};
       }
       this.emit("value", this._users);
     };

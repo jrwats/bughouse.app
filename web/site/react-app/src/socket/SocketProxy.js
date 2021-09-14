@@ -124,9 +124,6 @@ class SocketProxy extends EventEmitter {
         return;
       }
       this._emit("login", data);
-      // TODO: delete old FICS logic
-      // this._sock.send("bugwho"); // request bughouse state from server
-      this._sock.send("pending"); // request pending offers from server
     };
     handlers["logged_out"] = () => {
       console.log(`${this._gcn()}  received logged_out`);

@@ -124,6 +124,9 @@ impl ConnectionMgr {
                     self.on_online_user(uid);
                 }
                 Some(v) => {
+                    if v.len() == 0 {
+                        self.on_online_user(uid);
+                    }
                     if !v.insert(conn_id) {
                         eprintln!("user_conn collision: {}", conn_id);
                     }
