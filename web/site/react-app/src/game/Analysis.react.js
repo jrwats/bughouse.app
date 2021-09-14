@@ -75,11 +75,11 @@ const Analysis = ({ gamePath }) => {
             </span>
           </div>
           <div className="titles">
-            <span className="a">
+            <span className={flippedBoards ? "b" : "a"}>
               <span className="arrow">{"\u{2b60}"}</span>
               <span>Board {flippedBoards ? "B" : "A"}</span>
             </span>
-            <span className="b">
+            <span className={flippedBoards ? "a" : "b"}>
               <span>Board {flippedBoards ? "A" : "B"}</span>
               <span className="arrow">{"\u{2b62}"}</span>
             </span>

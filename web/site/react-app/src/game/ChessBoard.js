@@ -23,7 +23,7 @@ class ChessBoard extends EventEmitter {
       board.black.handle : this._board.black.handle;
     this._board = {
       fen: board.fen || this._board.fen,
-      lastMove: board.lastMove,
+      lastMove: board.lastMove || null,
       white: {
         handle: whiteHandle,
         ms: board.white?.ms || this._board.white?.ms,
