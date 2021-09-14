@@ -634,10 +634,10 @@ body .makeStyles-paper-161 {
 .message .quick-msg {
   position: relative;
   top: -2px;
-  height: min(2vw, 4vh);
-  width: min(2vw, 4vh);
+  /* height: min(2vw, 4vh); */
+  /* width: min(2vw, 4vh); */
   font-size: min(2vw, 4vh);
-  padding: 1px 3px;
+  padding: 2px 4px;
 }
 
 .message .quick-msg .MuiSvgIcon-root {

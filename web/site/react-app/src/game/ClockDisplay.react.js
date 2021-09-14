@@ -6,12 +6,21 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 50);
 
+function getFlag(result, boardID, color) {
+  if (result?.kind === 0 &&
+    (result.board === 0) === (boardID.split('/')[1] === 'a') &&
+    (result.winner === 0) === (color === 'black')) {
+    return "\u{1f3f3} ";
+  }
+  return "";
+}
+
 const ClockDisplay = ({ color, chessboard, forming }) => {
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
   const lastUpdate = useRef(Math.max(Date.now(), chessboard.getStart() || 0));
   const [state, setState] = useState({
     playerData: chessboard.getBoard()[color],
-    gameOver: false,
+    result: null,
     ms: refTime.current,
   });
 
@@ -25,14 +34,14 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         refTime.current = milliseconds;
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
-      const gameOver = cb.getGame().getResult() != null;
-      setState({ gameOver, playerData, ms: refTime.current });
+      const result = cb.getGame().getResult();
+      setState({ result, playerData, ms: refTime.current });
     };
 
     const onTick = () => {
       if (
         forming ||
-        state.gameOver ||
+        state.result != null ||
         chessboard.getGame().isAnalysis() ||
         chessboard.getColorToMove() !== color ||
         Date.now() < chessboard.getStart()
@@ -58,11 +67,12 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
     console.error(`state.ms isNaN`);
     state.ms = 0;
   }
-  const ms = Math.max(0, state.ms);
+  const ms = Math.max(0, state.ms + 900);
   const mins = Math.floor(ms / 1000.0 / 60.0);
-  const secs = Math.floor((ms / 1000.0) % 60 + 0.01);
-  const flag = ms === 0 && state.gameOver ? "\u{1f3f3} " : "";
+  const secs = Math.floor((ms / 1000.0) % 60);
 
+  const res = state.result;
+  const flag = getFlag(state.result, chessboard.getID(), color);
   return (
     <span className="clock h6 alien" >
       {flag}{mins}:{(secs < 10 ? "0" : "") + secs}
