@@ -42,6 +42,7 @@ class AnalysisBoard {
     this.promos = new Map();
     this.toMove = "w";
     this.lastTime = 0;
+    this.lastMove = null;
   }
 
   makeMove(move) {
@@ -93,6 +94,7 @@ class AnalysisBoard {
     this.clocks[move.color === "white" ? 0 : 1] +=
       1000 * this.timeCtrl.inc - (move.ms - this.lastTime);
     this.lastTime = move.ms;
+    this.lastMove = [move.src, move.dest];
     return capturedPiece;
   }
 
@@ -122,6 +124,7 @@ class AnalysisBoard {
   getState() {
     return {
       board: {
+        lastMove: this.lastMove,
         fen: `${write(this.pieces)} ${this.toMove}`,
         white: { ms: this.clocks[0] },
         black: { ms: this.clocks[1] },
