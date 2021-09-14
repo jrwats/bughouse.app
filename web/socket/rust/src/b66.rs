@@ -3,11 +3,11 @@ use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use uuid::Uuid;
 
-// URL-safe characters
+// URL-safe characters (sorted)
 pub const ALPHABET: &[u8] =
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-*$"
+    "$*-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
         .as_bytes();
-pub const LEN: usize = ALPHABET.len() as usize; // 74
+pub const LEN: usize = ALPHABET.len() as usize; // 66
 pub const MAX_STR_LEN: usize = 22; // (66^22) > (2^128)
 
 pub fn get_byte_map() -> &'static HashMap<u8, u8> {
@@ -75,15 +75,16 @@ mod test {
     fn b66() {
         println!("LEN: {}", LEN);
         let enc = B66::encode_num(123456789);
-        assert!(enc == "6XRpR");
-        let num = B66::decode_num(&"6XRpR");
+        println!("enc: {}", enc);
+        assert!(enc == "3UOlO");
+        let num = B66::decode_num(&"3UOlO");
         assert!(num == Some(123456789 as u128));
 
         let big = B66::encode_num(std::u128::MAX);
         println!("big: {}", big);
-        assert!(big == "26Ml1pJBwNhCfTRurCkzXv");
+        assert!(big == "-3Jh*lG8sKd9bQOqn9gvUr");
         assert!(
-            Some(std::u128::MAX) == B66::decode_num(&"26Ml1pJBwNhCfTRurCkzXv")
+            Some(std::u128::MAX) == B66::decode_num(&"-3Jh*lG8sKd9bQOqn9gvUr")
         );
     }
 
@@ -94,7 +95,7 @@ mod test {
             Uuid::from_fields(std::u32::MAX, std::u16::MAX, std::u16::MAX, &d8);
         let enc = B66::encode_uuid(&max_uuid.unwrap());
         println!("enc: {}", enc);
-        assert!(enc == "26Ml1pJBwNhCfTRurCkzXv");
+        assert!(enc == "-3Jh*lG8sKd9bQOqn9gvUr");
         assert!(B66::encode_uuid(&Uuid::nil()) == "");
     }
 }
