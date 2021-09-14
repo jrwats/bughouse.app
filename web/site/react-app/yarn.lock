@@ -9836,9 +9836,9 @@ react-app-polyfill@^2.0.0:
     regenerator-runtime "^0.13.7"
     whatwg-fetch "^3.4.1"
 
-"react-chessground@git://github.com/jrwats/react-chessground":
-  version "1.5.1"
-  resolved "git://github.com/jrwats/react-chessground#c34af2d40bbed7d34073babbe79c2182f8486aee"
+"react-chessground@https://github.com/jrwats/react-chessground/archive/refs/tags/v1.5.4.tar.gz":
+  version "1.5.3"
+  resolved "https://github.com/jrwats/react-chessground/archive/refs/tags/v1.5.4.tar.gz#3cf4619eafb52d648612b337aae879da531a0f6e"
   dependencies:
     chessground "^8.1.5"
 
