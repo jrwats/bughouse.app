@@ -90,7 +90,12 @@ cg-board square.premove-dest:hover {
 }
 cg-board square.last-move {
   will-change:transform;
-  background-color:rgba(155,199,0,0.41);
+  background-color:rgba(255, 0, 70, 0.2);
+  box-shadow:
+    0px 0px 6px 2px rgba(255, 0, 255, 0.8),
+    inset 2px 2px 6px 1px rgba(200, 0, 255, 0.8),
+    inset -2px -2px 6px 1px rgba(200, 0, 255, 0.8);
+
 }
 cg-board square.selected {
   background-color:rgba(20,85,30,0.5);

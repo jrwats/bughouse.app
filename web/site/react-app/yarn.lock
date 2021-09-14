@@ -9837,7 +9837,7 @@ react-app-polyfill@^2.0.0:
     whatwg-fetch "^3.4.1"
 
 "react-chessground@file:.react-chessground":
-  version "1.5.0"
+  version "1.5.1"
   dependencies:
     chessground "^8.1.5"
 

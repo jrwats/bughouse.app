@@ -58,11 +58,14 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
     console.error(`state.ms isNaN`);
     state.ms = 0;
   }
-  const mins = Math.floor(state.ms / 1000.0 / 60.0);
-  const secs = Math.floor((state.ms / 1000.0) % 60);
+  const ms = Math.max(0, state.ms);
+  const mins = Math.floor(ms / 1000.0 / 60.0);
+  const secs = Math.floor((ms / 1000.0) % 60 + 0.01);
+  const flag = ms === 0 && state.gameOver ? "\u{1f3f3} " : "";
+
   return (
     <span className="clock h6 alien" >
-      {mins}:{(secs < 10 ? "0" : "") + secs}
+      {flag}{mins}:{(secs < 10 ? "0" : "") + secs}
     </span>
   );
 };

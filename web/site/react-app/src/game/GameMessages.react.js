@@ -156,7 +156,7 @@ const GameMessages = ({ playerColor, gameID }) => {
       </div>
       <div id="game_messages" ref={scrollRef}>
         {/* <div>Messages go here...</div> */}
-        {uiMessages.val.map((msg) => {
+        {uiMessages.val.map((msg, idx) => {
           const self = msg.self ? "self " : "";
           const quick = msg.quick || "";
           const content =
@@ -167,7 +167,7 @@ const GameMessages = ({ playerColor, gameID }) => {
                   self: msg.self,
                   playerColor,
                 });
-          return <div className={`message ${self}${quick}`}>{content}</div>;
+          return <div key={idx} className={`message ${self}${quick}`}>{content}</div>;
         })}
       </div>
 

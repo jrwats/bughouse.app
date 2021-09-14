@@ -79,7 +79,6 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
   useEffect(() => {
     setViewOnly(isViewOnly(forming, handle, chessboard));
     const onUpdate = (_) => {
-      console.log(`board.react.update(...)`);
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       const prevFen = chessgroundRef?.current?.cg?.state?.fen;
@@ -95,7 +94,6 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
       setViewOnly(isViewOnly(forming, handle, chessboard));
     };
     const onGameOver = () => {
-      console.log(`onGameOver`);
       invariant(chessboard.isFinished(), "WTF?");
       setFinished(true);
     };
@@ -121,6 +119,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
   if (finished && !chessboard.getGame().isAnalysis()) {
     alert = <GameOverMessage context={context} chessboard={chessboard} />;
   }
+  console.log(`Board ${id} viewOnly ${viewOnly}`);
   return (
     <div
       ref={boardWrapperRef}
