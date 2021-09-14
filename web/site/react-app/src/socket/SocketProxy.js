@@ -43,6 +43,12 @@ const PASSTHRU_EVENTS = [
   "unpartneredHandles",
 ];
 
+const UNAUTHED_EVENTS = new Set([
+  "auth",
+  "observe",
+  "refresh",
+]);
+
 const NOISY_EVENTS = {
   game_start: 1,
   game_end: 1,
@@ -96,7 +102,8 @@ class SocketProxy extends EventEmitter {
   }
 
   _send(kind, data) {
-    if (this._sock?.readyState() === WebSocket.OPEN) {
+    if (this._sock?.readyState() === WebSocket.OPEN &&
+      (this._handle != null || UNAUTHED_EVENTS.has(kind))) {
       this._sock.send(JSON.stringify({ ...data, kind }));
     } else {
       console.log(`queing ${kind} msg`);
@@ -123,6 +130,10 @@ class SocketProxy extends EventEmitter {
         this._logout();
         return;
       }
+      for (const args of this._msgQueue) {
+        this._send.apply(this, args);
+      }
+      this._msgQueue = [];
       this._emit("login", data);
     };
     handlers["logged_out"] = () => {
@@ -208,10 +219,6 @@ class SocketProxy extends EventEmitter {
     const url = new URL(WS_URL);
     this._sock = new PhoenixSocket(url);
     this._sock.on("open", (evt) => {
-      for (const args of this._msgQueue) {
-        this._send.apply(this, args);
-      }
-      this._msgQueue = [];
       this._authenticate();
     });
 
