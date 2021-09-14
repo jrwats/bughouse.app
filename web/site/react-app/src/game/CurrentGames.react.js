@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { navigate } from "@reach/router";
 import Box from "@material-ui/core/Box";
 import Board, { BoardContext } from "./Board.react";
 import Grid from "@material-ui/core/Grid";
@@ -62,8 +63,11 @@ const CurrentGames = () => {
         orientation="black"
       />,
     ];
+    const onClick = (_e) => {
+      navigate(`/arena/${game.getID()}`);
+    }
     return (
-      <Grid container spacing={2}>
+      <Grid className="currentGame" onClick={onClick} container spacing={2}>
         <Grid item xs={6}>
           {boards[0]}
         </Grid>

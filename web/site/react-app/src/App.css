@@ -129,7 +129,7 @@
   font-weight: 300;
   text-align: center;
   color: rgba(180, 0, 255, 0.8);
-  font-size: min(1.3rem, 3vw, 4vh);
+  font-size: 1.5em;
 }
 
 @keyframes small-glow {
@@ -371,6 +371,10 @@ body .mono {
   font-weight: 500;
   border-radius: 32%;
   border-width: 1px;
+}
+
+.currentGame {
+  cursor: pointer;
 }
 
 /* Games: Table/Arena */
