@@ -52,7 +52,6 @@ const UNAUTHED_EVENTS = new Set([
 const NOISY_EVENTS = {
   game_start: 1,
   game_end: 1,
-  game_row: 1,
   game_update: 1,
   public_table: 1,
 };
@@ -213,7 +212,6 @@ class SocketProxy extends EventEmitter {
       // Round-trip-time / 2 == end-to-end delay (AKA latency)
       const latency = (Date.now() - msg.timestamp) / 2.0;
       this.emit("latency", latency);
-      console.log(`client latency: ${latency}ms`);
     };
 
     const url = new URL(WS_URL);

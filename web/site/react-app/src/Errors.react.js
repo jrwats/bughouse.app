@@ -20,7 +20,7 @@ function getErrorMessage(err) {
     case "in_game":
       const game_id = err.err.game_id;
       return (
-        <span>Already seated at: &nbsp; 
+        <span>Already seated at: &nbsp;
           <Link to={`/table/${game_id}`}>{game_id}</Link>
         </span>
       );
@@ -38,14 +38,12 @@ const Errors = () => {
   const { socket } = useContext(SocketContext);
   let errors = useRef([]);
   let [uiErrors, setErrors] = useState({val: errors.current});
-  console.log(`Errors, uiErrors: ${JSON.stringify(uiErrors)}`);
 
   useEffect(() => {
     const onErr = (e) => {
       console.error(`Errors.onErr: ${JSON.stringify(e)}`);
       errors.current.push(e);
       setErrors({val: errors.current});
-      console.log(`errors: ${JSON.stringify(errors)}`);
     };
     socket.on('err', onErr);
     return () => { socket.off('err', onErr); };
@@ -67,7 +65,6 @@ const Errors = () => {
       </Alert>
     );
   });
-  console.log(`alerts: ${JSON.stringify(uiErrors)}`);
   return (
     <div className={classes.root}>
       <Snackbar

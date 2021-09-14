@@ -119,7 +119,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
   if (finished && !chessboard.getGame().isAnalysis()) {
     alert = <GameOverMessage context={context} chessboard={chessboard} />;
   }
-  console.log(`Board ${id} viewOnly ${viewOnly}`);
+  // console.log(`Board ${id} viewOnly ${viewOnly}`);
   return (
     <div
       ref={boardWrapperRef}

@@ -9,23 +9,41 @@ export const SocketContext = createContext({
   loggedOut: true,
   handle: null,
   outputLog: "",
+  ping: null,
+  pings: [],
 });
 
 const normalize = (msg) => msg.split("\n\r").join("\n");
+const ROLLING_AVG_LEN = 7;
 
 const SocketProvider = (props) => {
   const { user } = props;
   const proxy = SocketProxy.get();
 
+  const idx = useRef(0);
   const [socket, setSocket] = useState(proxy);
+  const [ping, setPing] = useState(null);
+  const [pings, setPings] = useState([]);
   const [handle, setHandle] = useState(proxy.getHandle());
   const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState("");
   const log = useRef("");
 
   useEffect(() => {
+    const onLatency = (latency) => {
+      pings[idx.current++ % ROLLING_AVG_LEN] = latency;
+      setPings(pings);
+      setPing(pings.reduce((a,b) => a + b, 0) / pings.length);
+    }
+    socket.on('latency', onLatency);
+    return () => {
+      socket.off('latency', onLatency);
+    }
+  }, [socket]);
+
+  useEffect(() => {
     console.log(
-      `${Date.now()}: SocketProvider creating SocketProxy. ${user?.uid}`
+      `${Date.now()}: [] creating SocketProxy. ${user?.uid}`
     );
     const proxy = SocketProxy.get();
     proxy.setUser(user);
@@ -69,7 +87,7 @@ const SocketProvider = (props) => {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, loggedOut, handle, outputLog }}>
+    <SocketContext.Provider value={{ socket, loggedOut, handle, outputLog, ping, pings }}>
       {props.children}
     </SocketContext.Provider>
   );

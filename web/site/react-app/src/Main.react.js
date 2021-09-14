@@ -10,7 +10,6 @@ import Table from "./game/Table.react";
 import { Router } from "@reach/router";
 
 const Main = (props) => {
-  console.log("Main");
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <div style={{ position: "absolute" }}>
