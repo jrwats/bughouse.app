@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@jrwats/react-chessground": "^1.5.4",
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.60",
@@ -15,7 +16,6 @@
     "invariant": "^2.2.4",
     "prettier": "^2.3.2",
     "react": "^17.0.2",
-    "react-chessground": "https://github.com/jrwats/react-chessground/archive/refs/tags/v1.5.4.tar.gz",
     "react-dom": "^17.0.2",
     "react-draggable": "^4.4.3",
     "react-firebaseui": "^5.0.2",

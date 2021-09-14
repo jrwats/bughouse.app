@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import "./chessground.css";
 import BoardGutter from "./BoardGutter.react";
-import Chessground from "react-chessground";
+import Chessground from "@jrwats/react-chessground";
 import GameOverMessage from "./GameOverMessage.react";
 import Holdings from "./Holdings.react";
 import PromotionDialog from "./PromotionDialog.react";
