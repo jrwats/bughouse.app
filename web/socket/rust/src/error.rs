@@ -81,6 +81,9 @@ pub enum Error {
     #[error("Firebase err {0}")]
     FirebaseError(String),
 
+    #[error("Can't create rated game as guest")]
+    CreateRatedGameGuest(),
+
     #[error("Can't sit guest at rated game: {0}, {1}")]
     SeatGuestAtRatedGame(UserID, GameID),
 

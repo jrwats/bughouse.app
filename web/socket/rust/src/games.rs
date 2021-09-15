@@ -307,7 +307,8 @@ impl Games {
         game_id: GameID,
         mv: &BughouseMove,
         uid: UserID,
-    ) -> Result<(Arc<RwLock<Game>>, BoardID), Error> {
+    ) -> Result<(), Error> {
+        Ok(())
     }
 
     pub fn make_move(

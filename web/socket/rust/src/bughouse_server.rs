@@ -665,8 +665,12 @@ impl BughouseServer {
         if let Some(game) = self.games.get_user_game(&uid) {
             let gid = B66::encode_uuid(game.read().unwrap().get_id());
             return Err(Error::InGame(uid.to_string(), gid));
-        }
+        } 
         let user = self.user_from_uid(&uid).await?;
+        if user.read().unwrap().guest && rated {
+            return Err(Error::CreateRatedGameGuest());
+        }
+
         println!("form_table, user ID: {}", uid);
         let snaps = self.get_table_rating_snapshots(user.clone());
         println!("snaps: {:?}", snaps);
