@@ -1,5 +1,5 @@
 use actix::prelude::*;
-use bughouse::{BoardID, BughouseMove, Color, ALL_COLORS, BOARD_IDS};
+use bughouse::{BoardID, BughouseMove, Color};
 use bytestring::ByteString;
 use chrono::prelude::*;
 use num_integer::div_rem;
@@ -10,7 +10,7 @@ use std::sync::{Arc, RwLock};
 use crate::b66::B66;
 use crate::connection_mgr::{ConnectionMgr, UserID};
 use crate::error::Error;
-use crate::game::{Game, GameID, GamePlayers, GameStatus};
+use crate::game::{Game, GameID, GamePlayers};
 use crate::game_json::{GameJson, GameJsonKind};
 use crate::messages::{
     ClientMessage, ClientMessageKind, UserStateKind, UserStateMessage,

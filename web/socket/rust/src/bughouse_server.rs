@@ -39,7 +39,7 @@ pub struct BughouseServer {
     seeks: Seeks,
     loopback: Recipient<ServerMessage>,
     games: Arc<Games>,
-    partners: HashMap<UserID, UserID>,
+    // partners: HashMap<UserID, UserID>,
     db: Arc<Db>,
     // timer: Arc<Timer>,
     // tx: Mutex<Sender<ChanMsg>>,
@@ -246,7 +246,7 @@ impl BughouseServer {
             loopback,
             seeks: Seeks::new(users),
             games,
-            partners: HashMap::new(),
+            // partners: HashMap::new(),
             db,
             // timer,
             // tx: Mutex::new(tx),
@@ -577,7 +577,6 @@ impl BughouseServer {
         board_id: BoardID,
         color: Color,
         conn_id: &ConnID,
-        recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         self.loopback
             .do_send(ServerMessage::new(ServerMessageKind::Sit(
@@ -913,12 +912,11 @@ impl BughouseServer {
     pub fn on_close(
         &'static self,
         recipient: &Recipient<ClientMessage>,
-    ) -> Result<(), Error> {
+    ) {
         self.games.remove_recipient(recipient);
         self.conns
             .on_close(recipient)
             .expect("Couldn't remove conn");
-        Ok(())
     }
 
     pub async fn add_conn(

@@ -368,7 +368,7 @@ impl BugWebSock {
                 let res = self
                     .data
                     .server
-                    .queue_sit(&game_id, board_id, color, &self.id, recipient);
+                    .queue_sit(&game_id, board_id, color, &self.id);
                 if let Err(e) = res {
                     eprintln!("sit err: {}", e);
                 }
@@ -395,7 +395,7 @@ impl BugWebSock {
             "sub_current_games" => {
                 self.data
                     .server
-                    .sub_current_games(ctx.address().recipient());
+                    .sub_current_games(ctx.address().recipient()).ok();
                 let players_msg = self.data.server.get_current_games_json()?;
                 println!("sub_current_games: {}", players_msg);
                 ctx.text(players_msg);
@@ -403,12 +403,12 @@ impl BugWebSock {
             "unsub_current_games" => {
                 self.data
                     .server
-                    .unsub_current_games(ctx.address().recipient());
+                    .unsub_current_games(ctx.address().recipient()).ok();
             }
             "sub_public_tables" => {
                 self.data
                     .server
-                    .sub_public_tables(ctx.address().recipient());
+                    .sub_public_tables(ctx.address().recipient()).ok();
                 // TODO enable paging?
                 // (Not until we have 100s of concurrent tables...)
                 let tables_msg = self.data.server.get_public_tables_msg()?;
@@ -417,12 +417,12 @@ impl BugWebSock {
             "unsub_public_tables" => {
                 self.data
                     .server
-                    .unsub_public_tables(ctx.address().recipient());
+                    .unsub_public_tables(ctx.address().recipient()).ok();
             }
             "sub_online_players" => {
                 self.data
                     .server
-                    .sub_online_players(ctx.address().recipient());
+                    .sub_online_players(ctx.address().recipient()).ok();
                 let players_msg = self.data.server.get_online_players_msg(
                     None,
                     u64::MAX,
@@ -433,7 +433,7 @@ impl BugWebSock {
             "unsub_online_players" => {
                 self.data
                     .server
-                    .unsub_online_players(ctx.address().recipient());
+                    .unsub_online_players(ctx.address().recipient()).ok();
             }
             "online_players" => {
                 let cursor = if let Some(uid_str) = val["cursor"].as_str() {
@@ -458,7 +458,7 @@ impl BugWebSock {
                 println!("game_msg: {}", val);
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 println!("game_msg: {}", game_id);
-                self.data.server.send_game_msg(game_id, val, &self.id);
+                self.data.server.send_game_msg(game_id, val, &self.id).ok();
             }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;

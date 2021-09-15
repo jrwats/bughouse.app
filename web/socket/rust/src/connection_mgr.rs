@@ -269,17 +269,17 @@ impl ConnectionMgr {
         whandlers.remove(&recipient);
     }
 
-    fn on_online_user(&self, uid: UserID) -> Result<(), Error> {
+    fn on_online_user(&self, uid: UserID) {
         self.notify_online_subs([uid].iter().cloned().collect(), HashSet::new())
     }
 
-    fn on_offline_user(&self, uid: UserID) -> Result<(), Error> {
+    fn on_offline_user(&self, uid: UserID) {
         let msg = UserStateMessage::new(UserStateKind::Offline(uid));
         self.notify_user_handlers(msg);
         self.notify_online_subs(HashSet::new(), [uid].iter().cloned().collect())
     }
 
-    fn notify_user_handlers(&self, msg: UserStateMessage) -> Result<(), Error> {
+    fn notify_user_handlers(&self, msg: UserStateMessage) {
         let rhandlers = self.user_handlers.read().unwrap();
         for handler in rhandlers.iter() {
             let res = handler.do_send(msg.clone());
@@ -287,14 +287,13 @@ impl ConnectionMgr {
                 eprintln!("Failed sending to user handler: {}", e);
             }
         }
-        Ok(())
     }
 
     fn notify_online_subs(
         &self,
         online: HashSet<UserID>,
         offline: HashSet<UserID>,
-    ) -> Result<(), Error> {
+    ) {
         let players: Vec<(String, String, Option<i16>)> =
             Self::get_online_players(
                 online
@@ -334,7 +333,6 @@ impl ConnectionMgr {
         for sub in subs_to_remove.iter() {
             wsubs.remove(sub);
         }
-        Ok(())
     }
 
     pub fn remove_conn(&self, conn_id: &ConnID) -> Result<(), Error> {
