@@ -14,7 +14,7 @@ export const SocketContext = createContext({
 });
 
 const normalize = (msg) => msg.split("\n\r").join("\n");
-const ROLLING_AVG_LEN = 7;
+const ROLLING_AVG_LEN = 3;
 
 const SocketProvider = (props) => {
   const { user } = props;
