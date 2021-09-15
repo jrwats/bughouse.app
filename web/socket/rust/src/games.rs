@@ -302,6 +302,14 @@ impl Games {
         }
     }
 
+    pub fn premove(
+        &'static self,
+        game_id: GameID,
+        mv: &BughouseMove,
+        uid: UserID,
+    ) -> Result<(Arc<RwLock<Game>>, BoardID), Error> {
+    }
+
     pub fn make_move(
         &'static self,
         game_id: GameID,

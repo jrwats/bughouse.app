@@ -460,10 +460,21 @@ impl BugWebSock {
                 println!("game_msg: {}", game_id);
                 self.data.server.send_game_msg(game_id, val, &self.id).ok();
             }
+            "premove" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                let mv_str = Self::get_field_str(val, "move", kind)?;
+                let bug_mv = BughouseMove::from_str(&mv_str)?;
+                println!("premove: {:?}", bug_mv);
+                let res = self.data.server.premove(game_id, bug_mv, self.id);
+            }
+            "cancel_premove" => {
+                let game_id: GameID = Self::get_uuid(val, "id", kind)?;
+                println!("cancel_premove: {}, {}", game_id, self.id);
+                self.data.server.cancel_premove(game_id, self.id);
+            }
             "move" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;
                 let mv_str = Self::get_field_str(val, "move", kind)?;
-                println!("mv_str: {}", mv_str);
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
                 println!("bug_mv: {:?}", bug_mv);
                 let res = self.data.server.make_move(game_id, &bug_mv, self.id);

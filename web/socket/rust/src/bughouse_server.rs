@@ -765,6 +765,23 @@ impl BughouseServer {
         })
     }
 
+    pub fn premove(
+        &'static self,
+        game_id: GameID,
+        mv: BughouseMove,
+        conn_id: ConnID,
+        ) -> Result<(), Error> {
+        Ok(())
+    }
+
+    pub fn cancel_premove(
+        &'static self,
+        game_id: GameID,
+        conn_id: ConnID,
+        ) -> Result<(), Error> {
+        Ok(())
+    }
+
     pub fn make_move(
         &'static self,
         game_id: GameID,

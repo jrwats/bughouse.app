@@ -119,6 +119,37 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
   if (finished && !chessboard.getGame().isAnalysis()) {
     alert = <GameOverMessage context={context} chessboard={chessboard} />;
   }
+  const premovable = {
+    enabled: true,
+    castle: true,
+    events: {
+      set: (src, dest) => {
+        debugger;
+        return true;
+      },
+      unset: () => {
+        debugger;
+      }
+    }
+  };
+
+  const predroppable = {
+    enabled: true,
+    events: {
+      set: (role, key) => {
+        debugger;
+      },
+      unset: () => {
+        debugger;
+      }
+    }
+  };
+  window[`__dbg${id}`] = chessgroundRef?.current?.cg;
+
+  const turnColor = (boardFEN != null && boardFEN.split(" ")[1] === 'w')
+    ? 'white'
+    : 'black';
+
   // console.log(`Board ${id} viewOnly ${viewOnly}`);
   return (
     <div
@@ -182,14 +213,13 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                 key={chessboard.getID()}
                 fen={boardFEN}
                 onMove={(from, to, e) => {
+                  debugger;
                   const pieces = chessgroundRef.current.cg.state.pieces;
-                  const sideToMove = boardFEN.split(" ")[1];
-                  const colorToMove = sideToMove === "w" ? "white" : "black";
                   if (
-                    handleColor === colorToMove &&
+                    handleColor === turnColor &&
                     pieces.get(to)?.role === PIECES.PAWN &&
-                    ((to[1] === "1" && sideToMove === "b") ||
-                      (to[1] === "8" && sideToMove === "w"))
+                    ((to[1] === "1" && turnColor  === "black") ||
+                      (to[1] === "8" && turnColor === "white"))
                   ) {
                     setPromoVisible(true);
                     pendingMove.current = { from, to };
@@ -208,9 +238,13 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                   // re-render if the move was illegal
                   setFEN(null);
                 }}
+                turnColor={turnColor}
                 lastMove={chessboard.getLastMove()}
                 animation={{ enabled: true, duration: 100 }}
                 viewOnly={viewOnly}
+                movable={{ color: handleColor ?? undefined }}
+                premovable={viewOnly ? null : premovable}
+                predroppable={viewOnly ? null : predroppable}
                 orientation={orientation}
                 pieceKey={true}
                 coordinates={false}
