@@ -41,6 +41,7 @@ const isViewOnly = (forming, handle, chessboard) =>
 const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) => {
   const { socket, handle } = useContext(SocketContext);
   const [boardFEN, setFEN] = useState(fen || chessboard.getBoard().fen);
+  const premove = useRef(null);
   const [holdings, setHoldings] = useState(chessboard.getHoldings());
   const [finished, setFinished] = useState(chessboard.isFinished());
   const [handleColor, setHandleColor] = useState(
@@ -83,9 +84,15 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
       const holdings = chessboard.getHoldings();
       const prevFen = chessgroundRef?.current?.cg?.state?.fen;
       if (boardFEN != null && board.fen !== prevFen) {
+        if (premove.current != null) {
+          socket.sendEvent("move", { id: gameID, move: premove.current });
+          premove.current = null;
+          chessgroundRef.current.cg.cancelPremove();
+        }
         const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
         const file =
           handleColor === colorToMove ? GenericNotifySound : MoveSound;
+
         playAudio(file);
       }
       setFEN(board.fen);
@@ -125,9 +132,10 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
     events: {
       set: (src, dest) => {
         console.log(`premove: ${src}, ${dest}`);
+        premove.current = `${src}${dest}`;
       },
       unset: () => {
-        debugger;
+        premove.current = null;
       }
     }
   };
@@ -228,14 +236,11 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                     `onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`
                   );
                   // Send UCI formatted move
-                  socket.sendEvent("move", {
-                    id: gameID,
-                    move: `${from}${to}`,
-                  });
+                  socket.sendEvent("move", { id: gameID, move: `${from}${to}` });
 
                   // Done so that a gameUpdate will trigger a
                   // re-render if the move was illegal
-                  // setFEN(null);
+                  setFEN(null);
                 }}
                 turnColor={turnColor}
                 lastMove={chessboard.getLastMove()}
