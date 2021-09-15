@@ -235,7 +235,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
 
                   // Done so that a gameUpdate will trigger a
                   // re-render if the move was illegal
-                  setFEN(null);
+                  // setFEN(null);
                 }}
                 turnColor={turnColor}
                 lastMove={chessboard.getLastMove()}
