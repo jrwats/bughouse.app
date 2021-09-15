@@ -124,8 +124,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
     castle: true,
     events: {
       set: (src, dest) => {
-        debugger;
-        return true;
+        console.log(`premove: ${src}, ${dest}`);
       },
       unset: () => {
         debugger;

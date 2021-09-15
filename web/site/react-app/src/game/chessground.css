@@ -104,7 +104,11 @@ cg-board square.check {
   background:radial-gradient(ellipse at center,rgba(255,0,0,1) 0,rgba(231,0,0,1) 25%,rgba(169,0,0,0) 89%,rgba(158,0,0,0) 100%);
 }
 cg-board square.current-premove {
-  background-color:rgba(20,30,85,0.5);
+  background-color:rgba(180,50,255,0.5);
+  box-shadow:
+    0px 0px 6px 3px rgba(140, 0, 255, 0.7),
+    inset 1px 1px 6px 1px rgba(140, 0, 255, 0.80),
+    inset -1px -1px 6px 1px rgba(140, 0, 255, 0.80);
 }
 .cg-wrap piece {
   background-size:cover;
