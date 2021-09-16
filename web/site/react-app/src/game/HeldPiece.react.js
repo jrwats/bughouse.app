@@ -6,18 +6,20 @@ import { SocketContext } from "../socket/SocketProvider";
 const HeldPiece = ({
   boardID,
   chessboard,
-  container,
   chessgroundRef,
   color,
+  container,
   count,
   gameID,
+  onPredrop,
   piece,
   top,
   viewOnly,
 }) => {
-  const disabled = viewOnly || count === 0;
+  const { handle, socket } = useContext(SocketContext);
+  const disabled = viewOnly || count === 0 ||
+    chessboard.getHandleColor(handle) == null;
   const pieceRef = useRef(null);
-  const { socket } = useContext(SocketContext);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
   const relRef = useRef(null);
 
@@ -32,17 +34,22 @@ const HeldPiece = ({
       chessground.props.orientation === "white",
       chessground.el.getBoundingClientRect()
     );
-    setTimeout(() => {
-      setCoords({ x: 0, y: 0 });
-    }, 80);
+    setTimeout(() => { setCoords({ x: 0, y: 0 }); }, 80);
     // if the move is offboard or there is a piece in the location,
     // just cancel immediately.
-    if (key == null || chessboard.getColorToMove() !== color) {
+    const move = `${piece}@${key}`;
+    if (key == null) {
+      return;
+    } else if (chessboard.getColorToMove() !== color) {
+      // Try a pre-drop
+      chessground.cg.cancelPredrop();
+      chessground.cg.set({predroppable: {current: {role: piece, key}}});
+      onPredrop(`${move}`);
       return;
     }
     chessground.cg.newPiece({ role: NAMES[piece], color: color }, key);
     chessboard.decrHolding({ color, piece });
-    socket.sendEvent("move", { id: gameID, move: `${piece}@${key}` });
+    socket.sendEvent("move", { id: gameID, move});
   }
 
   const visibility = count === 0 ? "hidden" : "visible";

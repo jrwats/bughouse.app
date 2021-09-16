@@ -4,12 +4,13 @@ import { opposite } from "chessground/util";
 
 const PlayerHoldings = ({
   boardID,
-  chessground,
   chessboard,
+  chessground,
+  color,
   container,
   gameID,
   holdings,
-  color,
+  onPredrop,
   viewOnly,
 }) => {
   const piece2count = { P: 0, B: 0, N: 0, R: 0, Q: 0 };
@@ -31,6 +32,7 @@ const PlayerHoldings = ({
             piece={piece}
             count={piece2count[piece]}
             viewOnly={viewOnly}
+            onPredrop={onPredrop}
           />
         );
         return comp;
@@ -41,11 +43,12 @@ const PlayerHoldings = ({
 
 const Holdings = ({
   boardID,
+  chessboard,
+  chessground,
   gameID,
   height,
-  chessground,
-  chessboard,
   holdings,
+  onPredrop,
   orientation,
   viewOnly,
 }) => {
@@ -64,6 +67,7 @@ const Holdings = ({
       container={containerRef}
       color={color}
       holdings={playerHoldings}
+      onPredrop={onPredrop}
       viewOnly={color !== orientation}
     />
   );

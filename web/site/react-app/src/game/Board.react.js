@@ -88,6 +88,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
           socket.sendEvent("move", { id: gameID, move: premove.current });
           premove.current = null;
           chessgroundRef.current.cg.cancelPremove();
+          chessgroundRef.current.cg.cancelPredrop();
         }
         const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
         const file =
@@ -140,6 +141,11 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
     }
   };
 
+  const onPredrop = (move) => {
+    premove.current = move;
+    chessgroundRef.current.cg.cancelPremove();
+  }
+
   const predroppable = {
     enabled: true,
     events: {
@@ -147,7 +153,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
         debugger;
       },
       unset: () => {
-        debugger;
+        premove.current = null;
       }
     }
   };
@@ -200,6 +206,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
             holdings={holdings}
             chessboard={chessboard}
             viewOnly={viewOnly}
+            onPredrop={onPredrop}
           />
           <div
             style={{
@@ -245,6 +252,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                 turnColor={turnColor}
                 lastMove={chessboard.getLastMove()}
                 animation={{ enabled: true, duration: 100 }}
+                disableContextMenu={true}
                 viewOnly={viewOnly}
                 movable={{ color: handleColor ?? undefined }}
                 premovable={viewOnly ? null : premovable}
