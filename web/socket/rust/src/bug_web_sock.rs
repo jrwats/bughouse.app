@@ -465,7 +465,7 @@ impl BugWebSock {
                 let mv_str = Self::get_field_str(val, "move", kind)?;
                 let bug_mv = BughouseMove::from_str(&mv_str)?;
                 println!("premove: {:?}", bug_mv);
-                let res = self.data.server.premove(game_id, bug_mv, self.id);
+                self.data.server.premove(game_id, bug_mv, self.id);
             }
             "cancel_premove" => {
                 let game_id: GameID = Self::get_uuid(val, "id", kind)?;

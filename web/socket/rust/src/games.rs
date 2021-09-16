@@ -197,6 +197,10 @@ impl Games {
     ) -> Result<Arc<RwLock<Game>>, Error> {
         let game = self.get(&game_id).ok_or(Error::InvalidGameID(game_id))?;
         {
+            let mut user_games = self.user_games.write().unwrap();
+            user_games.remove(&uid);
+        }
+        {
             let mut wgame = game.write().unwrap();
             let bidx = board_id.to_index();
             let cidx = color.to_index();
