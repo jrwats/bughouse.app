@@ -308,9 +308,9 @@ impl Games {
 
     pub fn premove(
         &'static self,
-        game_id: GameID,
-        mv: &BughouseMove,
-        uid: UserID,
+        _game_id: GameID,
+        _mv: &BughouseMove,
+        _uid: UserID,
     ) -> Result<(), Error> {
         Ok(())
     }

@@ -771,17 +771,17 @@ impl BughouseServer {
 
     pub fn premove(
         &'static self,
-        game_id: GameID,
-        mv: BughouseMove,
-        conn_id: ConnID,
+        _game_id: GameID,
+        _mv: BughouseMove,
+        _conn_id: ConnID,
         ) {
         // TODO
     }
 
     pub fn cancel_premove(
         &'static self,
-        game_id: GameID,
-        conn_id: ConnID,
+        _game_id: GameID,
+        _conn_id: ConnID,
         ) {
         // TODO
     }
