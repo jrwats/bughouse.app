@@ -163,7 +163,6 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
     ? 'white'
     : 'black';
 
-  // console.log(`Board ${id} viewOnly ${viewOnly}`);
   return (
     <div
       ref={boardWrapperRef}

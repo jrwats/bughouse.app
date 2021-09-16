@@ -30,7 +30,8 @@ function toKey(sqIdx) {
 
 // assumes piece.role is KING
 const isCastle = (move) =>
-  move.src[1] === move.dest[1] && Math.abs(move.src[0] - move.dest[0]) > 1;
+  move.src[1] === move.dest[1] &&
+    Math.abs(move.src.charCodeAt(0) - move.dest.charCodeAt(0)) > 1;
 
 class AnalysisBoard {
   constructor(timeCtrl) {
@@ -42,7 +43,7 @@ class AnalysisBoard {
     this.promos = new Map();
     this.toMove = "w";
     this.lastTime = 0;
-    this.lastMove = null;
+    this.lastMove = undefined;
   }
 
   makeMove(move) {
@@ -169,6 +170,7 @@ class AnalysisBoard {
 class AnalysisState {
   constructor(timeCtrl) {
     this._boards = [new AnalysisBoard(timeCtrl), new AnalysisBoard(timeCtrl)];
+    this._lastMoves = [undefined, undefined];
   }
 
   toAnalysisMove(move) {
@@ -208,11 +210,10 @@ class AnalysisState {
   formMoves(serializedMoves) {
     // NOTE: keys *should* already come in sorted order, but w/e
     let moveNums = [0, 0];
-    const self = this;
     return Object.keys(serializedMoves)
       .map((k) => parseInt(k))
       .sort((a, b) => a - b)
-      .map((k) => self.deserialize(k, serializedMoves[k], moveNums));
+      .map((k) => this.deserialize(k, serializedMoves[k], moveNums));
   }
 }
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import AnalysisState from "./AnalysisState";
 import { initial } from "chessground/fen";
 
 const AnalysisMoves = ({ game }) => {
@@ -35,6 +34,7 @@ const AnalysisMoves = ({ game }) => {
     }
   }, [moves]);
 
+  window.__analysisGame = game;
   const uiMoves = moves.map((mv, mvIdx) => {
     const onClick = (_e) => {
       idx.current = mvIdx;

@@ -93,7 +93,7 @@ class BughouseGame extends EventEmitter {
   }
 
   getMoves() {
-    return this._moves;
+    return this._moves.slice();
   }
 
   setTimeControl(timeCtrlStr) {

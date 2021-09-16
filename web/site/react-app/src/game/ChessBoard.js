@@ -23,7 +23,7 @@ class ChessBoard extends EventEmitter {
       board.black.handle : this._board.black.handle;
     this._board = {
       fen: board.fen || this._board.fen,
-      lastMove: board.lastMove || null,
+      lastMove: board.lastMove?.slice(),
       white: {
         handle: whiteHandle,
         ms: board.white?.ms || this._board.white?.ms,
@@ -91,9 +91,6 @@ class ChessBoard extends EventEmitter {
     }
     const prevHoldings = holdings;
     this._holdings = holdings.substr(0, idx) + holdings.substr(idx + 1);
-    console.log(
-      `ChessBoard decrHolding ${prevHoldings} => ${this._holdings[color]}`
-    );
     this.emit("update", this);
   }
 

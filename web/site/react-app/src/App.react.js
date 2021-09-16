@@ -12,7 +12,7 @@ import Arena from "./game/Arena.react";
 import UsersProvider from "./user/UsersProvider";
 import ViewerProvider from "./user/ViewerProvider";
 import { Router } from "@reach/router";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
+import { createTheme, ThemeProvider } from "@material-ui/core/styles";
 import purple from "@material-ui/core/colors/purple";
 // import deepPurple from '@material-ui/core/colors/purple';
 
@@ -28,7 +28,7 @@ const GuestTable = ({ gamePath }) => {
 };
 
 const App = () => {
-  const darkTheme = createMuiTheme({
+  const darkTheme = createTheme({
     palette: {
       type: "dark",
       primary: purple,
