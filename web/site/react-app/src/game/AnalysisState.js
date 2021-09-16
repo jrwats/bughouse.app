@@ -94,7 +94,7 @@ class AnalysisBoard {
     this.clocks[move.color === "white" ? 0 : 1] +=
       1000 * this.timeCtrl.inc - (move.ms - this.lastTime);
     this.lastTime = move.ms;
-    this.lastMove = [move.src, move.dest];
+    this.lastMove = [move.src, move.dest].filter(s => s != null);
     return capturedPiece;
   }
 

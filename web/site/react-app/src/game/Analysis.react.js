@@ -21,7 +21,6 @@ const Analysis = ({ gamePath }) => {
   }, [socket]);
 
   const onGameUpdate = () => {
-    // debugger;
     game.forceUpdate();
     // TODO:
     // setTimeout shouldn't be required... we're fighting React here...
@@ -50,6 +49,7 @@ const Analysis = ({ gamePath }) => {
           chessboard={boards[0]}
           fen={boards[0].getBoard().fen}
           gameID={gameID}
+          id={`boardLeft`}
           orientation={flippedColors ? "black" : "white"}
         />
       </div>
@@ -92,6 +92,7 @@ const Analysis = ({ gamePath }) => {
           chessboard={boards[1]}
           fen={boards[1].getBoard().fen}
           gameID={gameID}
+          id={`boardRight`}
           orientation={flippedColors ? "white" : "black"}
         />
       </div>
