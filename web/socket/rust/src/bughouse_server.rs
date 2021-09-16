@@ -774,16 +774,16 @@ impl BughouseServer {
         game_id: GameID,
         mv: BughouseMove,
         conn_id: ConnID,
-        ) -> Result<(), Error> {
-        Ok(())
+        ) {
+        // TODO
     }
 
     pub fn cancel_premove(
         &'static self,
         game_id: GameID,
         conn_id: ConnID,
-        ) -> Result<(), Error> {
-        Ok(())
+        ) {
+        // TODO
     }
 
     pub fn make_move(
