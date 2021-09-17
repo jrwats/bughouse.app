@@ -6,11 +6,12 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 50);
 
+const FLAG = "\u{1F6A9}";
 function getFlag(result, boardID, color) {
   if (result?.kind === 0 &&
     (result.board === 0) === (boardID.split('/')[1] === 'a') &&
     (result.winner === 0) === (color === 'black')) {
-    return "\u{1f3f3} ";
+    return `${FLAG} `;
   }
   return "";
 }

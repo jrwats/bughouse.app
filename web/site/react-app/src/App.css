@@ -379,6 +379,7 @@ body .mono {
 
 /* Games: Table/Arena */
 .countCircle {
+  cursor: pointer;
   position: absolute;
   line-height: min(1vw, 4vh);
   font-weight: 800;
@@ -627,10 +628,6 @@ body .makeStyles-paper-161 {
   transform: translate(-2%, 10%);
 }
 
-.message {
-  font-size: 1.2rem;
-}
-
 .message .quick-msg {
   position: relative;
   top: -2px;
@@ -701,15 +698,31 @@ body .makeStyles-paper-161 {
   font-size: min(2vw, 4vh);
 }
 
-.message .quick-msg::after {
-  font-size: min(1vw, 2vh);
-}
+.message.NEED_PAWN::after { content: "Get me a Pawn"; }
+.message.NEED_BISHOP::after { content: "Get me a Bishop"; }
+.message.NEED_KNIGHT::after { content: "Get me a knight"; }
+.message.NEED_ROOK::after { content: "Get me a Rook"; }
+.message.NEED_QUEEN::after { content: "Get me a Queen"; }
 
 .message.NO_PAWN::after { content: "No pawns"; }
 .message.NO_BISHOP::after { content: "No bishops"; }
 .message.NO_KNIGHT::after { content: "No knights"; }
 .message.NO_ROOK::after { content: "No rooks"; }
 .message.NO_QUEEN::after { content: "No queen"; }
+
+.message.NEED_PAWN::after,
+.message.NEED_BISHOP::after,
+.message.NEED_KNIGHT::after,
+.message.NEED_ROOK::after,
+.message.NEED_QUEEN::after,
+.message.NO_PAWN::after,
+.message.NO_BISHOP::after,
+.message.NO_KNIGHT::after,
+.message.NO_ROOK::after,
+.message.NO_QUEEN::after,
+.message .quick-msg::after {
+  font-size: min(1vw, 2vh);
+}
 
 .message .quick-msg.exchange::after { content: "make exchanges"; }
 .message .quick-msg.mates::after { content: "mates / I have mate"; }

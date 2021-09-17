@@ -99,7 +99,7 @@ const GameMessages = ({ playerColor, gameID }) => {
         ...message,
       });
       setMessages({ val: messages.current });
-      scrollRef.current.scrollTop = Number.MAX_SAFE_INTEGER;
+      scrollRef.current.scrollTop = Math.pow(10, 14);
     };
     socket.on("game_msg", onMsg);
     return () => {

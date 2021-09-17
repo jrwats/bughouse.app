@@ -43,7 +43,7 @@ class AnalysisBoard {
     this.promos = new Map();
     this.toMove = "w";
     this.lastTime = 0;
-    this.lastMove = undefined;
+    this.lastMove = [];
   }
 
   makeMove(move) {
@@ -170,7 +170,6 @@ class AnalysisBoard {
 class AnalysisState {
   constructor(timeCtrl) {
     this._boards = [new AnalysisBoard(timeCtrl), new AnalysisBoard(timeCtrl)];
-    this._lastMoves = [undefined, undefined];
   }
 
   toAnalysisMove(move) {

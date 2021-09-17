@@ -23,7 +23,8 @@ const AnalysisMoves = ({ game }) => {
       idx.current = Math.min(Math.max(-1 ,idx.current + delta), moves.length - 1);
       const state = idx.current >= 0
         ? moves[idx.current].state
-        : { a: {board: {fen: initial}}, b: {board: {fen: initial}}};
+        : { a: {board: {lastMove: [], fen: initial}},
+            b: {board: {lastMove: [], fen: initial}}};
       setIdx(idx.current);
       game.update(state);
       e.preventDefault();
