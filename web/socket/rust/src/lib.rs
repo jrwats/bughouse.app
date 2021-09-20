@@ -19,6 +19,8 @@ pub mod observers;
 pub mod players;
 pub mod rating;
 pub mod seeks;
+pub mod seek_pod;
+pub mod seek_constraint;
 pub mod subscriptions;
 pub mod time_control;
 pub mod users;

@@ -253,10 +253,6 @@ impl BughouseServer {
         }
     }
 
-    pub fn get_seeks(&'static self) -> SeekMap {
-        self.seeks.get_seeks()
-    }
-
     pub fn get_conns(&self) -> Arc<ConnectionMgr> {
         self.conns.clone()
     }
@@ -388,7 +384,6 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
         token: String,
     ) -> Result<ClientMessage, Error> {
-        // ) -> impl Future<Output = Result<ClientMessage, Error>> {
         let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
         write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
         let mut resp = String::new();

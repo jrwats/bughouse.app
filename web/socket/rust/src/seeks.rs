@@ -5,38 +5,89 @@ use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::game::{Game, GamePlayers};
 use crate::time_control::{TimeControl, TimeID};
+use crate::seek_pod::{SeekPod, SeekPodID};
+use crate::seek_constraint::SeekConstraint;
 use crate::users::Users;
 
-pub type SeekMap = HashMap<TimeID, HashSet<UserID>>;
+pub struct Seek {
+    pub uid: UserID,
+    pub user_rating: i16,
+    pub constraint: SeekConstraint,
+    // pools: HashSet<SeekPodID>,
+}
+
+impl Seek {
+    pub fn new(
+        uid: UserID,
+        user_rating: i16,
+        constraint: SeekConstraint,
+        ) -> Self {
+        Seek { uid, user_rating, constraint }
+    }
+}
 
 pub struct Seeks {
     users: Arc<Users>,
-    seeks: RwLock<SeekMap>,
-    user_seeks: RwLock<HashMap<UserID, HashSet<TimeID>>>,
+    pod_queue: RwLock<HashMap<TimeID, Vec<SeekPod>>>,
+    pools: RwLock<HashMap<SeekPodID, SeekPod>>,
+    user_seeks: RwLock<HashMap<UserID, Arc<Seek>>>,
 }
 
 impl Seeks {
     pub fn new(users: Arc<Users>) -> Self {
         Seeks {
             users,
-            seeks: RwLock::new(HashMap::new()),
+            pod_queue: RwLock::new(HashMap::new()),
+            pools: RwLock::new(HashMap::new()),
             user_seeks: RwLock::new(HashMap::new()),
         }
     }
 
-    pub fn get_seeks(&self) -> SeekMap {
-        self.seeks.read().unwrap().to_owned()
+    fn get_first_pod(pools: &Vec<SeekPod>) -> Option<(usize, &SeekPod)> {
+        for (idx, p) in pools.iter().enumerate() {
+            if p.is_full() {
+                return Some((idx, p));
+            }
+        }
+        None
+    }
+
+    fn rm_user_seek(&self, uid: &UserID) {
+        let wseeks = self.user_seeks.write().unwrap();
+        if let Some(seek) = wseeks.get(uid) {
+            // for pool_id in seek.pods {
+            // }
+        }
+        wseeks.remove(uid);
+    }
+
+    // remove all queues associated with the users in the pod
+    fn clean_seeks(&self, time_id: &String, pod: &SeekPod) {
+        let ids = HashSet::new(pod.seeks.iter().map(|seek| seek.uid));
+        let rqueue = self.pod_queue.read().unwrap();
+        let new_queue = rqueue.get(time_id).unwrap().iter().filter(|pod| {
+            pod.seeks.iter().any(|seek| seek.uid
+        })
+        for seek in pod.seeks.iter() {
+            self.rm_user_seek(&seek.uid);
+        }
     }
 
     pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<GamePlayers> {
-        let seeks = self.seeks.read().unwrap();
+        let mut pod_queue = self.pod_queue.write().unwrap();
         let time_id = time_ctrl.get_id();
-        if let Some(players) = seeks.get(&time_id) {
-            if players.len() < 4 {
+        if let Some(pods) = pod_queue.get_mut(&time_id) {
+            let first = Self::get_first_pod(pods);
+            if first.is_none() {
                 return None;
             }
-            let game_players: Vec<&UserID> =
-                players.iter().take(4).collect::<Vec<&UserID>>();
+            let (idx, pod) = first.unwrap();
+            // TODO
+            // In preparation for game_start, remove user_seeks, and existingn references to the
+            // Seek/SeekConstraint from other pools
+            self.clean_seeks(time_id, pod);
+            let uids = pod.seeks.iter().map(|s| { s.uid });
+            let game_players: Vec<&UserID> = uids;
             if let [aw, ab, bw, bb] = &game_players[0..4] {
                 let [awp, abp, bwp, bbp] = [
                     self.users.get(aw),
@@ -63,26 +114,26 @@ impl Seeks {
         uid: &UserID,
     ) -> Result<(), Error> {
         let time_id = time_ctrl.get_id();
-        {
-            let mut seeks = self.seeks.write().unwrap();
-            if !seeks.contains_key(&time_id) {
-                seeks.insert(time_id.clone(), HashSet::new());
-            }
-            let users = seeks
-                .get_mut(&time_id)
-                .ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
-            users.insert(*uid);
-        }
-        {
-            let mut user_seeks = self.user_seeks.write().unwrap();
-            if !user_seeks.contains_key(uid) {
-                user_seeks.insert(*uid, HashSet::new());
-            }
-            let time_ctrls = user_seeks.get_mut(uid).ok_or(
-                Error::Unexpected("Couldn't get user seeks".to_string()),
-            )?;
-            time_ctrls.insert(time_id);
-        }
+        // {
+        //     let mut seeks = self.seeks.write().unwrap();
+        //     if !seeks.contains_key(&time_id) {
+        //         seeks.insert(time_id.clone(), HashSet::new());
+        //     }
+        //     let users = seeks
+        //         .get_mut(&time_id)
+        //         .ok_or(Error::Unexpected("Couldn't get seeks".to_string()))?;
+        //     users.insert(*uid);
+        // }
+        // {
+        //     let mut user_seeks = self.user_seeks.write().unwrap();
+        //     if !user_seeks.contains_key(uid) {
+        //         user_seeks.insert(*uid, HashSet::new());
+        //     }
+        //     let time_ctrls = user_seeks.get_mut(uid).ok_or(
+        //         Error::Unexpected("Couldn't get user seeks".to_string()),
+        //     )?;
+        //     time_ctrls.insert(time_id);
+        // }
         Ok(())
     }
 

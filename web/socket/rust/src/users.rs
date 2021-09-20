@@ -60,8 +60,8 @@ impl Users {
     ) -> Option<Arc<RwLock<User>>> {
         if let Some(u) = self.get(uid) {
             return Some(u);
-        } else if let Some(user_row) = self.db.get_user(uid).await {
-            return Some(self.add(User::from(user_row)));
+        } else if let Some(user) = self.db.get_user(uid).await {
+            return Some(self.add(user));
         }
         None
     }
