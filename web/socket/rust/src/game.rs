@@ -237,7 +237,8 @@ impl Game {
         if self.start.is_none() || now < self.start.unwrap() {
             return;
         }
-        let elapsed = (now - self.last_move_time[idx]).num_milliseconds() as i32;
+        let elapsed =
+            (now - self.last_move_time[idx]).num_milliseconds() as i32;
         let inc = self.time_ctrl.get_inc_ms() as i32;
         self.last_move_time[idx] = now;
         self.clocks[idx][moved_color.to_index()] += inc - elapsed;

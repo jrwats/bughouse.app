@@ -597,7 +597,9 @@ impl Games {
             if Self::is_table(game.clone()) {
                 {
                     let mut wgame = game.write().unwrap();
-                    if let Some((board_idx, color_idx)) = wgame.get_user_seat(&uid) {
+                    if let Some((board_idx, color_idx)) =
+                        wgame.get_user_seat(&uid)
+                    {
                         wgame.players[board_idx][color_idx] = None;
                     } else {
                         eprintln!("!!! Found user game, but not SEAT?!");

@@ -26,7 +26,7 @@ use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
 use crate::rating::Rating;
-use crate::seeks::{SeekMap, Seeks};
+use crate::seeks::Seeks;
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
 use once_cell::sync::OnceCell;
@@ -275,9 +275,7 @@ impl BughouseServer {
         Ok(())
     }
 
-    pub fn get_current_games_json(
-        &'static self
-        ) -> Result<ByteString, Error> {
+    pub fn get_current_games_json(&'static self) -> Result<ByteString, Error> {
         let json = self.games.get_current_games_json();
         Ok(ByteString::from(json.to_string()))
     }
@@ -359,7 +357,7 @@ impl BughouseServer {
             ));
         }
         println!("adding seeker");
-        self.seeks.add_seeker(&time_ctrl, &user.id)?;
+        self.seeks.add_default_seeker(&time_ctrl, &user.id)?;
         if let Some(players) = self.seeks.form_game(&time_ctrl) {
             println!("forming game...");
             // Send message to self and attempt async DB game creation
@@ -660,7 +658,7 @@ impl BughouseServer {
         if let Some(game) = self.games.get_user_game(&uid) {
             let gid = B66::encode_uuid(game.read().unwrap().get_id());
             return Err(Error::InGame(uid.to_string(), gid));
-        } 
+        }
         let user = self.user_from_uid(&uid).await?;
         if user.read().unwrap().guest && rated {
             return Err(Error::CreateRatedGameGuest());
@@ -705,7 +703,6 @@ impl BughouseServer {
         rated: bool,
         players: GamePlayers,
     ) -> Result<ClientMessage, Error> {
-        self.seeks.remove_player_seeks(players.clone());
         println!("start_new_game");
         let start = Game::new_start();
         let rating_snapshots = self.get_rating_snapshots(&players)?;
@@ -769,15 +766,11 @@ impl BughouseServer {
         _game_id: GameID,
         _mv: BughouseMove,
         _conn_id: ConnID,
-        ) {
+    ) {
         // TODO
     }
 
-    pub fn cancel_premove(
-        &'static self,
-        _game_id: GameID,
-        _conn_id: ConnID,
-        ) {
+    pub fn cancel_premove(&'static self, _game_id: GameID, _conn_id: ConnID) {
         // TODO
     }
 
@@ -925,10 +918,7 @@ impl BughouseServer {
         Ok(ByteString::from(game_json.to_val().to_string()))
     }
 
-    pub fn on_close(
-        &'static self,
-        recipient: &Recipient<ClientMessage>,
-    ) {
+    pub fn on_close(&'static self, recipient: &Recipient<ClientMessage>) {
         self.games.remove_recipient(recipient);
         self.conns
             .on_close(recipient)
