@@ -1,4 +1,4 @@
-#[derive(Hash)]
+#[derive(Clone, Debug, Hash)]
 pub struct SeekConstraint {
     pub min_rating: i16,
     pub max_rating: i16,

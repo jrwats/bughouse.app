@@ -20,6 +20,7 @@ pub mod players;
 pub mod rating;
 pub mod seek_constraint;
 pub mod seek_pod;
+pub mod seek_user_handler;
 pub mod seeks;
 pub mod subscriptions;
 pub mod time_control;

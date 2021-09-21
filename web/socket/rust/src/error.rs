@@ -51,6 +51,9 @@ pub enum Error {
     #[error("Invalid: User not in game: {0}, {1}")]
     InvalidUserNotPlaying(UserID, GameID),
 
+    #[error("User already seeking")]
+    AlreadySeeking(),
+
     #[error("InvalidMove InvalidUser: {0}")]
     InvalidMoveUser(UserID),
 

@@ -26,7 +26,8 @@ use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
 use crate::rating::Rating;
-use crate::seeks::{Seeks, SeekPool};
+use crate::seek_user_handler::SeekUserHandler;
+use crate::seeks::{SeekPool, Seeks};
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
 use once_cell::sync::OnceCell;
@@ -36,7 +37,7 @@ use once_cell::sync::OnceCell;
 pub struct BughouseServer {
     users: Arc<Users>,
     conns: Arc<ConnectionMgr>,
-    seeks: Seeks,
+    seeks: Arc<Seeks>,
     loopback: Recipient<ServerMessage>,
     games: Arc<Games>,
     // partners: HashMap<UserID, UserID>,
@@ -221,35 +222,23 @@ impl BughouseServer {
         db: Arc<Db>,
         loopback: Recipient<ServerMessage>, // , timer: Arc<Timer>
     ) -> Self {
-        // let (tx, rx): (Sender<ChanMsg>, Receiver<ChanMsg>) = mpsc::channel();
-        // let _receiver = thread::spawn(move || {
-        //     for (recipient, msg) in rx {
-        //         let res = block_on(async {
-        //             BughouseServer::authenticate(Auth {
-        //                 token: msg,
-        //                 recipient,
-        //             }).await
-        //         });
-        //     }
-        // });
-        //
-        // let db = Db::new().await?;
         let users = Arc::new(Users::new(db.clone()));
         let conns = Arc::new(ConnectionMgr::new(db.clone(), users.clone()));
         let games = Arc::new(Games::new(conns.clone()));
         let game_user_handler = GameUserHandler::new(games.clone());
-        let addr = game_user_handler.start();
-        conns.add_user_handler(addr.recipient());
+        let game_addr = game_user_handler.start();
+        let seeks = Arc::new(Seeks::new(users.clone()));
+        let seek_user_handler = SeekUserHandler::new(seeks.clone());
+        let seek_addr = seek_user_handler.start();
+        conns.add_user_handler(game_addr.recipient());
+        conns.add_user_handler(seek_addr.recipient());
         BughouseServer {
             conns,
-            users: users.clone(),
+            users,
             loopback,
-            seeks: Seeks::new(users),
+            seeks,
             games,
-            // partners: HashMap::new(),
             db,
-            // timer,
-            // tx: Mutex::new(tx),
         }
     }
 
@@ -356,12 +345,14 @@ impl BughouseServer {
             ));
         }
         println!("adding seeker");
-        self.seeks.add_default_seeker(&seek_pool, &user.id)?;
+        self.seeks.add_default_seeker(&seek_pool, user.id)?;
         if let Some(players) = self.seeks.form_game(&seek_pool) {
             println!("forming game...");
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
-                seek_pool.time_ctrl, seek_pool.rated, players,
+                seek_pool.time_ctrl,
+                seek_pool.rated,
+                players,
             ));
             self.loopback.try_send(msg)?;
         }

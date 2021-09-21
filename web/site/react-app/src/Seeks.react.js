@@ -7,12 +7,18 @@ import CancelIcon from "@material-ui/icons/Cancel";
 const Seeks = ({ onCancel }) => {
   return (
     <div>
-      <Typography variant="h6" style={{ display: "inline-block" }}>
-        Seek a game:
-      </Typography>
+      <div style={{maxWidth: "30vw"}}>
+        <div className="alien subtitle"> Seek a game: </div>
+      </div>
       <div>
         <Seek time="1|0" />
         <Seek time="3|0" />
+        <Seek time="5|0" />
+      </div>
+      <div>
+        <Seek time="1|2" />
+        <Seek time="3|2" />
+        <Seek time="5|5" />
       </div>
       <div style={{ marginTop: "1em" }}>
         <Button variant="contained" color="secondary" onClick={onCancel}>

@@ -8,6 +8,7 @@ use crate::seeks::Seek;
 
 pub type SeekPodID = u64;
 
+#[derive(Debug)]
 pub struct SeekPod {
     // pub id: SeekPodID,
     pub seeks: PersistentList<Arc<Seek>>,
@@ -17,22 +18,16 @@ pub struct SeekPod {
 impl SeekPod {
     pub fn new(
         seeks: PersistentList<Arc<Seek>>,
-        init_constraint: Option<SeekConstraint>,
+        constraint: SeekConstraint,
     ) -> Self {
-        // let mut hasher = DefaultHasher::new();
-        // for seek in seeks.iter() {
-        //     seek.uid.as_bytes().hash(&mut hasher);
-        // }
-        let constraint = if init_constraint.is_none() {
-            SeekConstraint::merge_all(seeks.iter().map(|s| &s.constraint))
-        } else {
-            init_constraint.unwrap()
-        };
-        SeekPod {
-            // id: hasher.finish(),
-            seeks,
-            constraint,
-        }
+        SeekPod { seeks, constraint }
+    }
+
+    pub fn single(seek: Arc<Seek>) -> Self {
+        SeekPod::new(
+            cons(seek.clone(), PersistentList::new()),
+            seek.constraint.clone(),
+        )
     }
 
     pub fn passes(&self, s: &Seek) -> bool {
@@ -44,7 +39,7 @@ impl SeekPod {
         if self.is_full() || !self.passes(pod.as_ref()) {
             return None;
         }
-        let constraint = Some(self.constraint.merge(&pod.constraint));
+        let constraint = self.constraint.merge(&pod.constraint);
         let seeks = cons(pod, self.seeks.clone());
         Some(Self::new(seeks, constraint))
     }
