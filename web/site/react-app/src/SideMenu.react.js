@@ -12,6 +12,8 @@ import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import VolumeOffIcon from "@material-ui/icons/VolumeOff";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 
+import discordLogo from "./images/Discord_Logo_White.svg";
+
 // TODO - animate menu depending on open/close state
 // import MenuOpenIcon from '@material-ui/icons/MenuOpen';
 import MenuIcon from "@material-ui/icons/Menu";
@@ -186,6 +188,14 @@ const SideMenu = ({ style }) => {
         </div>
 
         <div style={{ borderTop: "1px solid #303030" }}>
+          <a href="https://discord.gg/CAtxpU8a" target="_blank">
+            <StyledMenuItem >
+              <ListItemIcon>
+                <img src={discordLogo} style={{maxHeight: "1em"}}/>
+              </ListItemIcon>
+              <ListItemText primary={`Discord`} />
+            </StyledMenuItem>
+          </a>
           <form id="paypal_form" action="https://www.paypal.com/donate" method="post" target="_blank">
             <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
             <input type="hidden" name="hosted_button_id" value="VLPN33836X4MC" />
