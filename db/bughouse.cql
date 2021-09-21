@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS games (
 CREATE INDEX ON games(result);
 
 CREATE TABLE IF NOT EXISTS user_games (
-  userid timeuuid,
-  gameid timeuuid,
-  PRIMARY KEY (userid, gameid)
+  uid timeuuid,
+  game_id timeuuid,
+  PRIMARY KEY ((uid), game_id)
 );
 
 CREATE TABLE IF NOT EXISTS rating_history (

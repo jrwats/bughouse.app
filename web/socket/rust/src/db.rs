@@ -26,6 +26,7 @@ use crate::firebase::*;
 use crate::game::{Game, GameID};
 use crate::game_row::GameRow;
 use crate::guest::guest_handle::GuestHandle;
+use crate::players::Players;
 use crate::rating::Rating;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -550,14 +551,34 @@ impl Db {
 
     pub async fn start_game(
         &self,
-        start: DateTime<Utc>,
-        game_id: &GameID,
+        game: Arc<RwLock<Game>>,
     ) -> Result<QueryResult, Error> {
+        let rgame = game.read().unwrap();
+        let game_id = rgame.get_id();
+        let start = rgame.get_start().unwrap();
         let query = "UPDATE bughouse.games SET start_time = ? WHERE id = ?";
         let res = self
             .session
             .query(query.to_string(), (&Self::to_timestamp(start), game_id))
             .await?;
+
+        let mut rows: [(UserID, GameID); 4] = [(UserID::nil(), game_id.clone()); 4];
+        let players = Players::new(rgame.get_players());
+        for (idx, player) in players.get_players().iter().enumerate() {
+            rows[idx].0 = player.get_uid();
+        }
+        eprintln!("rows: {:?}", rows);
+        let mut batch: Batch = Default::default();
+        let prepared: PreparedStatement = self.session.prepare(
+            "INSERT INTO bughouse.user_games (uid, game_id) VALUES (?, ?)"
+            ).await?;
+        for _i in 0..4 {
+            batch.append_statement(prepared.clone());
+        }
+        let res2 = self.session.batch(&batch, &rows[0..4]).await;
+        if let Err(e) = res2 {
+            eprintln!("db.start_game err: {:?}", e);
+        }
         Ok(res)
     }
 

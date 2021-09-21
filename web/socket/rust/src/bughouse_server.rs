@@ -678,11 +678,10 @@ impl BughouseServer {
         &'static self,
         game: Arc<RwLock<Game>>,
     ) -> Result<(), Error> {
-        let start = self.games.start_game(game.clone())?;
-        let rgame = game.read().unwrap();
-        let game_id = rgame.get_id();
-        self.db.start_game(start, game_id).await?;
-        let msg = ServerMessage::new(ServerMessageKind::CheckGame(*game_id));
+        self.games.start_game(game.clone())?;
+        self.db.start_game(game.clone()).await?;
+        let game_id = game.read().unwrap().get_id().clone();
+        let msg = ServerMessage::new(ServerMessageKind::CheckGame(game_id));
         self.loopback.try_send(msg)?;
         Ok(())
     }
