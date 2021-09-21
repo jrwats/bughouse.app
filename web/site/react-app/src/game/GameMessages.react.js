@@ -167,7 +167,11 @@ const GameMessages = ({ playerColor, gameID }) => {
                   self: msg.self,
                   playerColor,
                 });
-          return <div key={idx} className={`message ${self}${quick}`}>{content}</div>;
+          return (
+            <div key={idx} className={`message ${self}${quick}`}>
+              {content}
+            </div>
+          );
         })}
       </div>
 

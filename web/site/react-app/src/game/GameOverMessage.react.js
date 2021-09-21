@@ -37,19 +37,20 @@ const GameOverMessage = ({ context, chessboard }) => {
     );
   }
 
-  const dashLink = context === BoardContext.CURRENT
-    ? null
-    : <div style={{ flex: "auto" }}>
-      <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
-        <Button variant="contained" color="primary">
-          <FeaturedVideoIcon
-            fontSize="small"
-            style={{ paddingRight: ".6em" }}
-          />
-          Dashboard
-        </Button>
-      </Link>
-    </div>;
+  const dashLink =
+    context === BoardContext.CURRENT ? null : (
+      <div style={{ flex: "auto" }}>
+        <Link to="/" style={{ marginTop: "min(3vw, 7vh)" }}>
+          <Button variant="contained" color="primary">
+            <FeaturedVideoIcon
+              fontSize="small"
+              style={{ paddingRight: ".6em" }}
+            />
+            Dashboard
+          </Button>
+        </Link>
+      </div>
+    );
 
   return (
     <div className="gameOver">

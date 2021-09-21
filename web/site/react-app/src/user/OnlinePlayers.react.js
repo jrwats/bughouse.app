@@ -13,7 +13,6 @@ import TableSortLabel from "@material-ui/core/TableSortLabel";
 
 import { UsersContext } from "./UsersProvider";
 
-
 const useStyles = makeStyles({
   table: {
     minWidth: "20em",

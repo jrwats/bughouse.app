@@ -24,7 +24,9 @@ const Analysis = ({ gamePath }) => {
     game.forceUpdate();
     // TODO:
     // setTimeout shouldn't be required... we're fighting React here...
-    setTimeout(() => { game.forceUpdate(); }, 50)
+    setTimeout(() => {
+      game.forceUpdate();
+    }, 50);
   };
 
   const flipColors = (_e) => {
@@ -63,13 +65,17 @@ const Analysis = ({ gamePath }) => {
       >
         <div className="analysis-moves">
           <div className="flip-buttons">
-            <span style={{paddingLeft: "2em"}}>
-              <Button variant="contained" color="primary" onClick={flipColors} >
+            <span style={{ paddingLeft: "2em" }}>
+              <Button variant="contained" color="primary" onClick={flipColors}>
                 {"\u{2B83}"}
               </Button>
             </span>
             <span>
-              <Button variant="contained" color="secondary" onClick={flipBoards} >
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={flipBoards}
+              >
                 {"\u{2B82}"}
               </Button>
             </span>

@@ -43,11 +43,7 @@ const PASSTHRU_EVENTS = [
   "unpartneredHandles",
 ];
 
-const UNAUTHED_EVENTS = new Set([
-  "auth",
-  "observe",
-  "refresh",
-]);
+const UNAUTHED_EVENTS = new Set(["auth", "observe", "refresh"]);
 
 const NOISY_EVENTS = {
   game_start: 1,
@@ -101,8 +97,10 @@ class SocketProxy extends EventEmitter {
   }
 
   _send(kind, data) {
-    if (this._sock?.readyState() === WebSocket.OPEN &&
-      (this._handle != null || UNAUTHED_EVENTS.has(kind))) {
+    if (
+      this._sock?.readyState() === WebSocket.OPEN &&
+      (this._handle != null || UNAUTHED_EVENTS.has(kind))
+    ) {
       this._sock.send(JSON.stringify({ ...data, kind }));
     } else {
       console.log(`queing ${kind} msg`);

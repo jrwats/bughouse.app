@@ -34,11 +34,19 @@ export const BoardContext = {
 
 const isViewOnly = (forming, handle, chessboard) =>
   forming ||
-    !chessboard.isInitialized() ||
-    chessboard.getGame().isAnalysis() ||
-    chessboard.getHandleColor(handle) == null;
+  !chessboard.isInitialized() ||
+  chessboard.getGame().isAnalysis() ||
+  chessboard.getHandleColor(handle) == null;
 
-const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) => {
+const Board = ({
+  chessboard,
+  fen,
+  context,
+  forming,
+  orientation,
+  gameID,
+  id,
+}) => {
   const { socket, handle } = useContext(SocketContext);
   const [boardFEN, setFEN] = useState(fen || chessboard.getBoard().fen);
   const premove = useRef(null);
@@ -47,7 +55,9 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
   const [handleColor, setHandleColor] = useState(
     chessboard.getHandleColor(handle)
   );
-  const [viewOnly, setViewOnly] = useState(isViewOnly(forming, handle, chessboard));
+  const [viewOnly, setViewOnly] = useState(
+    isViewOnly(forming, handle, chessboard)
+  );
   const [promoVisible, setPromoVisible] = useState(false);
   const [sz, setSz] = useState(null);
   const pendingMove = useRef({});
@@ -137,14 +147,14 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
       },
       unset: () => {
         premove.current = null;
-      }
-    }
+      },
+    },
   };
 
   const onPredrop = (move) => {
     premove.current = move;
     chessgroundRef.current.cg.cancelPremove();
-  }
+  };
 
   const predroppable = {
     enabled: true,
@@ -154,14 +164,13 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
       },
       unset: () => {
         premove.current = null;
-      }
-    }
+      },
+    },
   };
   window[`__dbg${id}`] = chessgroundRef?.current?.cg;
 
-  const turnColor = (boardFEN != null && boardFEN.split(" ")[1] === 'w')
-    ? 'white'
-    : 'black';
+  const turnColor =
+    boardFEN != null && boardFEN.split(" ")[1] === "w" ? "white" : "black";
 
   return (
     <div
@@ -231,7 +240,7 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                   if (
                     handleColor === turnColor &&
                     pieces.get(to)?.role === PIECES.PAWN &&
-                    ((to[1] === "1" && turnColor  === "black") ||
+                    ((to[1] === "1" && turnColor === "black") ||
                       (to[1] === "8" && turnColor === "white"))
                   ) {
                     setPromoVisible(true);
@@ -242,7 +251,10 @@ const Board = ({ chessboard, fen, context, forming, orientation, gameID, id }) =
                     `onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`
                   );
                   // Send UCI formatted move
-                  socket.sendEvent("move", { id: gameID, move: `${from}${to}` });
+                  socket.sendEvent("move", {
+                    id: gameID,
+                    move: `${from}${to}`,
+                  });
 
                   // Done so that a gameUpdate will trigger a
                   // re-render if the move was illegal

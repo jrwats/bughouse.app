@@ -7,7 +7,9 @@ const GameStartCountdown = ({ start }) => {
   const getSecsTilStart = () => Math.round(((start || 0) - Date.now()) / 1000);
   let [count, setCount] = useState(getSecsTilStart());
   let interval = useRef(null);
-  const updateClock = () => { setCount(getSecsTilStart()); };
+  const updateClock = () => {
+    setCount(getSecsTilStart());
+  };
 
   // Use both an interval every 200ms and attempt to time a clock update
   // precisely with the second as well.

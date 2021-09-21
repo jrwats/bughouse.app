@@ -24,10 +24,7 @@ const GamingLanding = () => {
   }
 
   return (
-    <Box
-      display="flex"
-      flexWrap="wrap"
-    >
+    <Box display="flex" flexWrap="wrap">
       <Box p={2}>
         <Button
           style={{ marginTop: "10px" }}

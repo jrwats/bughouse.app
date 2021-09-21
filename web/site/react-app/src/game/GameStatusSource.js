@@ -28,17 +28,18 @@ class GameStatusSource extends EventEmitter {
     } else if (data.rm) {
       delete this._games[data.id];
     }
-    this.emit('current_game', data);
+    this.emit("current_game", data);
   }
 
-  _onCurrentGames({games}) {
+  _onCurrentGames({ games }) {
     for (const gid in games) {
       this._games[gid] = BughouseGame.init(games[gid]);
     }
     const bughouseGames = Object.keys(games).reduce(
-      (m, id) => m.set(id,  this._games[id]), new Map()
+      (m, id) => m.set(id, this._games[id]),
+      new Map()
     );
-    this.emit('current_games', {games: bughouseGames});
+    this.emit("current_games", { games: bughouseGames });
   }
 
   _onGameRow(data) {
@@ -81,7 +82,7 @@ class GameStatusSource extends EventEmitter {
     } else {
       this._games[data.id] = BughouseGame.init(data);
     }
-    if (data.kind === 'form_table') {
+    if (data.kind === "form_table") {
       navigate(`/table/${data.id}`);
     }
   }

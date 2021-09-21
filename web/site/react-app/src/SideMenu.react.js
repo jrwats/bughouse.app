@@ -7,8 +7,8 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
-import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
-import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
+import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
+import NetworkCheckIcon from "@material-ui/icons/NetworkCheck";
 import VolumeOffIcon from "@material-ui/icons/VolumeOff";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 
@@ -54,7 +54,7 @@ const StyledMenuItem = withStyles((theme) => ({
   },
 }))(MenuItem);
 
-const SoundMenuItem = ({onClick}) => {
+const SoundMenuItem = ({ onClick }) => {
   const off = parseInt(localStorage.getItem("soundOff") || "0");
   let [soundDisabled, setSoundDisabled] = useState(off);
   const icon = soundDisabled ? (
@@ -79,10 +79,10 @@ const SoundMenuItem = ({onClick}) => {
 
 function getPing(ping) {
   if (ping == null) {
-    return '?';
+    return "?";
   }
   // const pingRounded = Math.round(ping * 100) / 100;
-  return ping.toLocaleString(undefined, {maximumSignificantDigits: 2}) + 'ms';
+  return ping.toLocaleString(undefined, { maximumSignificantDigits: 2 }) + "ms";
 }
 const SideMenu = ({ style }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -184,22 +184,41 @@ const SideMenu = ({ style }) => {
         </StyledMenuItem>
 
         <div style={{ borderTop: "1px solid #303030" }}>
-          <SoundMenuItem onClick={handleClose}/>
+          <SoundMenuItem onClick={handleClose} />
         </div>
 
         <div style={{ borderTop: "1px solid #303030" }}>
           <a href="https://discord.gg/CAtxpU8a" target="_blank">
-            <StyledMenuItem >
+            <StyledMenuItem>
               <ListItemIcon>
-                <img src={discordLogo} style={{maxHeight: "1em"}}/>
+                <img src={discordLogo} style={{ maxHeight: "1em" }} />
               </ListItemIcon>
               <ListItemText primary={`Discord`} />
             </StyledMenuItem>
           </a>
-          <form id="paypal_form" action="https://www.paypal.com/donate" method="post" target="_blank">
-            <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
-            <input type="hidden" name="hosted_button_id" value="VLPN33836X4MC" />
-            <StyledMenuItem onClick={(_e) => { document.querySelector('#paypal_form').submit(); }}>
+          <form
+            id="paypal_form"
+            action="https://www.paypal.com/donate"
+            method="post"
+            target="_blank"
+          >
+            <img
+              alt=""
+              border="0"
+              src="https://www.paypal.com/en_US/i/scr/pixel.gif"
+              width="1"
+              height="1"
+            />
+            <input
+              type="hidden"
+              name="hosted_button_id"
+              value="VLPN33836X4MC"
+            />
+            <StyledMenuItem
+              onClick={(_e) => {
+                document.querySelector("#paypal_form").submit();
+              }}
+            >
               <ListItemIcon>
                 <MonetizationOnIcon fontSize="small" />
               </ListItemIcon>

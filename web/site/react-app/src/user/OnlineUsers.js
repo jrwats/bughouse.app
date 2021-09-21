@@ -94,7 +94,7 @@ class OnlineUsers extends EventEmitter {
       }
       for (const user of data.online) {
         const [uid, handle, rating] = user;
-        this._users[uid] = {uid, handle, rating};
+        this._users[uid] = { uid, handle, rating };
       }
       this.emit("value", this._users);
     };

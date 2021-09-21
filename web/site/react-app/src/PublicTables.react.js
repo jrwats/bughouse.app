@@ -31,11 +31,11 @@ const useStyles = makeStyles({
   },
 });
 
-const PublicTableRow = ({table}) => {
-  const {a, b, id, rated} = table;
+const PublicTableRow = ({ table }) => {
+  const { a, b, id, rated } = table;
   const onView = (evt) => {
     navigate(`/table/${id}`);
-  }
+  };
   return (
     <StyledTableRow key={id}>
       <TableCell>{rated ? "\u{2713}" : ""}</TableCell>
@@ -52,7 +52,7 @@ const PublicTableRow = ({table}) => {
           </Box>
         </Box>
       </TableCell>
-      <TableCell >
+      <TableCell>
         <Button variant="contained" color="primary" onClick={onView}>
           View
         </Button>
@@ -64,7 +64,7 @@ const PublicTableRow = ({table}) => {
 const PublicTables = () => {
   const { socket } = useContext(SocketContext);
   const tables = useRef({});
-  const [uiTables, setTables] = useState({val: tables.current});
+  const [uiTables, setTables] = useState({ val: tables.current });
   const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("rating");
 
@@ -72,22 +72,23 @@ const PublicTables = () => {
     const onTable = (data) => {
       if (data.add || data.update) {
         tables.current[data.id] = data.table;
-      } else { // remove
+      } else {
+        // remove
         delete tables.current[data.id];
       }
-      setTables({val: tables.current});
+      setTables({ val: tables.current });
     };
     const onTables = (data) => {
       tables.current = data.tables;
-      setTables({val: tables.current});
+      setTables({ val: tables.current });
     };
-    socket.on('public_table', onTable);
-    socket.on('public_tables', onTables);
+    socket.on("public_table", onTable);
+    socket.on("public_tables", onTables);
     socket.sendEvent("sub_public_tables", {});
     return () => {
       socket.sendEvent("unsub_public_tables", {});
-    socket.off('public_table', onTable);
-    socket.off('public_tables', onTables);
+      socket.off("public_table", onTable);
+      socket.off("public_tables", onTables);
     };
   }, [socket]);
 
@@ -102,7 +103,6 @@ const PublicTables = () => {
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
-
 
   const classes = useStyles();
   const headCells = [
@@ -151,6 +151,6 @@ const PublicTables = () => {
       </TableContainer>
     </div>
   );
-}
+};
 
 export default PublicTables;

@@ -31,7 +31,7 @@ function toKey(sqIdx) {
 // assumes piece.role is KING
 const isCastle = (move) =>
   move.src[1] === move.dest[1] &&
-    Math.abs(move.src.charCodeAt(0) - move.dest.charCodeAt(0)) > 1;
+  Math.abs(move.src.charCodeAt(0) - move.dest.charCodeAt(0)) > 1;
 
 class AnalysisBoard {
   constructor(timeCtrl) {
@@ -95,7 +95,7 @@ class AnalysisBoard {
     this.clocks[move.color === "white" ? 0 : 1] +=
       1000 * this.timeCtrl.inc - (move.ms - this.lastTime);
     this.lastTime = move.ms;
-    this.lastMove = [move.src, move.dest].filter(s => s != null);
+    this.lastMove = [move.src, move.dest].filter((s) => s != null);
     return capturedPiece;
   }
 

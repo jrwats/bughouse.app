@@ -7,7 +7,7 @@ import CancelIcon from "@material-ui/icons/Cancel";
 const Seeks = ({ onCancel }) => {
   return (
     <div>
-      <div style={{maxWidth: "30vw"}}>
+      <div style={{ maxWidth: "30vw" }}>
         <div className="alien subtitle"> Seek a game: </div>
       </div>
       <div>

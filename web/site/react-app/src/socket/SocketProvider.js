@@ -33,18 +33,16 @@ const SocketProvider = (props) => {
     const onLatency = (latency) => {
       pings[idx.current++ % ROLLING_AVG_LEN] = latency;
       setPings(pings);
-      setPing(pings.reduce((a,b) => a + b, 0) / pings.length);
-    }
-    socket.on('latency', onLatency);
+      setPing(pings.reduce((a, b) => a + b, 0) / pings.length);
+    };
+    socket.on("latency", onLatency);
     return () => {
-      socket.off('latency', onLatency);
-    }
+      socket.off("latency", onLatency);
+    };
   }, [socket]);
 
   useEffect(() => {
-    console.log(
-      `${Date.now()}: [] creating SocketProxy. ${user?.uid}`
-    );
+    console.log(`${Date.now()}: [] creating SocketProxy. ${user?.uid}`);
     const proxy = SocketProxy.get();
     proxy.setUser(user);
     console.log(`SocketProvider.setSocket`);
@@ -87,7 +85,9 @@ const SocketProvider = (props) => {
   }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, loggedOut, handle, outputLog, ping, pings }}>
+    <SocketContext.Provider
+      value={{ socket, loggedOut, handle, outputLog, ping, pings }}
+    >
       {props.children}
     </SocketContext.Provider>
   );

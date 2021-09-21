@@ -6,16 +6,16 @@ import Grid from "@material-ui/core/Grid";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
 
-const vals = (obj) => Object.keys(obj).map(key => obj[key]);
+const vals = (obj) => Object.keys(obj).map((key) => obj[key]);
 
 const CurrentGames = () => {
   const { socket } = useContext(SocketContext);
-  const src = GameStatusSource.get(socket)
+  const src = GameStatusSource.get(socket);
   const id2game = useRef({});
   const [uiGames, setGames] = useState(vals(id2game.current));
 
   useEffect(() => {
-    const onCurrentGames = ({games}) => {
+    const onCurrentGames = ({ games }) => {
       id2game.current = games;
       setGames(Array.from(games.values()));
     };
@@ -33,18 +33,18 @@ const CurrentGames = () => {
       setGames(Array.from(id2game.current.values()));
     };
 
-    src.on('current_games', onCurrentGames);
-    src.on('current_game', onCurrentGame);
+    src.on("current_games", onCurrentGames);
+    src.on("current_game", onCurrentGame);
     socket.sendEvent("sub_current_games", {});
 
     return () => {
-      src.off('current_games', onCurrentGames);
-      src.off('current_game', onCurrentGame);
+      src.off("current_games", onCurrentGames);
+      src.off("current_game", onCurrentGame);
       socket.sendEvent("unsub_current_games", {});
     };
   }, [src]);
 
-  const boxes = uiGames.map(game => {
+  const boxes = uiGames.map((game) => {
     const boardA = game.getBoardA();
     const boardB = game.getBoardB();
     const boards = [
@@ -65,7 +65,7 @@ const CurrentGames = () => {
     ];
     const onClick = (_e) => {
       navigate(`/arena/${game.getID()}`);
-    }
+    };
     return (
       <Grid className="currentGame" onClick={onClick} container spacing={2}>
         <Grid item xs={6}>
@@ -81,17 +81,11 @@ const CurrentGames = () => {
   return (
     <div id="current_games">
       <div className="alien subtitle">Current Games</div>
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        p={1}
-        m={1}
-      >
+      <Box display="flex" flexWrap="wrap" p={1} m={1}>
         {boxes}
       </Box>
     </div>
   );
-}
-
+};
 
 export default CurrentGames;

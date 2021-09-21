@@ -10,12 +10,12 @@ import { withStyles } from "@material-ui/core/styles";
 import { purple } from "@material-ui/core/colors";
 import { deepPurple } from "@material-ui/core/colors";
 import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import NativeSelect from "@material-ui/core/NativeSelect";
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
 import { SocketContext } from "./socket/SocketProvider";
 
 const useStyles = makeStyles((theme) => ({
@@ -23,11 +23,11 @@ const useStyles = makeStyles((theme) => ({
     padding: 0,
   },
   root: {
-    color: '#ff000',
+    color: "#ff000",
   },
   paper: {
     padding: theme.spacing(2),
-    textAlign: 'center',
+    textAlign: "center",
     color: theme.palette.text.secondary,
   },
 }));
@@ -46,7 +46,7 @@ const BugSwitch = withStyles({
   track: {},
 })(Switch);
 
-const TimeSelect = ({  name, helper, value, values, onChange }) => {
+const TimeSelect = ({ name, helper, value, values, onChange }) => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   return (
     <FormControl>
@@ -59,7 +59,9 @@ const TimeSelect = ({  name, helper, value, values, onChange }) => {
             onChange={onChange}
           >
             {values.map((v) => (
-              <option key={v} value={v}>{v}</option>
+              <option key={v} value={v}>
+                {v}
+              </option>
             ))}
           </NativeSelect>
         </>
@@ -72,7 +74,9 @@ const TimeSelect = ({  name, helper, value, values, onChange }) => {
             onChange={onChange}
           >
             {values.map((v) => (
-              <MenuItem key={v} value={v}>{v}</MenuItem>
+              <MenuItem key={v} value={v}>
+                {v}
+              </MenuItem>
             ))}
           </Select>
         </>
@@ -110,7 +114,14 @@ const FormTable = ({ onCancel }) => {
   const classes = useStyles();
 
   return (
-    <div style={{ marginTop: "14px", maxWidth: "40rem", marginLeft: "1rem", flexGrow: 1 }}>
+    <div
+      style={{
+        marginTop: "14px",
+        maxWidth: "40rem",
+        marginLeft: "1rem",
+        flexGrow: 1,
+      }}
+    >
       <Grid id="form_table" container spacing={4}>
         <Grid container alignItems="center" spacing={1}>
           <Grid item xs={2}>
@@ -127,14 +138,14 @@ const FormTable = ({ onCancel }) => {
           </Grid>
         </Grid>
         <Grid container alignItems="center" spacing={1}>
-          <Grid item xs={2} classes={{root: classes.switchRoot}}>
+          <Grid item xs={2} classes={{ root: classes.switchRoot }}>
             <BugSwitch
               checked={state.public}
               onChange={handleChange}
               name="public"
             />
           </Grid>
-          <Grid item xs={2} classes={{root: classes.switchRoot}}>
+          <Grid item xs={2} classes={{ root: classes.switchRoot }}>
             <BugSwitch
               checked={state.rated}
               onChange={handleChange}
@@ -142,25 +153,25 @@ const FormTable = ({ onCancel }) => {
             />
           </Grid>
           <Grid item xs={2}>
-              <TimeSelect
-                name="base"
-                helper="in minutes"
-                value={state.base}
-                onChange={handleSelect}
-                values={[1, 2, 3, 4, 5, 10, 20]}
-              />
+            <TimeSelect
+              name="base"
+              helper="in minutes"
+              value={state.base}
+              onChange={handleSelect}
+              values={[1, 2, 3, 4, 5, 10, 20]}
+            />
           </Grid>
           <Grid item xs={2}>
-              <TimeSelect
-                name="inc"
-                helper="in seconds"
-                value={state.inc}
-                onChange={handleSelect}
-                values={[0, 1, 2, 3, 4, 5, 10, 12, 20]}
-              />
+            <TimeSelect
+              name="inc"
+              helper="in seconds"
+              value={state.inc}
+              onChange={handleSelect}
+              values={[0, 1, 2, 3, 4, 5, 10, 12, 20]}
+            />
           </Grid>
         </Grid>
-        <Grid container item xs={8} spacing={0} style={{padding: "16px 0px"}}>
+        <Grid container item xs={8} spacing={0} style={{ padding: "16px 0px" }}>
           <Box display="flex" justifyContent="center">
             <Box p={1}>
               <Button variant="contained" color="primary" onClick={onCreate}>

@@ -8,9 +8,11 @@ setInterval(() => {
 
 const FLAG = "\u{1F6A9}";
 function getFlag(result, boardID, color) {
-  if (result?.kind === 0 &&
-    (result.board === 0) === (boardID.split('/')[1] === 'a') &&
-    (result.winner === 0) === (color === 'black')) {
+  if (
+    result?.kind === 0 &&
+    (result.board === 0) === (boardID.split("/")[1] === "a") &&
+    (result.winner === 0) === (color === "black")
+  ) {
     return `${FLAG} `;
   }
   return "";
@@ -75,8 +77,9 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const res = state.result;
   const flag = getFlag(state.result, chessboard.getID(), color);
   return (
-    <span className="clock h6 alien" >
-      {flag}{mins}:{(secs < 10 ? "0" : "") + secs}
+    <span className="clock h6 alien">
+      {flag}
+      {mins}:{(secs < 10 ? "0" : "") + secs}
     </span>
   );
 };
