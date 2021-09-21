@@ -1,7 +1,7 @@
 // use std::collections::hash_map::DefaultHasher;
 // use std::hash::{ Hash, Hasher };
 use fplist::{cons, PersistentList};
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use crate::seek_constraint::SeekConstraint;
 use crate::seeks::Seek;
@@ -37,7 +37,7 @@ impl SeekPod {
 
     pub fn passes(&self, s: &Seek) -> bool {
         self.constraint.passes(s.user_rating)
-            && self.constraint.merge(&s.constraint).width().unwrap_or(0) > 0
+            && self.constraint.merge(&s.constraint).width() > 0
     }
 
     pub fn form_new_pod(&self, pod: Arc<Seek>) -> Option<SeekPod> {

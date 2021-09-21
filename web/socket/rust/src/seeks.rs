@@ -3,11 +3,23 @@ use std::sync::{Arc, RwLock};
 
 use crate::connection_mgr::UserID;
 use crate::error::Error;
-use crate::game::{Game, GamePlayers};
+use crate::game::GamePlayers;
 use crate::seek_constraint::SeekConstraint;
-use crate::seek_pod::{SeekPod, SeekPodID};
+use crate::seek_pod::SeekPod;
 use crate::time_control::{TimeControl, TimeID};
 use crate::users::Users;
+
+#[derive(Clone, Hash, PartialEq, Eq)]
+pub struct SeekPool {
+    pub rated: bool,
+    pub time_ctrl: TimeControl,
+}
+
+impl SeekPool {
+    pub fn new(time_ctrl: TimeControl, rated: bool) -> Self{
+        SeekPool { rated, time_ctrl }
+    }
+}
 
 pub struct Seek {
     pub uid: UserID,
@@ -32,7 +44,7 @@ impl Seek {
 
 pub struct Seeks {
     users: Arc<Users>,
-    pod_queues: RwLock<HashMap<TimeID, RwLock<Vec<Arc<SeekPod>>>>>,
+    pod_queues: RwLock<HashMap<SeekPool, RwLock<Vec<Arc<SeekPod>>>>>,
     // pools: RwLock<HashMap<SeekPodID, SeekPod>>,
     // user_seeks: RwLock<HashMap<UserID, Arc<Seek>>>,
 }
@@ -47,9 +59,9 @@ impl Seeks {
         }
     }
 
-    fn get_first_pod(&self, time_id: &TimeID) -> Option<(usize, Arc<SeekPod>)> {
+    fn get_first_pod(&self, seek_pool: &SeekPool) -> Option<(usize, Arc<SeekPod>)> {
         let rqueues = self.pod_queues.read().unwrap();
-        let queue = rqueues.get(time_id);
+        let queue = rqueues.get(seek_pool);
         if queue.is_none() {
             // Shouldn't happen, but w/e
             return None;
@@ -74,10 +86,10 @@ impl Seeks {
 
     fn clean_users(
         &self,
-        time_id: &TimeID,
+        seek_pool: &SeekPool,
         uids: impl Iterator<Item = UserID>,
     ) {
-        if let Some(queue) = self.pod_queues.read().unwrap().get(time_id) {
+        if let Some(queue) = self.pod_queues.read().unwrap().get(seek_pool) {
             let id_set: HashSet<_> = uids.collect();
             let mut wqueue = queue.write().unwrap();
             wqueue.retain(|pod| {
@@ -87,14 +99,13 @@ impl Seeks {
     }
 
     // remove all queues associated with the users in the pod
-    fn clean_seeks(&self, time_id: &String, pod: Arc<SeekPod>) {
+    fn clean_seeks(&self, seek_pool: &SeekPool, pod: Arc<SeekPod>) {
         let uids = pod.seeks.iter().map(|seek| seek.uid);
-        self.clean_users(time_id, uids);
+        self.clean_users(seek_pool, uids);
     }
 
-    pub fn form_game(&self, time_ctrl: &TimeControl) -> Option<GamePlayers> {
-        let time_id = time_ctrl.get_id();
-        let first = self.get_first_pod(&time_id);
+    pub fn form_game(&self, seek_pool: &SeekPool) -> Option<GamePlayers> {
+        let first = self.get_first_pod(seek_pool);
         if first.is_none() {
             return None;
         }
@@ -102,7 +113,7 @@ impl Seeks {
         // TODO
         // In preparation for game_start, remove user_seeks, and existing references to the
         // Seek/SeekConstraint from other pools
-        self.clean_seeks(&time_id, pod.clone());
+        self.clean_seeks(seek_pool, pod.clone());
         let uids = pod.seeks.iter().map(|s| &s.uid);
         let game_players: Vec<&UserID> = uids.collect();
         if let [aw, ab, bw, bb] = &game_players[0..4] {
@@ -126,24 +137,23 @@ impl Seeks {
 
     pub fn add_default_seeker(
         &self,
-        time_ctrl: &TimeControl,
+        seek_pool: &SeekPool,
         uid: &UserID,
     ) -> Result<(), Error> {
-        self.add_seeker(time_ctrl, uid, SeekConstraint::default())
+        self.add_seeker(seek_pool, uid, SeekConstraint::default())
     }
 
-    fn ensure_queue(&self, time_id: &String) {
+    fn ensure_queue(&self, seek_pool: &SeekPool) {
         let mut wqueue = self.pod_queues.write().unwrap();
-        if !wqueue.contains_key(time_id) {
-            wqueue.insert(time_id.clone(), RwLock::new(Vec::new()));
+        if !wqueue.contains_key(seek_pool) {
+            wqueue.insert(seek_pool.clone(), RwLock::new(Vec::new()));
         }
     }
 
-    fn add_new_pods(&self, time_ctrl: &TimeControl, seek: Arc<Seek>) {
-        let time_id = time_ctrl.get_id();
-        self.ensure_queue(&time_id);
+    fn add_new_pods(&self, seek_pool: &SeekPool, seek: Arc<Seek>) {
+        self.ensure_queue(seek_pool);
         let rqueue = self.pod_queues.read().unwrap();
-        let mut wpods = rqueue.get(&time_id).unwrap().write().unwrap();
+        let mut wpods = rqueue.get(&seek_pool).unwrap().write().unwrap();
         let len = wpods.len();
         for idx in 0..len {
             if let Some(new_pod) = wpods[idx].form_new_pod(seek.clone()) {
@@ -154,24 +164,23 @@ impl Seeks {
 
     pub fn add_seeker(
         &self,
-        time_ctrl: &TimeControl,
+        seek_pool: &SeekPool,
         uid: &UserID,
         constraint: SeekConstraint,
     ) -> Result<(), Error> {
         let user = self.users.get(uid).ok_or(Error::InvalidUser(*uid))?;
         let ruser = user.read().unwrap();
         let seek = Seek::new(ruser.id, ruser.rating, constraint);
-        self.add_new_pods(time_ctrl, Arc::new(seek));
+        self.add_new_pods(seek_pool, Arc::new(seek));
         Ok(())
     }
 
     pub fn rm_seeker(
         &self,
-        time_ctrl: TimeControl,
+        seek_pool: &SeekPool,
         uid: UserID,
     ) -> Result<(), Error> {
-        let time_id = time_ctrl.get_id();
-        self.clean_users(&time_id, std::array::IntoIter::new([uid]));
+        self.clean_users(&seek_pool, std::array::IntoIter::new([uid]));
         Ok(())
     }
 }

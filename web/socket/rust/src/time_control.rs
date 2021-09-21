@@ -8,7 +8,7 @@ use crate::error::TimeControlParseError;
 pub type TimeID = String;
 
 #[derive(
-    Clone, Hash, Debug, PartialEq, FromRow, FromUserType, IntoUserType,
+    Clone, Hash, Debug, Eq, PartialEq, FromRow, FromUserType, IntoUserType,
 )]
 pub struct TimeControl {
     base: i16, // Base time (in minutes) each player starts with

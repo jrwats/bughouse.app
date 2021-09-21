@@ -11,6 +11,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use crate::b66::B66;
+use crate::seeks::SeekPool;
 use crate::bughouse_server::BughouseServer;
 use crate::connection_mgr::{ConnID, ConnectionMgr};
 use crate::db::Db;
@@ -321,8 +322,9 @@ impl BugWebSock {
                 let time_str = Self::get_field_str(val, "time", kind)?;
                 let time_ctrl = TimeControl::from_str(&time_str)?;
                 let rated = val["rated"].as_bool().or(Some(true)).unwrap();
+                let seek_pool = SeekPool::new(time_ctrl, rated);
                 let res =
-                    self.data.server.add_seek(time_ctrl, rated, recipient);
+                    self.data.server.add_seek(seek_pool, recipient);
                 if let Err(e) = res {
                     eprintln!("add_seek err: {}", e);
                 }

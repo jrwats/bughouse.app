@@ -26,7 +26,7 @@ use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
 use crate::rating::Rating;
-use crate::seeks::Seeks;
+use crate::seeks::{Seeks, SeekPool};
 use crate::time_control::TimeControl;
 use crate::users::{User, Users};
 use once_cell::sync::OnceCell;
@@ -339,8 +339,7 @@ impl BughouseServer {
 
     pub fn add_seek(
         &'static self,
-        time_ctrl: TimeControl,
-        rated: bool,
+        seek_pool: SeekPool,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
         let conn_id = ConnectionMgr::get_conn_id(&recipient);
@@ -357,12 +356,12 @@ impl BughouseServer {
             ));
         }
         println!("adding seeker");
-        self.seeks.add_default_seeker(&time_ctrl, &user.id)?;
-        if let Some(players) = self.seeks.form_game(&time_ctrl) {
+        self.seeks.add_default_seeker(&seek_pool, &user.id)?;
+        if let Some(players) = self.seeks.form_game(&seek_pool) {
             println!("forming game...");
             // Send message to self and attempt async DB game creation
             let msg = ServerMessage::new(ServerMessageKind::CreateGame(
-                time_ctrl, rated, players,
+                seek_pool.time_ctrl, seek_pool.rated, players,
             ));
             self.loopback.try_send(msg)?;
         }
