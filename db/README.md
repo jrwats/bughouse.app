@@ -1,6 +1,8 @@
 ## Scylla DB
 
-risk: consistency... we'll see how that plays out
+Risks/drawbacks with going NoSQL vs RDBMS (ala MySQL):
+* consistency... we'll see how that plays out
+* space: there's invevitably duplicate data as we have to model things after queries
 
 key= time (nanos since start) + player (2 bits: board & color): int
 value=bits (from LSB to MSB) piece,drop,to,from :u32
