@@ -13,10 +13,9 @@ use uuid::Uuid;
 use crate::b66::B66;
 use crate::error::Error;
 use crate::hash::hash;
-use crate::users::{User, Users};
+use crate::users::{User, UserID, Users};
 
 pub type ConnID = u64;
-pub type UserID = Uuid;
 
 struct SockConn {
     recipient: Recipient<ClientMessage>,

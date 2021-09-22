@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
 use crate::b66::B66;
-use crate::connection_mgr::{ConnectionMgr, UserID};
+use crate::connection_mgr::ConnectionMgr;
 use crate::error::Error;
 use crate::game::{Game, GameID, GamePlayers};
 use crate::game_json::{GameJson, GameJsonKind};
@@ -19,7 +19,7 @@ use crate::observers::Observers;
 use crate::players::Players;
 use crate::subscriptions::Subscriptions;
 use crate::time_control::TimeControl;
-use crate::users::User;
+use crate::users::{User, UserID};
 // use crate::db::Db;
 // use crate::bughouse_server::BughouseServer;
 

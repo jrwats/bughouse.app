@@ -20,37 +20,21 @@ use uuid::v1::{Context, Timestamp};
 use uuid::Uuid;
 
 use crate::b66::B66;
-use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::firebase::*;
 use crate::game::{Game, GameID};
-use crate::game_row::GameRow;
+use crate::game_row::{GameRow, IntoUserGameRow, UserGameRow};
 use crate::guest::guest_handle::GuestHandle;
-use crate::players::Players;
-use crate::rating::Rating;
+use crate::rating::{Rating, UserRating};
 use crate::time_control::TimeControl;
-use crate::users::User;
+use crate::users::{User, UserID};
+use crate::players::Players;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
 
-pub struct Db {
-    session: Session,
-    ctx: Context,
-}
-
-#[derive(Debug, FromRow)]
-pub struct FirebaseRowData {
-    fid: String,
-    display_name: Option<String>,
-    email: Option<String>,
-    photo_url: Option<String>,
-    provider_id: Option<String>,
-}
-
 // User's GLICKO rating snapshot before game start
-#[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
+#[derive(Copy, Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct UserRatingSnapshot {
-    pub deviation: i16,
     pub rating: i16,
     pub uid: UserID,
 }
@@ -67,13 +51,28 @@ impl Default for UserRatingSnapshot {
     }
 }
 
+pub type BoardSnapshot = (UserRatingSnapshot, UserRatingSnapshot);
+pub type TableSnapshot = (BoardSnapshot, BoardSnapshot);
+
+pub struct Db {
+    session: Session,
+    ctx: Context,
+}
+
+#[derive(Debug, FromRow)]
+pub struct FirebaseRowData {
+    fid: String,
+    display_name: Option<String>,
+    email: Option<String>,
+    photo_url: Option<String>,
+    provider_id: Option<String>,
+}
 impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
     fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
         match maybe_user {
             None => UserRatingSnapshot {
                 uid: Uuid::nil(),
                 rating: 0,
-                deviation: 0,
             },
             Some(user_lock) => UserRatingSnapshot::from(user_lock),
         }
@@ -86,13 +85,9 @@ impl From<Arc<RwLock<User>>> for UserRatingSnapshot {
         UserRatingSnapshot {
             uid: *user.get_uid(),
             rating: user.rating,
-            deviation: user.deviation,
         }
     }
 }
-
-pub type BoardSnapshot = (UserRatingSnapshot, UserRatingSnapshot);
-pub type TableSnapshot = (BoardSnapshot, BoardSnapshot);
 
 impl Db {
     pub async fn new() -> Result<Self, Error> {
@@ -208,8 +203,8 @@ impl Db {
                 (
                     id,
                     Self::to_timestamp(Utc::now()),
-                    rating.get_rating(),
-                    rating.get_deviation(),
+                    rating.rating,
+                    rating.deviation,
                 ),
             )
             .await;
@@ -288,12 +283,12 @@ impl Db {
                 (
                     id,
                     &firebase_data.fid,
-                    rating.get_deviation(),
+                    rating.deviation,
                     &firebase_data.email,
                     is_guest,
                     &handle,
                     &firebase_data.display_name,
-                    rating.get_rating(),
+                    rating.rating,
                 ),
             )
             .await?;
@@ -303,12 +298,12 @@ impl Db {
             id,
             firebase_id: firebase_data.fid,
             handle,
-            deviation: rating.get_deviation(),
+            deviation: rating.deviation,
             email: firebase_data.email,
             guest: is_guest,
             name: firebase_data.display_name,
             photo_url: firebase_data.photo_url,
-            rating: rating.get_rating(),
+            rating: rating.rating,
         })
     }
 
@@ -441,19 +436,39 @@ impl Db {
             eprintln!("Error writing result to DB: {:?}", e);
             Err(e)?;
         }
+
+        let [[aw, ab], [bw, bb]] = &rgame.players;
+        let mut batch: Batch = Default::default();
+        let prepared: PreparedStatement = self.session.prepare(
+            "UPDATE bughouse.user_games SET result = ?
+             WHERE uid = ? AND start_time = ? AND game_id = ?;"
+            ).await?;
+        for _i in 0..4 {
+            batch.append_statement(prepared.clone());
+        }
+        let start = Self::to_timestamp(rgame.get_start().unwrap());
+        let res2 = self.session.batch(&batch, (
+                (val, aw.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
+                (val, ab.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
+                (val, bw.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
+                (val, bb.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
+                )).await;
+        if let Err(e) = res2 {
+            eprintln!("db.record_result user err: {:?}", e);
+        }
         Ok(())
     }
 
     pub async fn record_ratings(
         &self,
-        ratings: &[UserRatingSnapshot; 4],
+        ratings: &[UserRating; 4],
     ) -> Result<(), Error> {
         println!("new ratings: {:?}", ratings);
         let now = Self::to_timestamp(Utc::now());
         let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] =
             [(UserID::nil(), now, 0, 0); 4];
-        for (i, snap) in ratings.iter().enumerate() {
-            rows[i] = (snap.uid, now, snap.rating, snap.deviation);
+        for (i, user_rating) in ratings.iter().enumerate() {
+            rows[i] = (user_rating.uid, now, user_rating.rating.rating, user_rating.rating.deviation);
         }
         // Add a prepared query to the batch
         let mut batch: Batch = Default::default();
@@ -480,10 +495,10 @@ impl Db {
             .batch(
                 &batch2,
                 (
-                    (ratings[0].rating, ratings[0].deviation, ratings[0].uid),
-                    (ratings[1].rating, ratings[1].deviation, ratings[1].uid),
-                    (ratings[2].rating, ratings[2].deviation, ratings[2].uid),
-                    (ratings[3].rating, ratings[3].deviation, ratings[3].uid),
+                    (ratings[0].rating.rating, ratings[0].rating.deviation, ratings[0].uid),
+                    (ratings[1].rating.rating, ratings[1].rating.deviation, ratings[1].uid),
+                    (ratings[2].rating.rating, ratings[2].rating.deviation, ratings[2].uid),
+                    (ratings[3].rating.rating, ratings[3].rating.deviation, ratings[3].uid),
                 ),
             )
             .await;
@@ -549,11 +564,31 @@ impl Db {
         Ok(())
     }
 
+    fn user_rows(game: Arc<RwLock<Game>>) -> [IntoUserGameRow; 4] {
+        let rgame = game.read().unwrap();
+        let start = rgame.get_start().unwrap();
+        let game_players = rgame.get_players();
+        let players = Game::get_rating_snapshots(game_players);
+        let mut rows: [IntoUserGameRow; 4] = [UserGameRow::default().into_row(); 4];
+        for (idx, player) in Players::new(rgame.get_players()).get_players().iter().enumerate() {
+            rows[idx] = UserGameRow {
+                uid: player.get_uid(),
+                start_time: Duration::milliseconds(start.timestamp_millis()),
+                game_id: *rgame.get_id(),
+                result: -1,
+                rated: rgame.rated,
+                players: players.clone(),
+            }.into_row();
+        }
+        rows
+    }
+
     pub async fn start_game(
         &self,
         game: Arc<RwLock<Game>>,
     ) -> Result<QueryResult, Error> {
-        let rgame = game.read().unwrap();
+        let clone = game.clone();
+        let rgame = clone.read().unwrap();
         let game_id = rgame.get_id();
         let start = rgame.get_start().unwrap();
         let query = "UPDATE bughouse.games SET start_time = ? WHERE id = ?";
@@ -562,19 +597,16 @@ impl Db {
             .query(query.to_string(), (&Self::to_timestamp(start), game_id))
             .await?;
 
-        let mut rows: [(UserID, GameID); 4] = [(UserID::nil(), game_id.clone()); 4];
-        let players = Players::new(rgame.get_players());
-        for (idx, player) in players.get_players().iter().enumerate() {
-            rows[idx].0 = player.get_uid();
-        }
-        eprintln!("rows: {:?}", rows);
         let mut batch: Batch = Default::default();
         let prepared: PreparedStatement = self.session.prepare(
-            "INSERT INTO bughouse.user_games (uid, game_id) VALUES (?, ?)"
+            "INSERT INTO bughouse.user_games
+            (uid, start_time, game_id, result, rated, players) VALUES
+            (?,   ?,          ?,       ?,      ?,     ?)"
             ).await?;
         for _i in 0..4 {
             batch.append_statement(prepared.clone());
         }
+        let rows = Self::user_rows(game);
         let res2 = self.session.batch(&batch, &rows[0..4]).await;
         if let Err(e) = res2 {
             eprintln!("db.start_game err: {:?}", e);

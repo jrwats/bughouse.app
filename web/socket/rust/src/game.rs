@@ -7,7 +7,8 @@ use chrono::Duration;
 use serde::ser::{Serialize, SerializeStruct};
 use std::sync::{Arc, RwLock};
 
-use crate::connection_mgr::UserID;
+use crate::users::UserID;
+use crate::db::{UserRatingSnapshot, TableSnapshot};
 use crate::error::Error;
 use crate::time_control::TimeControl;
 use crate::users::User;
@@ -133,6 +134,17 @@ impl Game {
             }
         }
         None
+    }
+
+    pub fn get_rating_snapshots(players: &GamePlayers) -> TableSnapshot {
+        let [[aw, ab], [bw, bb]] = players;
+        let (aws, abs, bws, bbs) = (
+            UserRatingSnapshot::from(aw.clone()),
+            UserRatingSnapshot::from(ab.clone()),
+            UserRatingSnapshot::from(bw.clone()),
+            UserRatingSnapshot::from(bb.clone()),
+        );
+        ((aws, abs), (bws, bbs))
     }
 
     pub fn handle(maybe_user: &Option<Arc<RwLock<User>>>) -> Option<String> {

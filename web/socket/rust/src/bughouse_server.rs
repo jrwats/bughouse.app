@@ -15,7 +15,7 @@ use std::sync::{Arc, RwLock};
 // use std::thread;
 
 use crate::b66::B66;
-use crate::connection_mgr::{ConnID, ConnectionMgr, UserID};
+use crate::connection_mgr::{ConnID, ConnectionMgr};
 use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase::*;
@@ -25,11 +25,11 @@ use crate::games::{GameUserHandler, Games};
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
-use crate::rating::Rating;
+use crate::rating::UserRating;
 use crate::seek_user_handler::SeekUserHandler;
 use crate::seeks::{SeekPool, Seeks};
 use crate::time_control::TimeControl;
-use crate::users::{User, Users};
+use crate::users::{User, UserID, Users};
 use once_cell::sync::OnceCell;
 
 // pub type ChanMsg = (Recipient<ClientMessage>, String);
@@ -493,20 +493,6 @@ impl BughouseServer {
         Ok(UserRatingSnapshot::from(user))
     }
 
-    fn get_rating_snapshots(
-        &'static self,
-        players: &GamePlayers,
-    ) -> Result<TableSnapshot, Error> {
-        let [[aw, ab], [bw, bb]] = players;
-        let (aws, abs, bws, bbs) = (
-            UserRatingSnapshot::from(aw.clone()),
-            UserRatingSnapshot::from(ab.clone()),
-            UserRatingSnapshot::from(bw.clone()),
-            UserRatingSnapshot::from(bb.clone()),
-        );
-        Ok(((aws, abs), (bws, bbs)))
-    }
-
     pub fn get_table_rating_snapshots(
         &'static self,
         user: Arc<RwLock<User>>,
@@ -586,7 +572,7 @@ impl BughouseServer {
         game: Arc<RwLock<Game>>,
     ) -> Result<ClientMessage, Error> {
         let rgame = game.read().unwrap();
-        let rating_snapshots = self.get_rating_snapshots(&rgame.players)?;
+        let rating_snapshots = Game::get_rating_snapshots(&rgame.players);
         self.db.sit(rgame.get_id(), &rating_snapshots).await?;
         self.update_game_observers(game.clone());
         println!("updated game observers");
@@ -694,7 +680,7 @@ impl BughouseServer {
     ) -> Result<ClientMessage, Error> {
         println!("start_new_game");
         let start = Game::new_start();
-        let rating_snapshots = self.get_rating_snapshots(&players)?;
+        let rating_snapshots = Game::get_rating_snapshots(&players);
         println!("rating_snaps: {:?}", rating_snapshots);
         let id = self
             .db
@@ -819,14 +805,14 @@ impl BughouseServer {
 
     fn update_user_rating(
         &self,
-        rating_snapshot: &UserRatingSnapshot,
+        rating: &UserRating,
     ) -> Result<(), Error> {
-        let maybe_user = self.users.get(&rating_snapshot.uid);
+        let maybe_user = self.users.get(&rating.uid);
         if let Some(user) = maybe_user {
             {
                 let mut wuser = user.write().unwrap();
-                wuser.rating = rating_snapshot.rating;
-                wuser.deviation = rating_snapshot.deviation;
+                wuser.rating = rating.rating.rating;
+                wuser.deviation = rating.rating.deviation;
             }
             self.send_new_rating(user);
         }
@@ -842,9 +828,9 @@ impl BughouseServer {
         println!("updated result");
         if game.read().unwrap().rated {
             println!("updating ratings...");
-            let snaps = Rating::get_updated_ratings(game.clone());
-            self.db.record_ratings(&snaps).await?;
-            for rating_snapshot in snaps.iter() {
+            let ratings = UserRating::get_updated_ratings(game.clone());
+            self.db.record_ratings(&ratings).await?;
+            for rating_snapshot in ratings.iter() {
                 if self.update_user_rating(rating_snapshot).is_err() {
                     eprintln!(
                         "Failed updating in-memory user rating {}",

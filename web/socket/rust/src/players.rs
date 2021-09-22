@@ -1,6 +1,6 @@
 use bughouse::{BoardID, Color};
 
-use crate::connection_mgr::UserID;
+use crate::users::UserID;
 use crate::game::{Game, GamePlayers};
 
 pub struct Player {

@@ -9,7 +9,6 @@ CREATE TYPE time_control (
 );
 
 CREATE TYPE rating_snapshot (
-  deviation smallint,
   rating smallint,
   uid uuid,
 );
@@ -30,12 +29,22 @@ CREATE TABLE IF NOT EXISTS games (
   moves map<int, smallint>,
 );
 CREATE INDEX ON games(result);
+CREATE INDEX ON games(start_time);
 
 CREATE TABLE IF NOT EXISTS user_games (
   uid timeuuid,
+  start_time timestamp,
   game_id timeuuid,
-  PRIMARY KEY ((uid), game_id)
-);
+  result smallint,
+  rated boolean,
+  players tuple<
+    tuple<rating_snapshot, rating_snapshot>,
+    tuple<rating_snapshot, rating_snapshot>
+  >,
+  PRIMARY KEY ((uid), start_time, game_id)
+) WITH CLUSTERING ORDER BY (start_time DESC);
+CREATE INDEX ON user_games(result);
+CREATE INDEX ON user_games(start_time);
 
 CREATE TABLE IF NOT EXISTS rating_history (
   uid timeuuid,

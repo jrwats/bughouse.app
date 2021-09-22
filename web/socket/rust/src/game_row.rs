@@ -2,13 +2,15 @@ use bughouse::{
     BughouseMove, ALL_COLORS, ALL_PIECES, ALL_SQUARES, BOARD_IDS, NUM_PIECES,
 };
 use chrono::Duration;
-use scylla::cql_to_rust::FromRow;
-use scylla::macros::FromRow;
+use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::macros::{FromRow, FromUserType};
+use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::b66::B66;
-use crate::db::TableSnapshot;
+use crate::db::{UserRatingSnapshot, TableSnapshot};
+use crate::users::UserID;
 use crate::game::{GameID, GameResult, GameResultType};
 use crate::time_control::TimeControl;
 
@@ -23,7 +25,51 @@ pub struct GameRow {
     pub moves: HashMap<i32, i16>,
 }
 
-//                         src             dest    piece
+#[derive(Clone, FromRow, FromUserType)]
+pub struct UserGameRow {
+    pub uid: UserID,
+    pub start_time: Duration,
+    pub game_id: GameID,
+    pub result: i16,
+    pub rated: bool,
+    pub players: TableSnapshot,
+}
+
+// UserGameRow works for reading from DB.  IntoUserGameRow is for writing (Unfortunately Scylla
+// rust driver is a bit awkward around timestamps).
+pub type IntoUserGameRow = (
+    UserID, ScyllaTimestamp, GameID, i16, bool, TableSnapshot
+    );
+
+impl UserGameRow {
+    pub fn into_row(self) -> IntoUserGameRow {
+        (
+            self.uid,
+            ScyllaTimestamp(self.start_time),
+            self.game_id,
+            self.result,
+            self.rated,
+            self.players
+        )
+    }
+}
+
+impl Default for UserGameRow {
+    fn default() -> Self {
+        let rating = UserRatingSnapshot::nil();
+        UserGameRow {
+            uid: UserID::nil(),
+            game_id: GameID::nil(),
+            start_time: Duration::zero(),
+            result: 0,
+            rated: false,
+            players: ((rating.clone(), rating.clone()), (rating.clone(), rating))
+        }
+    }
+}
+
+
+//                            src             dest    piece
 // type ClientBughouesMove = (Option<String>, String, Option<String>);
 
 impl GameRow {

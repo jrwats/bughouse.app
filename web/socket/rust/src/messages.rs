@@ -4,10 +4,11 @@ use bytestring::ByteString;
 use chrono::Duration;
 use std::sync::Arc;
 
-use crate::connection_mgr::{ConnID, UserID};
+use crate::connection_mgr::ConnID;
 use crate::error::Error;
 use crate::game::{GameID, GamePlayers};
 use crate::time_control::TimeControl;
+use crate::users::UserID;
 
 // server => client => browser messages - i.e. client-side pushes
 #[derive(Debug, Clone)]

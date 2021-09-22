@@ -2,9 +2,11 @@ use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use uuid::Uuid;
 
-use crate::connection_mgr::UserID;
 use crate::db::Db;
+
+pub type UserID = Uuid;
 
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct User {

@@ -1,13 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
-use crate::connection_mgr::UserID;
 use crate::error::Error;
 use crate::game::GamePlayers;
 use crate::seek_constraint::SeekConstraint;
 use crate::seek_pod::SeekPod;
 use crate::time_control::TimeControl;
-use crate::users::Users;
+use crate::users::{UserID, Users};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SeekPool {

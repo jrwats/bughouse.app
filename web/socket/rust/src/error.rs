@@ -10,7 +10,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use uuid::Error as UuidError;
 
-use crate::connection_mgr::UserID;
+use crate::users::UserID;
 use crate::game::GameID;
 use crate::messages::{ClientMessage, ClientMessageKind, ServerMessage};
 

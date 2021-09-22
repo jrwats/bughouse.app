@@ -2,10 +2,11 @@ use actix::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, RwLock};
 
-use crate::connection_mgr::{ConnectionMgr, UserID};
+use crate::connection_mgr::ConnectionMgr;
 use crate::game::GameID;
 use crate::hash::hash;
 use crate::messages::ClientMessage;
+use crate::users::UserID;
 
 pub type AnonConnID = u64;
 pub type Recipients = HashMap<AnonConnID, Recipient<ClientMessage>>;
