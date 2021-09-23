@@ -10,6 +10,8 @@
 import { read, write } from "chessground/fen";
 import { distanceSq, key2pos, pos2key, allKeys } from "chessground/util";
 import Piece, { PIECES, LETTERS, NAMES } from "./Piece";
+import { ResultKind } from "./BughouseGame";
+import { FLAG } from "./ClockDisplay.react";
 
 function timeCtrlToMs(timeCtrl) {
   return timeCtrl.base * 60 * 1000 + timeCtrl.inc * 1000;
@@ -34,7 +36,7 @@ const isCastle = (move) =>
   Math.abs(move.src.charCodeAt(0) - move.dest.charCodeAt(0)) > 1;
 
 class AnalysisBoard {
-  constructor(timeCtrl) {
+  constructor(timeCtrl, lastTime) {
     const ms = timeCtrlToMs(timeCtrl);
     this.timeCtrl = timeCtrl;
     this.holdings = [initHoldings(), initHoldings()]; // white black holdings
@@ -42,7 +44,7 @@ class AnalysisBoard {
     this.pieces = read("start");
     this.promos = new Map();
     this.toMove = "w";
-    this.lastTime = 0;
+    this.lastTime = lastTime;
     this.lastMove = [];
   }
 
@@ -91,10 +93,16 @@ class AnalysisBoard {
       this.pieces.delete(move.src);
       this.promos.delete(move.src);
     }
-    this.toMove = this.toMove === "w" ? "b" : "w";
-    this.clocks[move.color === "white" ? 0 : 1] +=
-      1000 * this.timeCtrl.inc - (move.ms - this.lastTime);
-    this.lastTime = move.ms;
+    const clockIdx = move.color === "white" ? 0 : 1;
+    if (move.flag != null) {
+      this.lastTime.val += this.clocks[clockIdx];
+      this.clocks[clockIdx] = 0;
+    } else {
+      this.toMove = this.toMove === "w" ? "b" : "w";
+      this.clocks[move.color === "white" ? 0 : 1] +=
+        1000 * this.timeCtrl.inc - (move.ms - this.lastTime.val);
+      this.lastTime.val = move.ms;
+    }
     this.lastMove = [move.src, move.dest].filter((s) => s != null);
     return capturedPiece;
   }
@@ -122,6 +130,10 @@ class AnalysisBoard {
     return white.toUpperCase() + black;
   }
 
+  passTime(ms) {
+    this.clocks[this.toMove === "w" ? 0 : 1] -= ms;
+  }
+
   getState() {
     return {
       board: {
@@ -135,7 +147,9 @@ class AnalysisBoard {
   }
 
   getAlgebraicNotation(move) {
-    if (move.src == null) {
+    if (move.flag != null) {
+      return FLAG;
+    } else if (move.src == null) {
       return `${move.piece.toUpperCase()}@${move.dest}`;
     }
     // TODO egregiously incomplete (not handling ambiguities)
@@ -168,15 +182,22 @@ class AnalysisBoard {
 }
 
 class AnalysisState {
-  constructor(timeCtrl) {
-    this._boards = [new AnalysisBoard(timeCtrl), new AnalysisBoard(timeCtrl)];
+  constructor(timeCtrl, result) {
+    this._result = result;
+    this._lastTime = {val: 0};
+    this._boards = [
+      new AnalysisBoard(timeCtrl, this._lastTime),
+      new AnalysisBoard(timeCtrl, this._lastTime)
+    ];
   }
 
   toAnalysisMove(move) {
     const board = this._boards[move.boardID];
     const label = board.getAlgebraicNotation(move);
+    const then = this._lastTime.val;
     const capturedPiece = board.makeMove(move);
     this._boards[1 - move.boardID].addHolding(capturedPiece);
+    this._boards[1 - move.boardID].passTime(this._lastTime.val - then);
     return {
       ...move,
       label,
@@ -206,13 +227,31 @@ class AnalysisState {
     return this.toAnalysisMove(move);
   }
 
+  makeFlag(moveNums) {
+    const {board, winner} = this._result;
+    const move = {
+      flag: true,
+      boardID: board,
+      color: winner === 1 ? "white" : "black",
+      num: Math.floor(moveNums[board] / 2) + 1,
+    };
+    return this.toAnalysisMove(move);
+  }
+
   formMoves(serializedMoves) {
     // NOTE: keys *should* already come in sorted order, but w/e
     let moveNums = [0, 0];
-    return Object.keys(serializedMoves)
+    const moves = Object.keys(serializedMoves)
       .map((k) => parseInt(k))
       .sort((a, b) => a - b)
       .map((k) => this.deserialize(k, serializedMoves[k], moveNums));
+    if (this._result.kind === ResultKind.CHECKMATE) {
+      moves[moves.length - 1].label += "#";
+    } else {
+      moves.push(this.makeFlag(moveNums));
+      moves[moves.length - 1].state.result = this._result;
+    }
+    return moves;
   }
 }
 

@@ -31,6 +31,7 @@ const AnalysisMoves = ({ game }) => {
               b: { board: { lastMove: [], fen: initial } },
             };
       setIdx(idx.current);
+      console.log(state);
       game.update(state);
       e.preventDefault();
     };

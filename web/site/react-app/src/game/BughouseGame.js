@@ -5,9 +5,9 @@ import ScreenLock from "./ScreenLock";
 import ChessBoard from "./ChessBoard";
 import Piece from "./Piece";
 
-const ResultKind = {
+export const ResultKind = {
   FLAGGED: 0,
-  CHECKMAGE: 0,
+  CHECKMATE: 1,
 };
 
 function _getColor(idx) {
@@ -50,8 +50,9 @@ class BughouseGame extends EventEmitter {
     this.emit("update", this);
   }
 
-  update({ rated, delayStartMillis, a, b }) {
+  update({ rated, result, delayStartMillis, a, b }) {
     console.log(`BughouseGame.update(...)`);
+    this._result = result;
     this._rated = rated || this._rated;
     this._setStart(delayStartMillis);
     this._a.update(a);
@@ -86,8 +87,8 @@ class BughouseGame extends EventEmitter {
   // key & 0x1 = board ID
   // val < 0 = drop move
   // val > 0 = normal move
-  setMoves(serializedMoves) {
-    const state = new AnalysisState(this._timeCtrl);
+  setMoves(serializedMoves, result) {
+    const state = new AnalysisState(this._timeCtrl, result);
     this._moves = state.formMoves(serializedMoves);
     this.emit("update", this);
   }
@@ -150,7 +151,7 @@ class BughouseGame extends EventEmitter {
     boards[board].setWinner(_getColor(winner));
     boards[1 - board].setWinner(_getColor(1 - winner));
     this._reason = this._deriveReason(board, kind, winner);
-    this._winner = data.result[0] === "1" ? "white" : "black";
+    this._winner = winner === 0 ? "white" : "black";
     this.emit("gameOver", data);
     this.update(data);
     this.emit("update", data);

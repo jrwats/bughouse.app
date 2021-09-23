@@ -30,11 +30,11 @@ class ChessBoard extends EventEmitter {
       lastMove: board.lastMove?.slice(),
       white: {
         handle: whiteHandle,
-        ms: board.white?.ms || this._board.white?.ms,
+        ms: board.white?.ms ?? this._board.white?.ms,
       },
       black: {
         handle: blackHandle,
-        ms: board.black?.ms || this._board.black?.ms,
+        ms: board.black?.ms ?? this._board.black?.ms,
       },
     };
 

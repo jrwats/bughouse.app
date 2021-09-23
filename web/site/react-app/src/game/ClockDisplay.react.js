@@ -6,8 +6,12 @@ setInterval(() => {
   _ticker.emit("tick");
 }, 50);
 
-const FLAG = "\u{1F6A9}";
+export const FLAG = "\u{1F6A9}";
+const IDEOGRAPHIC_SPACE = "\u{3000}";
+const TEN_SECS = 10000;
+
 function getFlag(result, boardID, color) {
+  console.log(`getflag(${JSON.stringify(result)}, ${boardID}, ${color}`);
   if (
     result?.kind === 0 &&
     (result.board === 0) === (boardID.split("/")[1] === "a") &&
@@ -38,6 +42,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
       }
       lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
       const result = cb.getGame().getResult();
+      console.log(`result: ${result}`);
       setState({ result, playerData, ms: refTime.current });
     };
 
@@ -70,16 +75,26 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
     console.error(`state.ms isNaN`);
     state.ms = 0;
   }
-  const ms = Math.max(0, state.ms + 900);
-  const mins = Math.floor(ms / 1000.0 / 60.0);
-  const secs = Math.floor((ms / 1000.0) % 60);
+  const ms = Math.max(0, state.ms);
+  const sub_ms = Math.round(ms % 1000);
+  let mins = Math.floor(ms / 1000.0 / 60.0);
+  let secs = Math.floor((ms / 1000.0) % 60) +
+    (ms > TEN_SECS && sub_ms > 100 ? 1 : 0)
+  if (secs === 60) {
+    mins += 1;
+    secs = 0;
+  }
+
+  const ms_str = ms <= TEN_SECS
+    ? `.${Math.floor(sub_ms / 100)}`
+    : IDEOGRAPHIC_SPACE;
 
   const res = state.result;
   const flag = getFlag(state.result, chessboard.getID(), color);
   return (
-    <span className="clock h6 alien">
+    <span className="clock h6 mono">
       {flag}
-      {mins}:{(secs < 10 ? "0" : "") + secs}
+      {mins}:{(secs < 10 ? "0" : "") + secs}{ms_str}
     </span>
   );
 };

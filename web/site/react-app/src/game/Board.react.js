@@ -20,12 +20,10 @@ const playAudio = (file) => {
   if (now - lastPlay < 200 || soundOff) {
     return;
   }
-  console.log(`Playing ${file}`);
   lastPlay = now;
   const audio = new Audio(file);
   audio.volume = 0.5;
   audio.play();
-  console.log(`${file}.play`);
 };
 
 export const BoardContext = {

@@ -46,7 +46,7 @@ class GameStatusSource extends EventEmitter {
     console.log(`GameStatusSource row ${JSON.stringify(data)}`);
     const game = this.getGame(data.id);
     game.setTimeControl(data.time_ctrl);
-    game.setMoves(data.moves);
+    game.setMoves(data.moves, data.result);
     game.setIsAnalysis(true);
     const [[aw, ab], [bw, bb]] = data.players;
     game.getBoardA().update({
