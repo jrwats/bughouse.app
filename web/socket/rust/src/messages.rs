@@ -14,7 +14,6 @@ use crate::users::UserID;
 #[derive(Debug, Clone)]
 pub enum ClientMessageKind {
     Auth(ConnID),
-    // GameStart(GameID),
     Text(Arc<ByteString>),
     Empty,
 }
@@ -31,10 +30,6 @@ impl ClientMessage {
         ClientMessage { kind }
     }
 }
-
-// pub enum ServerResponse {
-//     Auth(ConnID)
-// }
 
 pub enum ServerMessageKind {
     Auth(Recipient<ClientMessage>, String),

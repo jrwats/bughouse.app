@@ -25,10 +25,10 @@ use crate::firebase::*;
 use crate::game::{Game, GameID};
 use crate::game_row::{GameRow, IntoUserGameRow, UserGameRow};
 use crate::guest::guest_handle::GuestHandle;
+use crate::players::Players;
 use crate::rating::{Rating, UserRating};
 use crate::time_control::TimeControl;
 use crate::users::{User, UserID};
-use crate::players::Players;
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
 
@@ -439,20 +439,49 @@ impl Db {
 
         let [[aw, ab], [bw, bb]] = &rgame.players;
         let mut batch: Batch = Default::default();
-        let prepared: PreparedStatement = self.session.prepare(
-            "UPDATE bughouse.user_games SET result = ?
-             WHERE uid = ? AND start_time = ? AND game_id = ?;"
-            ).await?;
+        let prepared: PreparedStatement = self
+            .session
+            .prepare(
+                "UPDATE bughouse.user_games SET result = ?
+             WHERE uid = ? AND start_time = ? AND game_id = ?;",
+            )
+            .await?;
         for _i in 0..4 {
             batch.append_statement(prepared.clone());
         }
         let start = Self::to_timestamp(rgame.get_start().unwrap());
-        let res2 = self.session.batch(&batch, (
-                (val, aw.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
-                (val, ab.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
-                (val, bw.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
-                (val, bb.as_ref().unwrap().read().unwrap().id, start, rgame.get_id()),
-                )).await;
+        let res2 = self
+            .session
+            .batch(
+                &batch,
+                (
+                    (
+                        val,
+                        aw.as_ref().unwrap().read().unwrap().id,
+                        start,
+                        rgame.get_id(),
+                    ),
+                    (
+                        val,
+                        ab.as_ref().unwrap().read().unwrap().id,
+                        start,
+                        rgame.get_id(),
+                    ),
+                    (
+                        val,
+                        bw.as_ref().unwrap().read().unwrap().id,
+                        start,
+                        rgame.get_id(),
+                    ),
+                    (
+                        val,
+                        bb.as_ref().unwrap().read().unwrap().id,
+                        start,
+                        rgame.get_id(),
+                    ),
+                ),
+            )
+            .await;
         if let Err(e) = res2 {
             eprintln!("db.record_result user err: {:?}", e);
         }
@@ -468,7 +497,12 @@ impl Db {
         let mut rows: [(UserID, ScyllaTimestamp, i16, i16); 4] =
             [(UserID::nil(), now, 0, 0); 4];
         for (i, user_rating) in ratings.iter().enumerate() {
-            rows[i] = (user_rating.uid, now, user_rating.rating.rating, user_rating.rating.deviation);
+            rows[i] = (
+                user_rating.uid,
+                now,
+                user_rating.rating.rating,
+                user_rating.rating.deviation,
+            );
         }
         // Add a prepared query to the batch
         let mut batch: Batch = Default::default();
@@ -490,18 +524,13 @@ impl Db {
         for _i in 0..4 {
             batch2.append_statement(prepared2.clone());
         }
-        let res2 = self
-            .session
-            .batch(
-                &batch2,
-                (
-                    (ratings[0].rating.rating, ratings[0].rating.deviation, ratings[0].uid),
-                    (ratings[1].rating.rating, ratings[1].rating.deviation, ratings[1].uid),
-                    (ratings[2].rating.rating, ratings[2].rating.deviation, ratings[2].uid),
-                    (ratings[3].rating.rating, ratings[3].rating.deviation, ratings[3].uid),
-                ),
-            )
-            .await;
+        let rating_rows: [(i16, i16, UserID); 4] = [
+            ratings[0].to_row(),
+            ratings[1].to_row(),
+            ratings[2].to_row(),
+            ratings[3].to_row(),
+        ];
+        let res2 = self.session.batch(&batch2, &rating_rows[0..4]).await;
         if let Err(e) = res2 {
             eprintln!("batch error users: {:?}", e);
         }
@@ -544,10 +573,18 @@ impl Db {
         self.session
             .query(
                 "INSERT INTO bughouse.games
-             (id, start_time, time_ctrl, rated, public, players)
-              VALUES (?, ?, ?, ?, ?, ?)"
+             (id, start_time, time_ctrl, rated, result, public, players)
+              VALUES (?, ?, ?, ?, ?, ?, ?)"
                     .to_string(),
-                (id, time, time_ctrl, rated, public, rating_snapshots),
+                (
+                    id,
+                    time,
+                    time_ctrl,
+                    rated,
+                    -1 as i16,
+                    public,
+                    rating_snapshots,
+                ),
             )
             .await?;
         Ok(id)
@@ -569,8 +606,13 @@ impl Db {
         let start = rgame.get_start().unwrap();
         let game_players = rgame.get_players();
         let players = Game::get_rating_snapshots(game_players);
-        let mut rows: [IntoUserGameRow; 4] = [UserGameRow::default().into_row(); 4];
-        for (idx, player) in Players::new(rgame.get_players()).get_players().iter().enumerate() {
+        let mut rows: [IntoUserGameRow; 4] =
+            [UserGameRow::default().into_row(); 4];
+        for (idx, player) in Players::new(rgame.get_players())
+            .get_players()
+            .iter()
+            .enumerate()
+        {
             rows[idx] = UserGameRow {
                 uid: player.get_uid(),
                 start_time: Duration::milliseconds(start.timestamp_millis()),
@@ -578,7 +620,8 @@ impl Db {
                 result: -1,
                 rated: rgame.rated,
                 players: players.clone(),
-            }.into_row();
+            }
+            .into_row();
         }
         rows
     }
@@ -598,11 +641,14 @@ impl Db {
             .await?;
 
         let mut batch: Batch = Default::default();
-        let prepared: PreparedStatement = self.session.prepare(
-            "INSERT INTO bughouse.user_games
+        let prepared: PreparedStatement = self
+            .session
+            .prepare(
+                "INSERT INTO bughouse.user_games
             (uid, start_time, game_id, result, rated, players) VALUES
-            (?,   ?,          ?,       ?,      ?,     ?)"
-            ).await?;
+            (?,   ?,          ?,       ?,      ?,     ?)",
+            )
+            .await?;
         for _i in 0..4 {
             batch.append_statement(prepared.clone());
         }

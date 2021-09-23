@@ -7,11 +7,11 @@ use chrono::Duration;
 use serde::ser::{Serialize, SerializeStruct};
 use std::sync::{Arc, RwLock};
 
-use crate::users::UserID;
-use crate::db::{UserRatingSnapshot, TableSnapshot};
+use crate::db::{TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::time_control::TimeControl;
 use crate::users::User;
+use crate::users::UserID;
 
 //                      White, Black
 pub type BoardPlayers = [Option<Arc<RwLock<User>>>; 2];

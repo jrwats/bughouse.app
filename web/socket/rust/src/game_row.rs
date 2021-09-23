@@ -3,16 +3,16 @@ use bughouse::{
 };
 use chrono::Duration;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
-use scylla::macros::{FromRow, FromUserType};
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
+use scylla::macros::{FromRow, FromUserType};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::b66::B66;
-use crate::db::{UserRatingSnapshot, TableSnapshot};
-use crate::users::UserID;
+use crate::db::{TableSnapshot, UserRatingSnapshot};
 use crate::game::{GameID, GameResult, GameResultType};
 use crate::time_control::TimeControl;
+use crate::users::UserID;
 
 #[derive(Clone, Debug, FromRow)]
 pub struct GameRow {
@@ -37,9 +37,8 @@ pub struct UserGameRow {
 
 // UserGameRow works for reading from DB.  IntoUserGameRow is for writing (Unfortunately Scylla
 // rust driver is a bit awkward around timestamps).
-pub type IntoUserGameRow = (
-    UserID, ScyllaTimestamp, GameID, i16, bool, TableSnapshot
-    );
+pub type IntoUserGameRow =
+    (UserID, ScyllaTimestamp, GameID, i16, bool, TableSnapshot);
 
 impl UserGameRow {
     pub fn into_row(self) -> IntoUserGameRow {
@@ -49,7 +48,7 @@ impl UserGameRow {
             self.game_id,
             self.result,
             self.rated,
-            self.players
+            self.players,
         )
     }
 }
@@ -63,11 +62,13 @@ impl Default for UserGameRow {
             start_time: Duration::zero(),
             result: 0,
             rated: false,
-            players: ((rating.clone(), rating.clone()), (rating.clone(), rating))
+            players: (
+                (rating.clone(), rating.clone()),
+                (rating.clone(), rating),
+            ),
         }
     }
 }
-
 
 //                            src             dest    piece
 // type ClientBughouesMove = (Option<String>, String, Option<String>);

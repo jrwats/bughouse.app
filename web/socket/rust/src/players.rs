@@ -1,7 +1,7 @@
 use bughouse::{BoardID, Color};
 
-use crate::users::UserID;
 use crate::game::{Game, GamePlayers};
+use crate::users::UserID;
 
 pub struct Player {
     id: UserID,

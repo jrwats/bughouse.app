@@ -114,14 +114,6 @@ impl Handler<ClientMessage> for BugWebSock {
                     ctx.text(msg.to_string());
                 }
             }
-            // ClientMessageKind::GameStart(game_id) => {
-            //     let msg = json!({
-            //         "kind": "game_start",
-            //         "id": game_id,
-            //         "path": B66::encode_uuid(game_id),
-            //     });
-            //     ctx.text(msg.to_string());
-            // }
             ClientMessageKind::Text(json) => {
                 ctx.text(json.to_string());
             }
@@ -584,30 +576,6 @@ impl BugWebSock {
                         token.to_string(),
                     )))
                     .expect("WTF");
-                // self.srv_recipient
-                //     .send(ServerMessage::new(ServerMessageKind::Auth(
-                //         ctx.address().recipient(),
-                //         token.to_string(),
-                //     )))
-                //     .into_actor(self)
-                //     .then(|res, _, _ctx| {
-                //         println!("future go there");
-                //         match res {
-                //             Ok(m) => {
-                //                 if let Ok(msg) = m {
-                //                     match msg.kind {
-                //                         ClientMessageKind::Auth(id) => {
-                //                             self.id = id;
-                //                         }
-                //                     }
-                //                 }
-                //                 println!("Auth success on websocket thread: {:?}", m)
-                //             }
-                //             Err(e) => { eprintln!("Auth error on websocket thread: {:?}", e) }
-                //         }
-                //         actix::fut::ready(())
-                //     })
-                // .spawn(ctx);
             }
             _ => {
                 self.authed_handler(kind, &val, ctx)?;

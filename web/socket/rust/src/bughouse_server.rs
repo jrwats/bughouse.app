@@ -803,10 +803,7 @@ impl BughouseServer {
         self.send_text_to_user(json.to_string(), &ruser.id);
     }
 
-    fn update_user_rating(
-        &self,
-        rating: &UserRating,
-    ) -> Result<(), Error> {
+    fn update_user_rating(&self, rating: &UserRating) -> Result<(), Error> {
         let maybe_user = self.users.get(&rating.uid);
         if let Some(user) = maybe_user {
             {

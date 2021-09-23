@@ -37,9 +37,7 @@ impl Rating {
     }
 
     // f =  1/Sqrt(1 + p (RD1^2 + RD2^2 + RD3^2))
-    fn get_attenuating_factors(
-        flat_snaps: &[UserRating; 4],
-    ) -> [f64; 4] {
+    fn get_attenuating_factors(flat_snaps: &[UserRating; 4]) -> [f64; 4] {
         let mut attenuating_factors = [0f64; 4];
         for i in 0..flat_snaps.len() {
             let mut sum = 0f64;
@@ -59,10 +57,12 @@ impl Rating {
         attenuating_factors: &[f64; 4],
     ) -> [f64; 4] {
         // a_rating, b_rating = team ratings (average)
-        let a_rating =
-            (flat_ratings[0].rating.rating + flat_ratings[3].rating.rating) as f64 / 2f64;
-        let b_rating =
-            (flat_ratings[1].rating.rating + flat_ratings[2].rating.rating) as f64 / 2f64;
+        let a_rating = (flat_ratings[0].rating.rating
+            + flat_ratings[3].rating.rating) as f64
+            / 2f64;
+        let b_rating = (flat_ratings[1].rating.rating
+            + flat_ratings[2].rating.rating) as f64
+            / 2f64;
         let mut expecteds = [0f64; 4];
         for (i, f) in attenuating_factors.iter().enumerate() {
             let (rating, opp_rating) = if i == 0 || i == 3 {
@@ -76,10 +76,7 @@ impl Rating {
         expecteds
     }
 
-    fn update_ratings(
-        ratings: &mut [UserRating; 4],
-        winners: Team,
-    ) -> () {
+    fn update_ratings(ratings: &mut [UserRating; 4], winners: Team) -> () {
         let attenuating_factors = Self::get_attenuating_factors(ratings);
         let expecteds = Self::get_expecteds(ratings, &attenuating_factors);
         for (i, rating) in ratings.iter_mut().enumerate() {
@@ -107,13 +104,15 @@ pub struct UserRating {
 
 impl UserRating {
     pub fn new(uid: UserID, rating: Rating) -> Self {
-        UserRating { uid, rating}
+        UserRating { uid, rating }
+    }
+
+    pub fn to_row(&self) -> (i16, i16, UserID) {
+        (self.rating.rating, self.rating.deviation, self.uid)
     }
 
     /// See ratings.md in top-level docs folder in this repo
-    pub fn get_updated_ratings(
-        game: Arc<RwLock<Game>>,
-    ) -> [UserRating; 4] {
+    pub fn get_updated_ratings(game: Arc<RwLock<Game>>) -> [UserRating; 4] {
         let rgame = game.read().unwrap();
         let result = rgame.get_result().unwrap();
         let winning_team = if (result.board == BoardID::A)
@@ -135,8 +134,8 @@ impl UserRating {
             let rplayer = player.read().unwrap();
             user_ratings[idx] = UserRating::new(
                 *rplayer.get_uid(),
-                Rating::new(rplayer.rating, rplayer.deviation)
-                );
+                Rating::new(rplayer.rating, rplayer.deviation),
+            );
         }
         Rating::update_ratings(&mut user_ratings, winning_team);
         user_ratings
