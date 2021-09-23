@@ -49,7 +49,6 @@ const NOISY_EVENTS = {
   game_start: 1,
   game_end: 1,
   game_update: 1,
-  public_table: 1,
 };
 
 /**

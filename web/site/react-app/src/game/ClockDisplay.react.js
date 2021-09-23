@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { SocketContext } from "../socket/SocketProvider";
 import { EventEmitter } from "events";
 
 const _ticker = new EventEmitter();
@@ -11,7 +12,6 @@ const IDEOGRAPHIC_SPACE = "\u{3000}";
 const TEN_SECS = 10000;
 
 function getFlag(result, boardID, color) {
-  console.log(`getflag(${JSON.stringify(result)}, ${boardID}, ${color}`);
   if (
     result?.kind === 0 &&
     (result.board === 0) === (boardID.split("/")[1] === "a") &&
@@ -22,11 +22,16 @@ function getFlag(result, boardID, color) {
   return "";
 }
 
+function getLastUpdate(chessboard) {
+  const start = chessboard.getStart();
+  return start == null ? null : Math.max(Date.now(), start);
+}
+
 const ClockDisplay = ({ color, chessboard, forming }) => {
+  const { ping } = useContext(SocketContext);
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
-  const lastUpdate = useRef(Math.max(Date.now(), chessboard.getStart() || 0));
+  const lastUpdate = useRef(getLastUpdate(chessboard));
   const [state, setState] = useState({
-    playerData: chessboard.getBoard()[color],
     result: null,
     ms: refTime.current,
   });
@@ -34,16 +39,14 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   useEffect(() => {
     const onUpdate = (cb) => {
       const playerData = chessboard.getBoard()[color];
-      const milliseconds = playerData.ms;
-      if (Number.isNaN(milliseconds)) {
+      if (Number.isNaN(playerData.ms)) {
         console.log(`PlayerDisplay ${playerData.ms} isNaN`);
       } else {
-        refTime.current = milliseconds;
+        refTime.current = playerData.ms;
       }
-      lastUpdate.current = Math.max(Date.now(), chessboard.getStart() || 0);
+      lastUpdate.current = getLastUpdate(chessboard);
       const result = cb.getGame().getResult();
-      console.log(`result: ${result}`);
-      setState({ result, playerData, ms: refTime.current });
+      setState({ result, ms: refTime.current });
     };
 
     const onTick = () => {
@@ -57,7 +60,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         return;
       }
       let now = Date.now();
-      let delta = now - lastUpdate.current;
+      let delta = now - (lastUpdate.current ?? now);
       lastUpdate.current = now;
       refTime.current = Math.max(0, refTime.current - delta);
       setState({ ...state, ms: refTime.current });
@@ -79,7 +82,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const sub_ms = Math.round(ms % 1000);
   let mins = Math.floor(ms / 1000.0 / 60.0);
   let secs = Math.floor((ms / 1000.0) % 60) +
-    (ms > TEN_SECS && sub_ms > 100 ? 1 : 0)
+    (ms > TEN_SECS && sub_ms > ping ? 1 : 0)
   if (secs === 60) {
     mins += 1;
     secs = 0;
