@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import Button from "@material-ui/core/Button";
 import { SocketContext } from "./socket/SocketProvider";
 
-const Seek = ({ time }) => {
+const Seek = ({ time, disabled }) => {
   const { socket } = useContext(SocketContext);
 
   return (
@@ -10,6 +10,7 @@ const Seek = ({ time }) => {
       style={{ marginLeft: "1em", marginTop: "1em" }}
       variant="contained"
       color="primary"
+      disabled={disabled}
       onClick={() => {
         socket.sendEvent("seek", { time });
       }}
