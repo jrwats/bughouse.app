@@ -8,7 +8,7 @@
  */
 
 import { read, write } from "chessground/fen";
-import { distanceSq, key2pos, pos2key, allKeys } from "chessground/util";
+import { pos2key } from "chessground/util";
 import Piece, { PIECES, LETTERS, NAMES } from "./Piece";
 import { ResultKind } from "./BughouseGame";
 import { FLAG } from "./ClockDisplay.react";
@@ -160,7 +160,7 @@ class AnalysisBoard {
     switch (srcPiece.role) {
       case PIECES.PAWN:
         // comparing columns handles en-passant case
-        if (capture == null && move.dest[0] == move.src[0]) {
+        if (capture == null && move.dest[0] === move.src[0]) {
           return move.dest;
         } else {
           // TODO enable "shorthand"
