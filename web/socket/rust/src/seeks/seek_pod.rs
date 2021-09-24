@@ -3,8 +3,8 @@
 use fplist::{cons, PersistentList};
 use std::sync::Arc;
 
-use crate::seek_constraint::SeekConstraint;
-use crate::seeks::Seek;
+use super::seek_constraint::SeekConstraint;
+use super::seeks::Seek;
 
 pub type SeekPodID = u64;
 

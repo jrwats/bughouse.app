@@ -26,8 +26,8 @@ use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
 use crate::rating::UserRating;
-use crate::seek_user_handler::SeekUserHandler;
-use crate::seeks::{SeekPool, Seeks};
+use crate::seeks::seek_user_handler::SeekUserHandler;
+use crate::seeks::seeks::{SeekPool, Seeks};
 use crate::time_control::TimeControl;
 use crate::users::{User, UserID, Users};
 use once_cell::sync::OnceCell;

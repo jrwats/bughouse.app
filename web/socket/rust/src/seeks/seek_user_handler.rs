@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::error::Error;
 use crate::messages::{UserStateKind, UserStateMessage};
-use crate::seeks::Seeks;
+use super::seeks::Seeks;
 
 pub struct SeekUserHandler {
     seeks: Arc<Seeks>,

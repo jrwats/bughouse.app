@@ -19,7 +19,7 @@ use crate::game::GameID;
 use crate::messages::{
     ClientMessage, ClientMessageKind, ServerMessage, ServerMessageKind,
 };
-use crate::seeks::SeekPool;
+use crate::seeks::seeks::SeekPool;
 use crate::time_control::TimeControl;
 
 pub fn get_timestamp_ns() -> u64 {

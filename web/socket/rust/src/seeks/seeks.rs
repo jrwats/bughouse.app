@@ -3,10 +3,11 @@ use std::sync::{Arc, RwLock};
 
 use crate::error::Error;
 use crate::game::GamePlayers;
-use crate::seek_constraint::SeekConstraint;
-use crate::seek_pod::SeekPod;
 use crate::time_control::TimeControl;
 use crate::users::{UserID, Users};
+
+use super::seek_constraint::SeekConstraint;
+use super::seek_pod::SeekPod;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct SeekPool {
@@ -58,10 +59,7 @@ impl Seeks {
         }
     }
 
-    fn get_first_pod(
-        &self,
-        seek_pool: &SeekPool,
-    ) -> Option<(usize, Arc<SeekPod>)> {
+    fn get_first_pod(&self, seek_pool: &SeekPool) -> Option<(usize, Arc<SeekPod>)> {
         let rqueues = self.pod_queues.read().unwrap();
         let queue = rqueues.get(seek_pool);
         if queue.is_none() {
