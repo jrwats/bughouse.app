@@ -1,9 +1,9 @@
 use actix::prelude::*;
 use std::sync::Arc;
 
+use super::seeks::Seeks;
 use crate::error::Error;
 use crate::messages::{UserStateKind, UserStateMessage};
-use super::seeks::Seeks;
 
 pub struct SeekUserHandler {
     seeks: Arc<Seeks>,

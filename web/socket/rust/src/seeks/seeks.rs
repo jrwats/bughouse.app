@@ -59,7 +59,10 @@ impl Seeks {
         }
     }
 
-    fn get_first_pod(&self, seek_pool: &SeekPool) -> Option<(usize, Arc<SeekPod>)> {
+    fn get_first_pod(
+        &self,
+        seek_pool: &SeekPool,
+    ) -> Option<(usize, Arc<SeekPod>)> {
         let rqueues = self.pod_queues.read().unwrap();
         let queue = rqueues.get(seek_pool);
         if queue.is_none() {
