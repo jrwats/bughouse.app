@@ -40,11 +40,11 @@ class ChessBoard extends EventEmitter {
 
     // this._board = { ...this._board, ...board};
     this._holdings = holdings || "";
-    this.emit("update", this);
     if (!this._initialized) {
       this._initialized = true;
       this.emit("init");
     }
+    this.emit("update", this);
   }
 
   forceUpdate() {
