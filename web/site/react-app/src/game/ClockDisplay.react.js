@@ -8,7 +8,7 @@ setInterval(() => {
 }, 50);
 
 export const FLAG = "\u{1F6A9}";
-const IDEOGRAPHIC_SPACE = "\u{3000}";
+const IDEO_SPACE = "\u{3000}";
 const TEN_SECS = 10000;
 
 function getFlag(result, boardID, color) {
@@ -27,14 +27,29 @@ function getLastUpdate(chessboard) {
   return start == null ? null : Math.max(Date.now(), start);
 }
 
+function getTimes(ms, ping) {
+  let numSubMS = Math.round(ms % 1000);
+  let mins = Math.floor(ms / 1000.0 / 60.0);
+  let secs = Math.floor((ms / 1000.0) % 60) +
+    (ms > TEN_SECS && numSubMS > ping ? 1 : 0)
+  if (secs === 60) {
+    mins += 1;
+    secs = 0;
+  }
+  const subMS = ms <= TEN_SECS ? `.${Math.floor(numSubMS / 100)}` : IDEO_SPACE;
+  return { mins, secs, subMS};
+}
+
 const ClockDisplay = ({ color, chessboard, forming }) => {
   const { ping } = useContext(SocketContext);
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
   const lastUpdate = useRef(getLastUpdate(chessboard));
-  const [state, setState] = useState({
-    result: null,
-    ms: refTime.current,
-  });
+  const [result, setResult] = useState(null);
+
+  const initTimes = getTimes(refTime.current);
+  const [mins, setMins] = useState(initTimes.mins);
+  const [secs, setSecs] = useState(initTimes.secs);
+  const [subMS, setSubMS] = useState(initTimes.subMS);
 
   useEffect(() => {
     const onUpdate = (cb) => {
@@ -45,25 +60,32 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         refTime.current = playerData.ms;
       }
       lastUpdate.current = getLastUpdate(chessboard);
-      const result = cb.getGame().getResult();
-      setState({ result, ms: refTime.current });
+      const times = getTimes(Math.max(0, refTime.current), ping);
+      setMins(times.mins);
+      setSecs(times.secs);
+      setSubMS(times.subMS);
+      setResult(cb.getGame().getResult());
     };
 
     const onTick = () => {
+      const now = Date.now();
       if (
         forming ||
-        state.result != null ||
+        result != null ||
         chessboard.getGame().isAnalysis() ||
         chessboard.getColorToMove() !== color ||
-        Date.now() < chessboard.getStart()
+        chessboard.getStart() == null ||
+        now < chessboard.getStart()
       ) {
         return;
       }
-      let now = Date.now();
       let delta = now - (lastUpdate.current ?? now);
       lastUpdate.current = now;
       refTime.current = Math.max(0, refTime.current - delta);
-      setState({ ...state, ms: refTime.current });
+      const times = getTimes(refTime.current, ping);
+      setMins(times.mins);
+      setSecs(times.secs);
+      setSubMS(times.subMS);
     };
     chessboard.on("update", onUpdate);
     _ticker.on("tick", onTick);
@@ -71,33 +93,13 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
       chessboard.off("update", onUpdate);
       _ticker.off("tick", onTick);
     };
-  }, [state, color, chessboard, forming]);
+  }, [color, chessboard, forming]);
 
-  if (Number.isNaN(state.ms)) {
-    // debugger;
-    console.error(`state.ms isNaN`);
-    state.ms = 0;
-  }
-  const ms = Math.max(0, state.ms);
-  const sub_ms = Math.round(ms % 1000);
-  let mins = Math.floor(ms / 1000.0 / 60.0);
-  let secs = Math.floor((ms / 1000.0) % 60) +
-    (ms > TEN_SECS && sub_ms > ping ? 1 : 0)
-  if (secs === 60) {
-    mins += 1;
-    secs = 0;
-  }
-
-  const ms_str = ms <= TEN_SECS
-    ? `.${Math.floor(sub_ms / 100)}`
-    : IDEOGRAPHIC_SPACE;
-
-  const res = state.result;
-  const flag = getFlag(state.result, chessboard.getID(), color);
+  const flag = getFlag(result, chessboard.getID(), color);
   return (
     <span className="clock h6 mono">
       {flag}
-      {mins}:{(secs < 10 ? "0" : "") + secs}{ms_str}
+      {mins}:{(secs < 10 ? "0" : "") + secs}{subMS}
     </span>
   );
 };

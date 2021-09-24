@@ -170,6 +170,7 @@ const Board = ({
   const turnColor =
     boardFEN != null && boardFEN.split(" ")[1] === "w" ? "white" : "black";
 
+  // console.log(`Board.${chessboard.getID()}: ${viewOnly}, ${isViewOnly(forming, handle, chessboard)}, ${handle}`);
   return (
     <div
       ref={boardWrapperRef}
@@ -233,7 +234,6 @@ const Board = ({
                 key={chessboard.getID()}
                 fen={boardFEN}
                 onMove={(from, to, e) => {
-                  debugger;
                   const pieces = chessgroundRef.current.cg.state.pieces;
                   if (
                     handleColor === turnColor &&
