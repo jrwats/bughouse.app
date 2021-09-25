@@ -19,7 +19,7 @@ const Login = ({ navigate }) => {
       <div id="logo_splash" className="column">
         {/* <span class="bug_img_logo" alg="logo" /> */}
         <img className="bug-img-logo" alt="logo" src={logo} />
-        <span className="bug-logo-text">
+        <span className="bug-logo-text logo-glow">
           <span className="solid">bughouse.</span>
           app
         </span>

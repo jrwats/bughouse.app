@@ -44,7 +44,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const { ping } = useContext(SocketContext);
   const refTime = useRef(chessboard.getBoard()[color]?.ms || 0);
   const lastUpdate = useRef(getLastUpdate(chessboard));
-  const [result, setResult] = useState(null);
+  const result = useRef(chessboard.getGame().getResult());
 
   const initTimes = getTimes(refTime.current);
   const [mins, setMins] = useState(initTimes.mins);
@@ -59,19 +59,19 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
       } else {
         refTime.current = playerData.ms;
       }
+      result.current = cb.getGame().getResult();
       lastUpdate.current = getLastUpdate(chessboard);
       const times = getTimes(Math.max(0, refTime.current), ping);
       setMins(times.mins);
       setSecs(times.secs);
       setSubMS(times.subMS);
-      setResult(cb.getGame().getResult());
     };
 
     const onTick = () => {
       const now = Date.now();
       if (
         forming ||
-        result != null ||
+        result.current != null ||
         chessboard.getGame().isAnalysis() ||
         chessboard.getColorToMove() !== color ||
         chessboard.getStart() == null ||
@@ -95,9 +95,10 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
     };
   }, [color, chessboard, forming]);
 
-  const flag = getFlag(result, chessboard.getID(), color);
+  const flag = getFlag(result.current, chessboard.getID(), color);
+  const low = refTime.current <= TEN_SECS ? 'low' : '';
   return (
-    <span className="clock h6 mono">
+    <span className={`clock ${low} h6 mono`}>
       {flag}
       {mins}:{(secs < 10 ? "0" : "") + secs}{subMS}
     </span>

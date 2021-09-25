@@ -21,7 +21,15 @@ function getHandleDisplay(handle, canVacate, onSit, onVacate) {
   ) : null;
   return (
     <>
-      <HandleDisplay handle={handle} />
+      <div className="handle" >
+        <span className="h6 marker">
+          {`\u{2658}`}
+        </span>
+        <HandleDisplay handle={handle} />
+        <span className="h6 marker">
+          {`\u{2658}`}
+        </span>
+      </div>
       {vacate}
     </>
   );
