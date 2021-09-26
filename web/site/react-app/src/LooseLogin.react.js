@@ -1,4 +1,4 @@
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import React, { useContext, useEffect, useState } from "react";
 import auth from "./auth/firebase-init";
 import FirebaseLogin from "./FirebaseLogin.react";

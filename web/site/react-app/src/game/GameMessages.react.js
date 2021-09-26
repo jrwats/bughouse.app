@@ -1,15 +1,15 @@
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import QuickMessages, {
   QuickMessagesText,
   QuickMessagesPiece,
 } from "./QuickMessages";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { opposite } from "chessground/util";
 import { ViewerContext } from "../user/ViewerProvider";
 import { SocketContext } from "../socket/SocketProvider";
-import BlockIcon from "@material-ui/icons/Block";
+import BlockIcon from "@mui/icons-material/Block";
 
 const getQuickContent = ({ key, self, playerColor }) => {
   const piece = QuickMessagesPiece[key];

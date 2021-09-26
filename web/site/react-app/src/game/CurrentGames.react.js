@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { navigate } from "@reach/router";
-import Box from "@material-ui/core/Box";
+import Box from "@mui/material/Box";
 import Board, { BoardContext } from "./Board.react";
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
 

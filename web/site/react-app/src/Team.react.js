@@ -1,10 +1,10 @@
 import React, { useContext } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+import { makeStyles } from "@mui/styles";
+import Paper from "@mui/material/Paper";
 import Player from "./Player.react";
 import { SocketContext } from "./socket/SocketProvider";
 import { Link } from "@reach/router";
-import CancelIcon from "@material-ui/icons/Cancel";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 const useStyles = makeStyles((theme) => {
   return {

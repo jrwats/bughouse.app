@@ -25,6 +25,7 @@ class PhoenixSocket extends EventEmitter {
     }
     if (++this._retries > this._maxRetries) {
       this.emit("disconnect", "Maximum retries exceeded");
+      return;
     }
     ++this._totalRetries;
     this.emit("reconnect", { retry: this._retries });

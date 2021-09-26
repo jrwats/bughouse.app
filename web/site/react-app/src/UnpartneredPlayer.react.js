@@ -5,8 +5,8 @@ import { SocketContext } from "./socket/SocketProvider";
 import { UsersContext } from "./user/UsersProvider";
 import { AuthContext } from "./auth/AuthProvider";
 import { GamesListContext } from "./game/GamesListProvider";
-import Paper from "@material-ui/core/Paper";
-import { makeStyles } from "@material-ui/core/styles";
+import Paper from "@mui/material/Paper";
+import { makeStyles } from "@mui/material/styles";
 import OnlineUsers from "./user/OnlineUsers";
 
 /**

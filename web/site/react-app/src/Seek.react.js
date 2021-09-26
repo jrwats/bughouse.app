@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { SocketContext } from "./socket/SocketProvider";
 
 const Seek = ({ time, disabled }) => {

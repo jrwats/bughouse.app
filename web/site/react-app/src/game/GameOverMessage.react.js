@@ -1,11 +1,11 @@
 import React, { useContext } from "react";
 import { opposite } from "chessground/util";
-import Paper from "@material-ui/core/Paper";
+import Paper from "@mui/material/Paper";
 import HandleDisplay from "./HandleDisplay.react";
 import { SocketContext } from "../socket/SocketProvider";
-import FeaturedVideoIcon from "@material-ui/icons/FeaturedVideo";
-import AssessmentIcon from "@material-ui/icons/Assessment";
-import Button from "@material-ui/core/Button";
+import FeaturedVideoIcon from "@mui/icons-material/FeaturedVideo";
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import Button from "@mui/material/Button";
 import { Link } from "@reach/router";
 
 import { BoardContext } from "./Board.react";

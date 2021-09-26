@@ -2,7 +2,7 @@ import React from "react";
 // import Unpartnered from "./Unpartnered.react";
 // import Teams from "./Teams.react";
 // import Offers from "./Offers.react";
-import Box from "@material-ui/core/Box";
+import Box from "@mui/material/Box";
 import CurrentGames from "./game/CurrentGames.react";
 import GamingLanding from "./GamingLanding.react";
 import PublicTables from "./PublicTables.react";

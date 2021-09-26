@@ -1,17 +1,17 @@
-import Button from "@material-ui/core/Button";
-import CloseIcon from "@material-ui/icons/Close";
-import EditIcon from "@material-ui/icons/Edit";
-import SpellcheckIcon from "@material-ui/icons/Spellcheck";
-import Grid from "@material-ui/core/Grid";
-import Paper from "@material-ui/core/Paper";
+import Button from "@mui/material/Button";
+import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
+import SpellcheckIcon from "@mui/icons-material/Spellcheck";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import Loading from "../Loading.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "./ViewerProvider";
-import { makeStyles } from "@material-ui/core/styles";
-import purple from "@material-ui/core/colors/purple";
+import { makeStyles } from "@mui/styles";
+import purple from "@mui/material/colors/purple";
 
 const useStyles = makeStyles((theme) => ({
   paper: {

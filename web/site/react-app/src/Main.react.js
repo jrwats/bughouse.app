@@ -5,7 +5,6 @@ import Errors from "./Errors.react";
 import React from "react";
 import SideMenu from "./SideMenu.react";
 import Table from "./game/Table.react";
-// import Typography from "@material-ui/core/Typography";
 
 import { Router } from "@reach/router";
 

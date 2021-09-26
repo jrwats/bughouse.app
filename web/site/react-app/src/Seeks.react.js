@@ -1,8 +1,8 @@
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import React from "react";
 import Seek from "./Seek.react";
-import Typography from "@material-ui/core/Typography";
-import CancelIcon from "@material-ui/icons/Cancel";
+import Typography from "@mui/material/Typography";
+import CancelIcon from "@mui/icons-material/Cancel";
 import MuiAlert from "@mui/material/Alert";
 
 const Seeks = ({ onCancel }) => {

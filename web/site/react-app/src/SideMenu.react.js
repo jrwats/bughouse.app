@@ -1,24 +1,24 @@
 import React, { useContext, useState } from "react";
-import { withStyles } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle";
-import FeaturedVideoIcon from "@material-ui/icons/FeaturedVideo";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
-import NetworkCheckIcon from "@material-ui/icons/NetworkCheck";
-import VolumeOffIcon from "@material-ui/icons/VolumeOff";
-import VolumeUpIcon from "@material-ui/icons/VolumeUp";
+import { withStyles } from "@mui/styles";
+import Button from "@mui/material/Button";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import FeaturedVideoIcon from "@mui/icons-material/FeaturedVideo";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import NetworkCheckIcon from "@mui/icons-material/NetworkCheck";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 
 import discordLogo from "./images/Discord_Logo_White.svg";
 
 // TODO - animate menu depending on open/close state
-// import MenuOpenIcon from '@material-ui/icons/MenuOpen';
-import MenuIcon from "@material-ui/icons/Menu";
+// import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "@reach/router";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { SocketContext } from "./socket/SocketProvider";
 import { ViewerContext } from "./user/ViewerProvider";
 import logout from "./logout";

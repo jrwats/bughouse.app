@@ -1,21 +1,20 @@
 import React, { useContext } from "react";
-import Box from "@material-ui/core/Box";
-import Button from "@material-ui/core/Button";
-import CloseIcon from "@material-ui/icons/Close";
-import Grid from "@material-ui/core/Grid";
-import Switch from "@material-ui/core/Switch";
-import Typography from "@material-ui/core/Typography";
-import Paper from "@material-ui/core/Paper";
-import { withStyles } from "@material-ui/core/styles";
-import { purple } from "@material-ui/core/colors";
-import { deepPurple } from "@material-ui/core/colors";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import NativeSelect from "@material-ui/core/NativeSelect";
-import { makeStyles } from "@material-ui/core/styles";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CloseIcon from '@mui/icons-material/Close';
+import Grid from "@mui/material/Grid";
+import Switch from "@mui/material/Switch";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+import { makeStyles, withStyles } from "@mui/styles";
+import { purple } from "@mui/material/colors";
+import { deepPurple } from "@mui/material/colors";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormHelperText from "@mui/material/FormHelperText";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import NativeSelect from "@mui/material/NativeSelect";
 import { SocketContext } from "./socket/SocketProvider";
 
 const useStyles = makeStyles((theme) => ({

@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+import { makeStyles } from "@mui/styles";
+import Paper from "@mui/material/Paper";
 import { GamesListContext } from "./game/GamesListProvider";
 import BughouseGameSummary from "./BughouseGameSummary.react";
 

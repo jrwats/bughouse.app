@@ -1,10 +1,10 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
-import Snackbar from "@material-ui/core/Snackbar";
-import Alert from "@material-ui/lab/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import { Link } from "@reach/router";
-import AlertTitle from "@material-ui/lab/AlertTitle";
 import { SocketContext } from "./socket/SocketProvider";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@mui/styles";
 
 const useStyles = makeStyles((theme) => ({
   root: {

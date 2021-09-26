@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { navigate } from "@reach/router";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { SocketContext } from "./socket/SocketProvider";
-import Box from "@material-ui/core/Box";
-import Paper from "@material-ui/core/Paper";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 import StyledTableRow from "./StyledTableRow.react";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import TableSortLabel from "@material-ui/core/TableSortLabel";
-import { makeStyles, withStyles } from "@material-ui/core/styles";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableSortLabel from "@mui/material/TableSortLabel";
+import { makeStyles, withStyles } from "@mui/styles";
 
 const useStyles = makeStyles({
   table: {

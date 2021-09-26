@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import "./App.css";
 import { AuthContext } from "./auth/AuthProvider";
-import Presence from "./user/Presence";
+// import Presence from "./user/Presence";
 import Login from "./Login.react";
 import LooseLogin from "./LooseLogin.react";
 import VerifyEmail from "./VerifyEmail.react";
@@ -12,11 +12,10 @@ import Arena from "./game/Arena.react";
 import UsersProvider from "./user/UsersProvider";
 import ViewerProvider from "./user/ViewerProvider";
 import { Router } from "@reach/router";
-import { createTheme, ThemeProvider } from "@material-ui/core/styles";
-import purple from "@material-ui/core/colors/purple";
-// import deepPurple from '@material-ui/core/colors/purple';
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import purple from "@mui/material/colors/purple";
 
-Presence.init();
+// Presence.init();
 
 const GuestTable = ({ gamePath }) => {
   return (
@@ -30,6 +29,7 @@ const GuestTable = ({ gamePath }) => {
 const App = () => {
   const darkTheme = createTheme({
     palette: {
+      mode: "dark",
       type: "dark",
       primary: purple,
       // {

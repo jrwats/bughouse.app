@@ -1,6 +1,6 @@
 import React from "react";
-import FiberManualRecordTwoToneIcon from "@material-ui/icons/FiberManualRecordTwoTone";
-import { makeStyles } from "@material-ui/core/styles";
+import FiberManualRecordTwoToneIcon from "@mui/icons-material/FiberManualRecordTwoTone";
+import { makeStyles } from "@mui/styles";
 
 const useStyles = makeStyles((theme) => ({
   ready: {

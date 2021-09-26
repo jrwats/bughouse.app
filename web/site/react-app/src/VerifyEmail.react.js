@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { AuthContext } from "./auth/AuthProvider";
 import { useNavigate } from "@reach/router";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
+import Paper from "@mui/material/Paper";
+import Button from "@mui/material/Button";
 import AppSignOut from "./AppSignOut";
 import UserProfile from "./user/UserProfile.react";
 

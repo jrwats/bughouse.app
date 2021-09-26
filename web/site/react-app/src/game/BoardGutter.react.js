@@ -1,8 +1,8 @@
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import React, { useContext, useEffect, useState } from "react";
 import HandleDisplay from "./HandleDisplay.react";
 import ClockDisplay from "./ClockDisplay.react";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { SocketContext } from "../socket/SocketProvider";
 
 function getHandleDisplay(handle, canVacate, onSit, onVacate) {

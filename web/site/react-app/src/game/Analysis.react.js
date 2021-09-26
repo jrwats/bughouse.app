@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import Box from "@material-ui/core/Box";
-import Button from "@material-ui/core/Button";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import AnalysisMoves from "./AnalysisMoves.react";
 // import SideMenu from "../SideMenu.react";
 import Board from "./Board.react";

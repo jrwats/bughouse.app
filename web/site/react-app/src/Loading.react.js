@@ -1,5 +1,5 @@
 import React from "react";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Loading = ({ style, size }) => {
   const default_style = {
@@ -8,7 +8,7 @@ const Loading = ({ style, size }) => {
     justifyContent: "center",
     paddingTop: "10px",
   };
-  console.log(`size: ${size}`);
+  // console.log(`size: ${size}`);
   return (
     <div style={{ default_style, ...style }}>
       <CircularProgress size={size} className="dark" />

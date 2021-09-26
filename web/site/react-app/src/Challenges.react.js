@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@mui/material/styles";
 import ChallengeSummary from "./ChallengeSummary.react";
-import Paper from "@material-ui/core/Paper";
+import Paper from "@mui/material/Paper";
 import { SocketContext } from "./socket/SocketProvider";
 import { Link } from "@reach/router";
 import { ChallengesContext } from "./game/ChallengesProvider";

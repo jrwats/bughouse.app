@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
-import Button from "@material-ui/core/Button";
+import Button from "@mui/material/Button";
 import { AuthContext } from "./auth/AuthProvider";
 import { SocketContext } from "./socket/SocketProvider";
-import ExitToAppIcon from "@material-ui/icons/ExitToApp";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import logout from "./logout";
 
 const AppSignOut = () => {

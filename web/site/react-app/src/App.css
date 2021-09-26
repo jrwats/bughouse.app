@@ -392,6 +392,7 @@ body .mono {
 }
 
 #current_games {
+  min-width: 30vw;
   max-width: 30vw;
 }
 
@@ -404,7 +405,7 @@ body .mono {
 }
 
 #current_games .h6 {
-  font-size: min(1vw, 2vh);
+  font-size: min(0.6vw, 1.2vh);
 }
 
 #current_games .h6.alien {

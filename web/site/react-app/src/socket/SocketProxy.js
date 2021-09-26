@@ -220,6 +220,15 @@ class SocketProxy extends EventEmitter {
     this._sock.on("error", (evt) => {
       console.error("Socket error: %o", evt);
     });
+
+    const onDisconn = (_e) => {
+      this.emit('disconnected', {
+        readyState: this._sock.readyState(),
+      });
+    };
+    this._sock.on("close", onDisconn);
+    this._sock.on("reconnect", onDisconn);
+
     this._sock.on("message", (evt) => {
       if (!/"kind":"(ack|enq|latency)"/.test(evt.data)) {
         console.debug(evt);
