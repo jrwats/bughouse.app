@@ -11,6 +11,19 @@ use bughouse_app::bug_web_sock::{BugContext, BugWebSock};
 use bughouse_app::bughouse_server::{BughouseServer, ServerHandler};
 use bughouse_app::db::Db;
 
+pub async fn auth_route(
+    req: HttpRequest,
+    stream: web::Payload,
+    context: web::Data<BugContext>,
+) -> Result<HttpResponse, actix_web::Error> {
+    ws::start(
+        BugWebSock::new(context),
+        // BugWebSock::new(context.get_srv_recipient().to_owned(), context.server),
+        &req,
+        stream,
+    )
+}
+
 pub async fn ws_route(
     req: HttpRequest,
     stream: web::Payload,
@@ -53,6 +66,8 @@ async fn main() -> Result<(), io::Error> {
             .wrap(middleware::Logger::default())
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
+            // auth / JWT route
+            .service(web::resource("/auth/").to(auth_route))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })
