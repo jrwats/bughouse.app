@@ -393,7 +393,7 @@ body .mono {
 
 #current_games {
   min-width: 30vw;
-  max-width: 30vw;
+  max-width: 40vw;
 }
 
 #current_games .clamped {

@@ -77,6 +77,7 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         chessboard.getStart() == null ||
         now < chessboard.getStart()
       ) {
+        console.log(`${chessboard.getID()}/${color}: ${now}, ${chessboard.getStart()}: ${now < chessboard.getStart()}`);
         return;
       }
       let delta = now - (lastUpdate.current ?? now);

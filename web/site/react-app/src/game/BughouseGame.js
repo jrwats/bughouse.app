@@ -37,7 +37,7 @@ class BughouseGame extends EventEmitter {
   }
 
   _setStart(delayStartMillis) {
-    if (delayStartMillis > 0) {
+    if (delayStartMillis >= 0) {
       this._startTime = Date.now() + delayStartMillis;
     }
   }
