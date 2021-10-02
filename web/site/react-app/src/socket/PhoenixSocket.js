@@ -16,20 +16,23 @@ class PhoenixSocket extends EventEmitter {
     this._retries = 0;
     this._maxRetries = opts.maxRetries || PhoenixSocket.DEFAULT_MAX_RETRIES;
     const interval = opts.interval || PhoenixSocket.DEFAULT_INTERVAL;
-    this._tickerID = setInterval(this._onInterval.bind(this), interval);
+    this.onInterval = this._onInterval.bind(this);
+    this._tickerID = setInterval(this.onInterval, interval);
   }
 
   _onInterval() {
-    if (this._socket.readyState !== WebSocket.CLOSED) {
+    if (this._socket.readyState !== WebSocket.CLOSED 
+        && this._socket.readyState !== WebSocket.CONNECTING) {
       return;
     }
     if (++this._retries > this._maxRetries) {
+      console.error(`PhoenixSocket DISCONNECT`);
       this.emit("disconnect", "Maximum retries exceeded");
       return;
     }
     ++this._totalRetries;
     this.emit("reconnect", { retry: this._retries });
-    console.debug(`Reconnecting, total: ${this._totalRetries}`);
+    console.debug(`totalRetries: ${this._totalRetries}, retries: ${this._retries}`);
     this._createSocket();
   }
 
@@ -69,6 +72,7 @@ class PhoenixSocket extends EventEmitter {
 
   _onOpen(evt) {
     console.debug("onopen: %o", evt);
+    console.debug(`readyState: ${this._socket.readyState}`);
     this.emit("open", evt);
     this._retries = 0;
   }

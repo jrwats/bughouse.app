@@ -42,6 +42,7 @@ const App = () => {
       },
     },
   });
+
   const { user } = useContext(AuthContext);
   return (
     <SocketProvider user={user}>

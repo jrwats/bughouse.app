@@ -139,7 +139,7 @@ class SocketProxy extends EventEmitter {
 
     handlers["data"] = ({ data }) => {
       const summary = data.substr(0, 30).replace(/\s+/, " ");
-      console.log(`${this._gcn()}.emit('data'): ${summary}`);
+      console.log(`${this._gcn()}.emit("data"): ${summary}`);
       this.emit("data", data);
     };
     for (const event of PASSTHRU_EVENTS) {
@@ -148,7 +148,7 @@ class SocketProxy extends EventEmitter {
           console.log(`${event} !!!`);
           console.log(data);
         }
-        // console.log(`${event}: ${JSON.stringify(data, null, ' ')}`);
+        // console.log(`${event}: ${JSON.stringify(data, null, " ")}`);
         this._emit(event, data);
       };
     }
@@ -212,22 +212,27 @@ class SocketProxy extends EventEmitter {
     };
 
     const url = new URL(WS_URL);
+    console.error(`new PhoenixSocket`);
     this._sock = new PhoenixSocket(url);
     this._sock.on("open", (evt) => {
       this._authenticate();
+      this.emit("open", evt);
     });
 
     this._sock.on("error", (evt) => {
       console.error("Socket error: %o", evt);
     });
 
-    const onDisconn = (_e) => {
-      this.emit('disconnected', {
-        readyState: this._sock.readyState(),
-      });
+    const onReconnect = (_e) => {
+      this.emit("reconnecting", { readyState: this._sock.readyState() });
     };
-    this._sock.on("close", onDisconn);
-    this._sock.on("reconnect", onDisconn);
+    this._sock.on("close", onReconnect);
+    this._sock.on("reconnect", onReconnect);
+
+    const onDisconnect = (_e) => {
+      this.emit("disconnect", { readyState: this._sock.readyState() });
+    };
+    this._sock.on("disconnect", onDisconnect);
 
     this._sock.on("message", (evt) => {
       if (!/"kind":"(ack|enq|latency)"/.test(evt.data)) {
@@ -263,11 +268,15 @@ class SocketProxy extends EventEmitter {
     return `SocketProxy`;
   }
 
+  readyState() {
+    return this._sock.readyState();
+  }
+ 
   destroy() {
     console.log(`${this._gcn()} destroy`);
     this._logout();
-    this._sock.removeAllListeners();
     _ticker.off("tick", this.onTick);
+    this._sock.removeAllListeners();
     this._sock.destroy();
     this._sock = null;
     console.log(`${this._gcn()} socket = null`);
@@ -282,7 +291,7 @@ class SocketProxy extends EventEmitter {
   }
 
   sendEvent(name, data) {
-    console.log(`${this._gcn()} sending '${name}' ${Date.now()}`);
+    console.log(`${this._gcn()} sending "${name}" ${Date.now()}`);
     this._send(name, data);
   }
 
@@ -291,7 +300,7 @@ class SocketProxy extends EventEmitter {
     this.emit("logging_in", { user: this._user });
     this._loggedOut = false;
     console.log(`${this._gcn()} creds: ${JSON.stringify(creds)}`);
-    console.log(`Sent 'login' to socket`);
+    console.log(`Sent "login" to socket`);
     return new Promise((resolve, reject) => {
       this._sock.once("login", resolve);
       this._sock.once("failedlogin", (msg) => {
@@ -347,7 +356,7 @@ class SocketProxy extends EventEmitter {
       _instance = new SocketProxy();
     }
     return _instance;
-    // const uid = user?.uid || 'anonymous';
+    // const uid = user?.uid || "anonymous";
     // return _cache[uid] || (_cache[uid] = new SocketProxy(user));
   }
 

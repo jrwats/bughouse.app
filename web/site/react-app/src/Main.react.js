@@ -1,5 +1,6 @@
 import Analysis from "./game/Analysis.react";
 import Bugwho from "./Bugwho.react";
+import DisconnectDialog from "./DisconnectDialog.react.js";
 import Profile from "./user/Profile.react";
 import Errors from "./Errors.react";
 import React from "react";
@@ -11,6 +12,7 @@ import { Router } from "@reach/router";
 const Main = (props) => {
   return (
     <div style={{ width: "100%", height: "100%" }}>
+      <DisconnectDialog />
       <div style={{ position: "absolute" }}>
         <SideMenu />
         <span className="bug-logo-text small">
