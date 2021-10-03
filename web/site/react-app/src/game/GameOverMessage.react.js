@@ -4,7 +4,7 @@ import Paper from "@mui/material/Paper";
 import HandleDisplay from "./HandleDisplay.react";
 import { SocketContext } from "../socket/SocketProvider";
 import FeaturedVideoIcon from "@mui/icons-material/FeaturedVideo";
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import Button from "@mui/material/Button";
 import { Link } from "@reach/router";
 

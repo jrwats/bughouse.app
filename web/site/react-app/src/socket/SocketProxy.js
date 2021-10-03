@@ -271,7 +271,7 @@ class SocketProxy extends EventEmitter {
   readyState() {
     return this._sock.readyState();
   }
- 
+
   destroy() {
     console.log(`${this._gcn()} destroy`);
     this._logout();

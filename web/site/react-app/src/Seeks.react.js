@@ -15,8 +15,6 @@ const Seeks = ({ onCancel }) => {
         <MuiAlert severity="info" elevation={6} variant="filled">
           We'll open up more seek pools as we get more users
         </MuiAlert>
-
-        
       </div>
       <div>
         <Seek disabled={true} time="1|0" />

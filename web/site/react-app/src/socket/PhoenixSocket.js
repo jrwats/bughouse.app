@@ -21,8 +21,10 @@ class PhoenixSocket extends EventEmitter {
   }
 
   _onInterval() {
-    if (this._socket.readyState !== WebSocket.CLOSED 
-        && this._socket.readyState !== WebSocket.CONNECTING) {
+    if (
+      this._socket.readyState !== WebSocket.CLOSED &&
+      this._socket.readyState !== WebSocket.CONNECTING
+    ) {
       return;
     }
     if (++this._retries > this._maxRetries) {
@@ -32,7 +34,9 @@ class PhoenixSocket extends EventEmitter {
     }
     ++this._totalRetries;
     this.emit("reconnect", { retry: this._retries });
-    console.debug(`totalRetries: ${this._totalRetries}, retries: ${this._retries}`);
+    console.debug(
+      `totalRetries: ${this._totalRetries}, retries: ${this._retries}`
+    );
     this._createSocket();
   }
 

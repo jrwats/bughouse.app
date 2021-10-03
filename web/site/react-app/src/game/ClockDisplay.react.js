@@ -30,14 +30,14 @@ function getLastUpdate(chessboard) {
 function getTimes(ms, ping) {
   let numSubMS = Math.round(ms % 1000);
   let mins = Math.floor(ms / 1000.0 / 60.0);
-  let secs = Math.floor((ms / 1000.0) % 60) +
-    (ms > TEN_SECS && numSubMS > ping ? 1 : 0)
+  let secs =
+    Math.floor((ms / 1000.0) % 60) + (ms > TEN_SECS && numSubMS > ping ? 1 : 0);
   if (secs === 60) {
     mins += 1;
     secs = 0;
   }
   const subMS = ms <= TEN_SECS ? `.${Math.floor(numSubMS / 100)}` : IDEO_SPACE;
-  return { mins, secs, subMS};
+  return { mins, secs, subMS };
 }
 
 const ClockDisplay = ({ color, chessboard, forming }) => {
@@ -77,7 +77,11 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
         chessboard.getStart() == null ||
         now < chessboard.getStart()
       ) {
-        console.log(`${chessboard.getID()}/${color}: ${now}, ${chessboard.getStart()}: ${now < chessboard.getStart()}`);
+        console.log(
+          `${chessboard.getID()}/${color}: ${now}, ${chessboard.getStart()}: ${
+            now < chessboard.getStart()
+          }`
+        );
         return;
       }
       let delta = now - (lastUpdate.current ?? now);
@@ -97,11 +101,12 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   }, [color, chessboard, forming]);
 
   const flag = getFlag(result.current, chessboard.getID(), color);
-  const low = refTime.current <= TEN_SECS ? 'low' : '';
+  const low = refTime.current <= TEN_SECS ? "low" : "";
   return (
     <span className={`clock ${low} h6 mono`}>
       {flag}
-      {mins}:{(secs < 10 ? "0" : "") + secs}{subMS}
+      {mins}:{(secs < 10 ? "0" : "") + secs}
+      {subMS}
     </span>
   );
 };

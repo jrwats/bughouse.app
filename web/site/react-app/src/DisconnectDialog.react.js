@@ -20,8 +20,8 @@ const styles = {
   },
   blinking: {
     animation: "ticking-grow 0.25s infinite alternate",
-  }
-}
+  },
+};
 
 // TODO share this copypasta with App.css
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -36,11 +36,17 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 const RefreshButton = (props) => {
-  const refresh = (_e) => { window.location.reload(); };
-  return <Button variant="contained" onClick={refresh}>Refresh</Button>;
-}
+  const refresh = (_e) => {
+    window.location.reload();
+  };
+  return (
+    <Button variant="contained" onClick={refresh}>
+      Refresh
+    </Button>
+  );
+};
 
-const Reconnecting = props => (
+const Reconnecting = (props) => (
   <Grid
     container
     spacing={0}
@@ -54,7 +60,7 @@ const Reconnecting = props => (
   </Grid>
 );
 
-const DisconnectDialog = withStyles(styles)(props => {
+const DisconnectDialog = withStyles(styles)((props) => {
   const { socket } = useContext(SocketContext);
   const [readyState, setReadyState] = useState(socket.readyState());
   const [disconnected, setDisconnected] = useState(false);
@@ -63,14 +69,14 @@ const DisconnectDialog = withStyles(styles)(props => {
     const onChange = (_e) => {
       console.log(`onChange ${JSON.stringify(_e)}`);
       const readyState = socket.readyState();
-      setReadyState(readyState); 
+      setReadyState(readyState);
       if (readyState === WebSocket.OPEN) {
         setDisconnected(false);
       }
     };
-    const onDisconnect = (_) => { 
+    const onDisconnect = (_) => {
       console.error("DISCONNECT");
-      setDisconnected(true); 
+      setDisconnected(true);
     };
     socket.on("open", onChange);
     socket.on("reconnecting", onChange);
@@ -91,7 +97,11 @@ const DisconnectDialog = withStyles(styles)(props => {
   return (
     <StyledDialog variant="outlined" open={true} maxWidth="sm">
       <DialogTitle className={props.classes.titleContainer}>
-        <Typography className={`${props.classes.title} ${disconnected ? '' : props.classes.blinking}`}>
+        <Typography
+          className={`${props.classes.title} ${
+            disconnected ? "" : props.classes.blinking
+          }`}
+        >
           {title}
         </Typography>
       </DialogTitle>

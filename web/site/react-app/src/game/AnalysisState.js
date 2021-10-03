@@ -184,10 +184,10 @@ class AnalysisBoard {
 class AnalysisState {
   constructor(timeCtrl, result) {
     this._result = result;
-    this._lastTime = {val: 0};
+    this._lastTime = { val: 0 };
     this._boards = [
       new AnalysisBoard(timeCtrl, this._lastTime),
-      new AnalysisBoard(timeCtrl, this._lastTime)
+      new AnalysisBoard(timeCtrl, this._lastTime),
     ];
   }
 
@@ -228,7 +228,7 @@ class AnalysisState {
   }
 
   makeFlag(moveNums) {
-    const {board, winner} = this._result;
+    const { board, winner } = this._result;
     const move = {
       flag: true,
       boardID: board,
