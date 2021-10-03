@@ -19,9 +19,6 @@ const styles = {
     fontFamily: "AlienEncounters, Roboto",
   },
   blinking: {
-    color: "rgba(255, 40, 200, 0.95)",
-    textShadow: "0px 0px 12px #232333",
-    fontFamily: "AlienEncounters, Roboto",
     animation: "ticking-grow 0.25s infinite alternate",
   }
 }
@@ -52,9 +49,6 @@ const Reconnecting = props => (
     justify="center"
   >
     <Grid item xs={3}>
-    {/*   <Typography className="blinking">Reconnecting...</Typography> */}
-    {/* </Grid> */}
-    {/* <Grid item xs={3}> */}
       <CircularProgress />
     </Grid>
   </Grid>
@@ -92,12 +86,12 @@ const DisconnectDialog = withStyles(styles)(props => {
   if (readyState === WebSocket.OPEN) {
     return null;
   }
-  const title = disconnected ? "Disconnected" : "Lost Connection";
+  const title = disconnected ? "Disconnected" : "Reconnecting...";
   const content = disconnected ? <RefreshButton /> : <Reconnecting />;
   return (
     <StyledDialog variant="outlined" open={true} maxWidth="sm">
       <DialogTitle className={props.classes.titleContainer}>
-        <Typography className={disconnected ? props.classes.title : props.classes.blinking }>
+        <Typography className={`${props.classes.title} ${disconnected ? '' : props.classes.blinking}`}>
           {title}
         </Typography>
       </DialogTitle>
