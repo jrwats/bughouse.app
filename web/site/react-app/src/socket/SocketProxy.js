@@ -260,7 +260,7 @@ class SocketProxy extends EventEmitter {
 
   _authenticate() {
     if (this._idToken != null) {
-      this._send("auth", { token: this._idToken });
+      this._send("auth", { firebase_token: this._idToken });
     }
   }
 

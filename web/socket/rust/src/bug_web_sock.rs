@@ -565,9 +565,10 @@ impl BugWebSock {
                 ctx.text(msg);
             }
             "auth" => {
-                let token = val["token"].as_str().ok_or(Error::AuthError {
-                    reason: "Malformed token".to_string(),
-                })?;
+                let token =
+                    val["firebase_token"].as_str().ok_or(Error::AuthError {
+                        reason: "Malformed token".to_string(),
+                    })?;
 
                 self.data
                     .srv_recipient

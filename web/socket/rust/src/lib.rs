@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate num_derive;
+
 pub mod b66;
 pub mod bug_web_sock;
 pub mod bughouse_server;
