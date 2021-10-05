@@ -67,6 +67,7 @@ pub struct FirebaseRowData {
     photo_url: Option<String>,
     provider_id: Option<String>,
 }
+
 impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
     fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
         match maybe_user {
@@ -265,6 +266,7 @@ impl Db {
         println!("firebase_data:\n{:?}", firebase_data);
         let (id, handle) = self.new_player_handle(is_guest).await?;
         let rating = Rating::default();
+        let role = User::get_default_role(is_guest) as i8;
         println!("Inserting into firebase_user...");
         self.session
             .query(
@@ -278,7 +280,7 @@ impl Db {
         self.session
             .query(
                 "INSERT INTO bughouse.users
-               (id, firebase_id, deviation, email, guest, handle, name, rating)
+               (id, firebase_id, deviation, email, guest, handle, name, rating, role)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     id,
@@ -289,6 +291,7 @@ impl Db {
                     &handle,
                     &firebase_data.display_name,
                     rating.rating,
+                    role,
                 ),
             )
             .await?;
@@ -304,6 +307,7 @@ impl Db {
             name: firebase_data.display_name,
             photo_url: firebase_data.photo_url,
             rating: rating.rating,
+            role,
         })
     }
 
@@ -352,7 +356,7 @@ impl Db {
     ) -> Result<User, Error> {
         println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
-            "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating
+            "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating, role
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );

@@ -109,6 +109,7 @@ impl Handler<ClientMessage> for BugWebSock {
                         "rating": ruser.rating,
                         "deviation": ruser.deviation,
                         "guest": ruser.guest,
+                        "role": ruser.role,
                     });
                     println!("Sending 'login': {}", msg);
                     ctx.text(msg.to_string());
@@ -565,9 +566,10 @@ impl BugWebSock {
                 ctx.text(msg);
             }
             "auth" => {
-                let token = val["token"].as_str().ok_or(Error::AuthError {
-                    reason: "Malformed token".to_string(),
-                })?;
+                let token =
+                    val["firebase_token"].as_str().ok_or(Error::AuthError {
+                        reason: "Malformed token".to_string(),
+                    })?;
 
                 self.data
                     .srv_recipient

@@ -1,3 +1,4 @@
+use num;
 use scylla::cql_to_rust::{FromCqlVal, FromRow};
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::collections::HashMap;
@@ -7,6 +8,13 @@ use uuid::Uuid;
 use crate::db::Db;
 
 pub type UserID = Uuid;
+
+#[derive(Clone, Debug, FromPrimitive)]
+pub enum UserRole {
+    Guest = 0,
+    User = 1,
+    Admin = 2,
+}
 
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct User {
@@ -19,6 +27,7 @@ pub struct User {
     pub name: Option<String>,
     pub photo_url: Option<String>,
     pub rating: i16,
+    pub role: i8,
 }
 
 impl User {
@@ -32,6 +41,18 @@ impl User {
 
     pub fn get_photo_url(&self) -> Option<String> {
         self.photo_url.clone()
+    }
+
+    pub fn get_role(&self) -> UserRole {
+        num::FromPrimitive::from_i8(self.role).unwrap()
+    }
+
+    pub fn get_default_role(is_guest: bool) -> UserRole {
+        if is_guest {
+            UserRole::Guest
+        } else {
+            UserRole::User
+        }
     }
 }
 

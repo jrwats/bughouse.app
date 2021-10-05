@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS users (
   photo blob,
   photo_url text,
   rating smallint,
+  role tinyint,
   PRIMARY KEY (id)
 );
 

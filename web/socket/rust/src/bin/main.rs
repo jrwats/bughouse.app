@@ -1,27 +1,84 @@
 use actix::prelude::*;
+use actix_cors::Cors;
 use actix_files as fs;
+use actix_redis::RedisSession;
+use actix_session::Session; //, CookieSession};
 use actix_web::*;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+use jsonwebtoken::decode_header;
+use serde::Deserialize;
+use serde_json::json;
 use std::io;
+use std::io::prelude::Write;
+use std::os::unix::net::UnixStream;
 use std::sync::Arc;
-use web::Data;
 
+use bughouse_app::b66::B66;
 use bughouse_app::bug_web_sock::{BugContext, BugWebSock};
 use bughouse_app::bughouse_server::{BughouseServer, ServerHandler};
 use bughouse_app::db::Db;
+use bughouse_app::firebase;
+use bughouse_app::firebase::FirebaseID;
 
-pub async fn ws_route(
+#[derive(Debug, Deserialize)]
+struct AuthPost {
+    firebase_token: String,
+}
+
+// 1. Read the firebase token in JSON body,
+// 2. Validate it
+// 3. Store user session uid/role data
+#[post("/auth")]
+async fn auth_post(
+    req: HttpRequest,
+    info: web::Json<AuthPost>,
+    session: Session,
+    context: web::Data<BugContext>,
+) -> Result<HttpResponse, actix_web::Error> {
+    println!("REQ: {:?}", req);
+    println!("info: {:?}", info);
+    println!("jwt header: {:?}", decode_header(&info.firebase_token));
+    let mut stream = UnixStream::connect(firebase::UNIX_SOCK.to_string())?;
+    write!(stream, "{}\n{}\n", firebase::FIRE_AUTH, info.firebase_token)?;
+    let resp = match firebase::authenticate(&info.firebase_token) {
+        Ok((FirebaseID(fid), _)) => {
+            let conns = context.server.get_conns();
+            let res = conns.user_from_fid(&fid).await;
+            match res {
+                Ok(user) => {
+                    let ruser = user.read().unwrap();
+                    let b66_uid = B66::encode_uuid(ruser.get_uid());
+                    session.insert("uid", &b66_uid)?;
+                    session.insert("role", ruser.role)?;
+                    json!({ "uid": b66_uid, "role": ruser.role })
+                }
+                Err(e) => {
+                    json!({ "err": format!("{}", e) })
+                }
+            }
+        }
+        Err(e) => {
+            json!({ "err": format!("{}", e) })
+        }
+    };
+    Ok(HttpResponse::Ok().body(format!("{}", resp)))
+}
+
+#[get("/auth")]
+async fn auth_get(session: Session) -> Result<HttpResponse, actix_web::Error> {
+    let uid = session.get::<String>("uid").ok();
+    let role = session.get::<i8>("role").ok();
+    let resp = json!({ "uid": uid, "role": role });
+    Ok(HttpResponse::Ok().body(format!("{}", resp,)))
+}
+
+async fn ws_route(
     req: HttpRequest,
     stream: web::Payload,
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    ws::start(
-        BugWebSock::new(context),
-        // BugWebSock::new(context.get_srv_recipient().to_owned(), context.server),
-        &req,
-        stream,
-    )
+    ws::start(BugWebSock::new(context), &req, stream)
 }
 
 fn env_or(env_var: &str, alt: &str) -> String {
@@ -41,6 +98,11 @@ async fn main() -> Result<(), io::Error> {
     println!("starting server...");
 
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost")
+            .allowed_origin("http://localhost:7777")
+            .allowed_origin("http://localhost:5000")
+            .allowed_origin("https://bughouse.app");
         let context = BugContext::create(
             addr.to_owned().recipient(),
             server,
@@ -48,11 +110,18 @@ async fn main() -> Result<(), io::Error> {
         );
         // let srv_cp = srv.clone();
         App::new()
-            .app_data(Data::new(context))
+            .app_data(web::Data::new(context))
             // enable logger
+            .wrap(cors)
             .wrap(middleware::Logger::default())
+            .wrap(RedisSession::new("127.0.0.1:6379", &[0; 32]))
+            // .wrap(CookieSession::signed(&[0; 32]).secure(true))
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
+            // auth / JWT route
+            .service(auth_post)
+            .service(auth_get)
+            // .service(web::resource("/auth/").to(auth_post))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })

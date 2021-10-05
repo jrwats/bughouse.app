@@ -8,8 +8,6 @@ use futures::join;
 use serde_json::{json, Value};
 // use actix_web_actors::ws::WebsocketContext;
 use std::collections::HashMap;
-use std::io::prelude::{Read, Write};
-use std::os::unix::net::UnixStream;
 use std::sync::{Arc, RwLock};
 // use timer::Timer;
 // use std::thread;
@@ -18,7 +16,8 @@ use crate::b66::B66;
 use crate::connection_mgr::{ConnID, ConnectionMgr};
 use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
-use crate::firebase::*;
+use crate::firebase;
+use crate::firebase::{FirebaseID, ProviderID};
 use crate::game::{Game, GameID, GamePlayers, GameResult};
 use crate::game_json::GameJson;
 use crate::games::{GameUserHandler, Games};
@@ -372,43 +371,18 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
         token: String,
     ) -> Result<ClientMessage, Error> {
-        let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
-        write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
-        let mut resp = String::new();
-        stream.read_to_string(&mut resp)?;
-        let (label, payload) = resp.trim_end().split_once(':').unwrap();
-        match label {
-            "uid" => {
-                let parts: Vec<&str> = payload.split('\x1e').collect();
-                if let [fid, provider_id] = parts[..] {
-                    println!("auth.uid: {}, provider_id: {}", fid, provider_id);
-                    let conn_id = self.add_conn(recipient.clone(), fid).await?;
-                    println!("conn_id: {}", conn_id);
-                    let send_res = recipient
-                        .send(ClientMessage::new(ClientMessageKind::Auth(
-                            conn_id,
-                        )))
-                        .await;
-                    if let Err(e) = send_res {
-                        eprintln!("Couldn't send AUTH message: {}", e);
-                    }
-                    return Ok(ClientMessage::new(ClientMessageKind::Auth(
-                        conn_id,
-                    )));
-                }
-                eprintln!("Couldn't parse response: {}", payload);
-                Err(Error::Unexpected("Couldn't parse response".to_string()))
-            }
-            "err" => {
-                return Err(Error::AuthError {
-                    reason: payload.to_string(),
-                });
-            }
-            _ => {
-                let msg = format!("Unknown response: {}", resp);
-                return Err(Error::AuthError { reason: msg });
-            }
+        let (FirebaseID(fid), ProviderID(provider_id)) =
+            firebase::authenticate(&token)?;
+        println!("auth.uid: {}, provider_id: {}", &fid, provider_id);
+        let conn_id = self.add_conn(recipient.clone(), &fid).await?;
+        println!("conn_id: {}", conn_id);
+        let send_res = recipient
+            .send(ClientMessage::new(ClientMessageKind::Auth(conn_id)))
+            .await;
+        if let Err(e) = send_res {
+            eprintln!("Couldn't send AUTH message: {}", e);
         }
+        return Ok(ClientMessage::new(ClientMessageKind::Auth(conn_id)));
     }
 
     pub fn user_from_conn(&self, conn_id: ConnID) -> Option<Arc<RwLock<User>>> {
@@ -530,6 +504,7 @@ impl BughouseServer {
             "kind": "login",
             "uid": ruser.id,
             "handle": ruser.handle,
+            "role": ruser.role,
         });
         self.send_text_to_user(json.to_string(), &ruser.id);
         let hdl_json = json!({
