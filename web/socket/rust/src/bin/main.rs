@@ -6,7 +6,7 @@ use actix_session::Session; //, CookieSession};
 use actix_web::*;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
-use jsonwebtoken::decode_header;
+// use jsonwebtoken::decode_header;
 use serde::Deserialize;
 use serde_json::json;
 use std::io;
@@ -29,16 +29,13 @@ struct AuthPost {
 // 1. Read the firebase token in JSON body,
 // 2. Validate it
 // 3. Store user session uid/role data
-#[post("/auth")]
 async fn auth_post(
-    req: HttpRequest,
+    _req: HttpRequest,
     info: web::Json<AuthPost>,
     session: Session,
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    println!("REQ: {:?}", req);
-    println!("info: {:?}", info);
-    println!("jwt header: {:?}", decode_header(&info.firebase_token));
+    // println!("jwt header: {:?}", decode_header(&info.firebase_token));
     let mut stream = UnixStream::connect(firebase::UNIX_SOCK.to_string())?;
     write!(stream, "{}\n{}\n", firebase::FIRE_AUTH, info.firebase_token)?;
     let resp = match firebase::authenticate(&info.firebase_token) {
@@ -65,7 +62,12 @@ async fn auth_post(
     Ok(HttpResponse::Ok().body(format!("{}", resp)))
 }
 
-#[get("/auth")]
+#[get("/test")]
+async fn test_get() -> Result<HttpResponse, actix_web::Error> {
+    let json = json!({ "test": "worked" });
+    Ok(HttpResponse::Ok().body(format!("{}", json)))
+}
+
 async fn auth_get(session: Session) -> Result<HttpResponse, actix_web::Error> {
     let uid = session.get::<String>("uid").ok();
     let role = session.get::<i8>("role").ok();
@@ -99,28 +101,37 @@ async fn main() -> Result<(), io::Error> {
 
     HttpServer::new(move || {
         let cors = Cors::default()
+            .allow_any_header()
             .allowed_origin("http://localhost")
             .allowed_origin("http://localhost:7777")
             .allowed_origin("http://localhost:5000")
-            .allowed_origin("https://bughouse.app");
+            .allowed_origin("http://127.0.0.1")
+            .allowed_origin("https://ws.bughouse.app")
+            .allowed_origin("https://bughouse.app")
+            .allowed_methods(vec!["GET", "POST"]);
         let context = BugContext::create(
             addr.to_owned().recipient(),
             server,
             adb.clone(),
         );
+        let session = RedisSession::new("127.0.0.1:6379", &[0; 32]);
         // let srv_cp = srv.clone();
         App::new()
             .app_data(web::Data::new(context))
             // enable logger
-            .wrap(cors)
             .wrap(middleware::Logger::default())
-            .wrap(RedisSession::new("127.0.0.1:6379", &[0; 32]))
-            // .wrap(CookieSession::signed(&[0; 32]).secure(true))
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
-            // auth / JWT route
-            .service(auth_post)
-            .service(auth_get)
+            // auth / session route
+            .service(test_get)
+            .service(
+                web::resource("/auth")
+                .wrap(cors)
+                .wrap(session)
+                .route(web::post().to(auth_post))
+                .route(web::get().to(auth_get))
+                )
+            // .service(auth_get)
             // .service(web::resource("/auth/").to(auth_post))
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
