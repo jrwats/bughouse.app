@@ -109,6 +109,7 @@ impl Handler<ClientMessage> for BugWebSock {
                         "rating": ruser.rating,
                         "deviation": ruser.deviation,
                         "guest": ruser.guest,
+                        "role": ruser.role,
                     });
                     println!("Sending 'login': {}", msg);
                     ctx.text(msg.to_string());

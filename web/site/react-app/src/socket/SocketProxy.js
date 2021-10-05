@@ -6,11 +6,14 @@ console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
 
 const hostname = window.location.hostname;
-const PROD_URL = "wss://ws.bughouse.app/ws/";
-const DEV_URL = `ws://${hostname}:${process.env.WS_PORT || 8081}/ws/`;
-const WS_URL =
-  process.env.REACT_APP_SOCKET_URL ||
-  (process.env.NODE_ENV === "production" ? PROD_URL : DEV_URL);
+const PROD_HOST = "wss://ws.bughouse.app";
+const DEV_HOST = `ws://${hostname}:${process.env.WS_PORT || 8081}`;
+const host = process.env.REACT_APP_SOCKET_HOST ||
+  (process.env.NODE_ENV === "production" ? PROD_HOST : DEV_HOST);
+const WS_URL = `${host}/ws/`;
+
+const HTTP_HOST = `${host.replace(/^[^:]+/, (m) => 'http' + (m[2] || ''))}`;
+const AUTH_URL = `${HTTP_HOST}/auth`;
 
 let _instance = null;
 const _singleton = new EventEmitter();
@@ -64,6 +67,7 @@ class SocketProxy extends EventEmitter {
     this._authenticated = false;
     this._loggedOut = true;
     this._handle = null;
+    this._role = 0;
     this._isGuest = false;
     this._msgQueue = [];
     this._connect();
@@ -88,7 +92,9 @@ class SocketProxy extends EventEmitter {
       .getIdToken(/*force refresh*/ true)
       .then((idToken) => {
         this._idToken = idToken;
-        this._authenticate();
+        if (this._sock?.readyState() === WebSocket.OPEN) {
+          this._authenticate();
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -261,7 +267,22 @@ class SocketProxy extends EventEmitter {
   _authenticate() {
     if (this._idToken != null) {
       this._send("auth", { firebase_token: this._idToken });
+      this._postAuth(this._idToken);
     }
+  }
+
+  _postAuth(firebase_token) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", AUTH_URL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+    const self = this;
+    xhr.onload = function() {
+      const data = JSON.parse(this.responseText);
+      this._role = data.role;
+      self.emit("role", data.role);
+    };
+    xhr.send(JSON.stringify({firebase_token}));
   }
 
   _gcn() {
@@ -340,6 +361,10 @@ class SocketProxy extends EventEmitter {
 
   isGuest() {
     return this._isGuest;
+  }
+
+  getRole() {
+    return this._role;
   }
 
   getHandle() {

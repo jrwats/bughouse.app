@@ -8,6 +8,7 @@ export const SocketContext = createContext({
   socket: null,
   loggedOut: true,
   handle: null,
+  role: 0,
   outputLog: "",
   ping: null,
   pings: [],
@@ -25,6 +26,7 @@ const SocketProvider = (props) => {
   const [ping, setPing] = useState(null);
   const [pings, setPings] = useState([]);
   const [handle, setHandle] = useState(proxy.getHandle());
+  const [role, setRole] = useState(proxy.getRole());
   const [loggedOut, setLoggedOut] = useState(proxy.isLoggedOut());
   const [outputLog, setOutputLog] = useState("");
   const log = useRef("");

@@ -4,6 +4,7 @@
 use crate::error::Error;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
+use std::net::Shutdown;
 
 pub const FIRE_AUTH: u8 = 1;
 pub const FIRE_USER: u8 = 2;
@@ -20,9 +21,11 @@ pub struct ProviderID(pub String);
 pub fn authenticate(token: &str) -> Result<(FirebaseID, ProviderID), Error> {
     let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
     write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
+    stream.flush()?;
     let mut resp = String::new();
     stream.read_to_string(&mut resp)?;
     let (label, payload) = resp.trim_end().split_once(':').unwrap();
+    stream.shutdown(Shutdown::Both)?;
     match label {
         "uid" => {
             let parts: Vec<&str> = payload.split('\x1e').collect();

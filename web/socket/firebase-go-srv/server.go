@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+  "errors"
 	"firebase.google.com/go/v4"
 	"fmt"
 	// "firebase.google.com/go/v4/auth"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+  "syscall"
 )
 
 const (
@@ -37,6 +39,11 @@ func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Co
 		writer.WriteString("uid:" + token.UID + "\x1e" + provider + "\n")
 	}
 	if werr := writer.Flush(); werr != nil {
+    if errors.Is(werr, syscall.EPIPE) {
+      log.Printf("EPIPE")
+      // just ignore.
+      return
+    }
 		log.Fatal(werr)
 	}
 }

@@ -504,6 +504,7 @@ impl BughouseServer {
             "kind": "login",
             "uid": ruser.id,
             "handle": ruser.handle,
+            "role": ruser.role,
         });
         self.send_text_to_user(json.to_string(), &ruser.id);
         let hdl_json = json!({

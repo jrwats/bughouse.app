@@ -28,7 +28,7 @@ use crate::guest::guest_handle::GuestHandle;
 use crate::players::Players;
 use crate::rating::{Rating, UserRating};
 use crate::time_control::TimeControl;
-use crate::users::{User, UserID, UserRole};
+use crate::users::{User, UserID};
 
 const DEFAULT_URI: &str = "127.0.0.1:9042";
 
