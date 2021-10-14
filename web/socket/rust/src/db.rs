@@ -277,11 +277,11 @@ impl Db {
             )
             .await?;
         println!("Inserting into users...");
-        self.session
+        let res = self.session
             .query(
                 "INSERT INTO bughouse.users
                (id, firebase_id, deviation, email, guest, handle, name, rating, role)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     id,
                     &firebase_data.fid,
@@ -294,7 +294,10 @@ impl Db {
                     role,
                 ),
             )
-            .await?;
+            .await;
+        if let Err(e) = res {
+            println!("err: {:?}", e);
+        }
         println!("Inserted");
         self.add_rating(id, &rating).await?;
         Ok(User {
