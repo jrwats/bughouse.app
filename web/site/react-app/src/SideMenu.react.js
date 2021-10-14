@@ -188,7 +188,7 @@ const SideMenu = ({ style }) => {
         </div>
 
         <div style={{ borderTop: "1px solid #303030" }}>
-          <a href="https://discord.gg/Jub2UdFR" target="_blank">
+          <a href="https://discord.gg/aRTXJ9essk" target="_blank">
             <StyledMenuItem>
               <ListItemIcon>
                 <img src={discordLogo} style={{ maxHeight: "1em" }} />
