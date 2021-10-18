@@ -6,6 +6,7 @@ use actix_session::Session; //, CookieSession};
 use actix_web::*;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
+use async_graphql::{Schema, EmptyMutation, EmptySubscription};
 // use jsonwebtoken::decode_header;
 use serde::Deserialize;
 use serde_json::json;
@@ -18,8 +19,10 @@ use bughouse_app::b66::B66;
 use bughouse_app::bug_web_sock::{BugContext, BugWebSock};
 use bughouse_app::bughouse_server::{BughouseServer, ServerHandler};
 use bughouse_app::db::Db;
-use bughouse_app::firebase;
 use bughouse_app::firebase::FirebaseID;
+use bughouse_app::firebase;
+use bughouse_app::graphql::query::{QueryRoot, gql_handle_schema_with_header};
+use bughouse_app::users::Users;
 
 #[derive(Debug, Deserialize)]
 struct AuthPost {
@@ -87,6 +90,18 @@ fn env_or(env_var: &str, alt: &str) -> String {
     std::env::var(env_var).unwrap_or(alt.to_string())
 }
 
+fn get_cors() -> Cors {
+    Cors::default()
+        .allow_any_header()
+        .allowed_origin("http://localhost")
+        .allowed_origin("http://localhost:7777")
+        .allowed_origin("http://localhost:5000")
+        .allowed_origin("http://127.0.0.1")
+        .allowed_origin("https://ws.bughouse.app")
+        .allowed_origin("https://bughouse.app")
+        .allowed_methods(vec!["GET", "POST"])
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), io::Error> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
@@ -94,50 +109,55 @@ async fn main() -> Result<(), io::Error> {
 
     let db = Db::new().await.expect("Could not start DB");
     let adb = Arc::new(db);
-    let addr = ServerHandler::new(adb.clone()).start();
-    let server = BughouseServer::get(adb.clone(), addr.clone().recipient());
+    let users = Arc::new(Users::new(adb.clone()));
+    let addr = ServerHandler::new(adb.clone(), users.clone()).start();
+    let server = BughouseServer::get(
+        adb.clone(),
+        addr.clone().recipient(),
+        users.clone(),
+        );
 
     println!("starting server...");
 
     HttpServer::new(move || {
-        let cors = Cors::default()
-            .allow_any_header()
-            .allowed_origin("http://localhost")
-            .allowed_origin("http://localhost:7777")
-            .allowed_origin("http://localhost:5000")
-            .allowed_origin("http://127.0.0.1")
-            .allowed_origin("https://ws.bughouse.app")
-            .allowed_origin("https://bughouse.app")
-            .allowed_methods(vec!["GET", "POST"]);
         let context = BugContext::create(
             addr.to_owned().recipient(),
             server,
             adb.clone(),
+            users.clone(),
         );
         let session = RedisSession::new("127.0.0.1:6379", &[0; 32]);
+        let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+            .data(context.clone())
+            .data(adb.clone())
+            .finish();
         // let srv_cp = srv.clone();
         App::new()
-            .app_data(web::Data::new(context))
+            .app_data(web::Data::new(context.clone()))
             // enable logger
             .wrap(middleware::Logger::default())
+            // enable logger
+            .wrap(session)
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
             // auth / session route
             .service(test_get)
             .service(
                 web::resource("/auth")
-                .wrap(cors)
-                .wrap(session)
+                .wrap(get_cors())
                 .route(web::post().to(auth_post))
                 .route(web::get().to(auth_get))
-                )
-            // .service(auth_get)
-            // .service(web::resource("/auth/").to(auth_post))
+            ).service(
+                web::resource("/graphql")
+                .app_data(web::Data::new(schema))
+                .wrap(get_cors())
+                .route(web::post().to(gql_handle_schema_with_header::<QueryRoot>))
+            )
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })
     // start http server on 127.0.0.1:8080
-    .bind(format!("127.0.0.1:{}", env_or("PORT", "8080")))?
+    .bind(format!("127.0.0.1:{}", env_or("PORT", "8081")))?
     .run()
     .await
 }

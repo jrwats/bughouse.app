@@ -68,6 +68,12 @@ pub struct FirebaseRowData {
     provider_id: Option<String>,
 }
 
+impl FirebaseRowData {
+    pub fn is_guest(&self) -> bool {
+        self.provider_id == Some("anonymous".to_string())
+    }
+}
+
 impl From<Option<Arc<RwLock<User>>>> for UserRatingSnapshot {
     fn from(maybe_user: Option<Arc<RwLock<User>>>) -> Self {
         match maybe_user {
@@ -114,10 +120,21 @@ impl Db {
     //
     async fn new_player_handle(
         &self,
-        is_guest: bool,
+        firebase_data: &FirebaseRowData,
     ) -> Result<(Uuid, String), Error> {
+        let is_guest =
+            firebase_data.provider_id == Some("anonymous".to_string());
         let uuid = self.now()?;
-        let handle = if is_guest {
+        println!("Inserting into firebase_user...");
+        self.session
+            .query(
+                "INSERT INTO bughouse.firebase_users
+               (firebase_id, uid)
+               VALUES (?, ?) IF NOT EXISTS",
+                (&firebase_data.fid, uuid),
+            )
+            .await?;
+        let handle = if firebase_data.is_guest() {
             GuestHandle::generate(&uuid)
         } else {
             format!("Player_{}", B66::encode_num(uuid.as_fields().0 as u128))
@@ -261,21 +278,10 @@ impl Db {
     pub async fn mk_user_for_fid(&self, fid: &str) -> Result<User, Error> {
         println!("mk_user_for_fid {}", fid);
         let firebase_data = Self::fetch_firebase_data(fid)?;
-        let is_guest =
-            firebase_data.provider_id == Some("anonymous".to_string());
         println!("firebase_data:\n{:?}", firebase_data);
-        let (id, handle) = self.new_player_handle(is_guest).await?;
+        let (id, handle) = self.new_player_handle(&firebase_data).await?;
         let rating = Rating::default();
-        let role = User::get_default_role(is_guest) as i8;
-        println!("Inserting into firebase_user...");
-        self.session
-            .query(
-                "INSERT INTO bughouse.firebase_users
-               (firebase_id, uid)
-               VALUES (?, ?)",
-                (&firebase_data.fid, id),
-            )
-            .await?;
+        let role = User::get_default_role(firebase_data.is_guest()) as i8;
         println!("Inserting into users...");
         let res = self.session
             .query(
@@ -287,7 +293,7 @@ impl Db {
                     &firebase_data.fid,
                     rating.deviation,
                     &firebase_data.email,
-                    is_guest,
+                    firebase_data.is_guest(),
                     &handle,
                     &firebase_data.display_name,
                     rating.rating,
@@ -301,6 +307,7 @@ impl Db {
         }
         println!("Inserted: {}", id);
         self.add_rating(id, &rating).await?;
+        let is_guest = firebase_data.is_guest();
         Ok(User {
             id,
             firebase_id: firebase_data.fid,
@@ -364,7 +371,7 @@ impl Db {
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );
-        println!("Querying session...");
+        println!("Querying users table...");
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
             for row in rows.into_typed::<User>() {

@@ -21,6 +21,7 @@ use crate::messages::{
 };
 use crate::seeks::seeks::SeekPool;
 use crate::time_control::TimeControl;
+use crate::users::Users;
 
 pub fn get_timestamp_ns() -> u64 {
     Utc::now().timestamp_nanos() as u64
@@ -32,10 +33,12 @@ const ENQ_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
+#[derive(Clone)]
 pub struct BugContext {
     pub srv_recipient: Recipient<ServerMessage>,
     pub server: &'static BughouseServer,
-    db: Arc<Db>,
+    pub db: Arc<Db>,
+    pub users: Arc<Users>,
 }
 
 impl BugContext {
@@ -43,11 +46,13 @@ impl BugContext {
         srv_recipient: Recipient<ServerMessage>,
         server: &'static BughouseServer,
         db: Arc<Db>,
+        users: Arc<Users>,
     ) -> Self {
         BugContext {
             srv_recipient,
             server,
             db,
+            users,
         }
     }
 
@@ -80,7 +85,7 @@ impl Actor for BugWebSock {
     }
 
     fn stopped(&mut self, ctx: &mut Self::Context) {
-        eprintln!("stopped: {}", self.id);
+        eprintln!("WS stopped: {}", self.id);
         self.data.server.on_close(&ctx.address().recipient());
     }
 }
@@ -95,6 +100,7 @@ impl Handler<ClientMessage> for BugWebSock {
     ) -> Self::Result {
         match msg.kind {
             ClientMessageKind::Auth(conn_id) => {
+                println!("Auth({})", conn_id);
                 self.id = conn_id;
                 let maybe_user = self.data.server.user_from_conn(conn_id);
                 ctx.text("authenticated".to_string());
@@ -103,7 +109,7 @@ impl Handler<ClientMessage> for BugWebSock {
                     // TODO - rethink - emulating old FICS login auth
                     let msg = json!({
                         "kind": "login",
-                        "uid": ruser.id,
+                        "uid": B66::encode_uuid(&ruser.id),
                         "fid": ruser.firebase_id,
                         "handle": ruser.handle,
                         "rating": ruser.rating,
@@ -571,6 +577,7 @@ impl BugWebSock {
                         reason: "Malformed token".to_string(),
                     })?;
 
+                println!("firebase_token: {}", token);
                 self.data
                     .srv_recipient
                     .do_send(ServerMessage::new(ServerMessageKind::Auth(

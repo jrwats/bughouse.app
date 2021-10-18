@@ -48,6 +48,7 @@ pub struct BughouseServer {
 pub struct ServerHandler {
     db: Arc<Db>,
     game_checkers: RwLock<HashMap<GameID, SpawnHandle>>,
+    users: Arc<Users>,
     // timer: Arc<Timer>
     // server: &'static BughouseServer,
 }
@@ -55,11 +56,13 @@ pub struct ServerHandler {
 impl ServerHandler {
     pub fn new(
         db: Arc<Db>,
+        users: Arc<Users>,
         // timer: Arc<Timer>
     ) -> Self {
         ServerHandler {
             db,
             game_checkers: RwLock::new(HashMap::new()),
+            users,
             // timer
         }
     }
@@ -75,6 +78,7 @@ impl ServerHandler {
         BughouseServer::get(
             self.db.clone(),
             ctx.address().recipient(),
+            self.users.clone(),
             // self.timer.clone(),
         )
     }
@@ -211,17 +215,18 @@ impl BughouseServer {
     pub fn get(
         db: Arc<Db>,
         loopback: Recipient<ServerMessage>,
+        users: Arc<Users>,
         // timer: Arc<Timer>,
     ) -> &'static BughouseServer {
         // let timer = Arc::new(Timer::new());
-        INSTANCE.get_or_init(move || BughouseServer::new(db, loopback))
+        INSTANCE.get_or_init(move || BughouseServer::new(db, loopback, users))
     }
 
     fn new(
         db: Arc<Db>,
         loopback: Recipient<ServerMessage>, // , timer: Arc<Timer>
+        users: Arc<Users>,
     ) -> Self {
-        let users = Arc::new(Users::new(db.clone()));
         let conns = Arc::new(ConnectionMgr::new(db.clone(), users.clone()));
         let games = Arc::new(Games::new(conns.clone()));
         let game_user_handler = GameUserHandler::new(games.clone());
@@ -502,7 +507,7 @@ impl BughouseServer {
         let ruser = user.read().unwrap();
         let json = json!({
             "kind": "login",
-            "uid": ruser.id,
+            "uid": B66::encode_uuid(&ruser.id),
             "handle": ruser.handle,
             "role": ruser.role,
         });
