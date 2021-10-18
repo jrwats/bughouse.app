@@ -136,6 +136,8 @@ class SocketProxy extends EventEmitter {
         this._send.apply(this, args);
       }
       this._msgQueue = [];
+      // TODO: This should live in _authenticate
+      this._postAuth(this._idToken);
       this._emit("login", data);
     };
     handlers["logged_out"] = () => {
@@ -205,7 +207,6 @@ class SocketProxy extends EventEmitter {
     // ping / pong latency handlers
     handlers["latency"] = (msg) => {
       this.emit("srv_latency", msg.ms);
-      window.__serverLatency = msg.ms;
       // console.log(`server latency: ${msg.ms}ms`);
     };
     handlers["enq"] = (msg) => {
@@ -218,7 +219,6 @@ class SocketProxy extends EventEmitter {
     };
 
     const url = new URL(WS_URL);
-    console.error(`new PhoenixSocket`);
     this._sock = new PhoenixSocket(url);
     this._sock.on("open", (evt) => {
       this._authenticate();
@@ -266,8 +266,8 @@ class SocketProxy extends EventEmitter {
 
   _authenticate() {
     if (this._idToken != null) {
+      // TODO: ditch the socket auth - and rely on the response from _postAuth
       this._send("auth", { firebase_token: this._idToken });
-      this._postAuth(this._idToken);
     }
   }
 

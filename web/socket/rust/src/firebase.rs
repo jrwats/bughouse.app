@@ -25,7 +25,7 @@ pub fn authenticate(token: &str) -> Result<(FirebaseID, ProviderID), Error> {
     let mut resp = String::new();
     stream.read_to_string(&mut resp)?;
     let (label, payload) = resp.trim_end().split_once(':').unwrap();
-    stream.shutdown(Shutdown::Both)?;
+    stream.shutdown(Shutdown::Read).ok();
     match label {
         "uid" => {
             let parts: Vec<&str> = payload.split('\x1e').collect();
@@ -40,12 +40,14 @@ pub fn authenticate(token: &str) -> Result<(FirebaseID, ProviderID), Error> {
             Err(Error::Unexpected("Couldn't parse response".to_string()))
         }
         "err" => {
+            eprintln!("err: {}", payload.to_string());
             return Err(Error::AuthError {
                 reason: payload.to_string(),
             });
         }
         _ => {
             let msg = format!("Unknown response: {}", resp);
+            eprintln!("err: {}", msg);
             return Err(Error::AuthError { reason: msg });
         }
     }

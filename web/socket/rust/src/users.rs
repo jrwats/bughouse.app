@@ -78,7 +78,7 @@ impl Users {
     // If, on the offchance, that a user disconnects right after game start (and is not present),
     // try fetching user from DB.
     pub async fn maybe_user_from_uid(
-        &'static self,
+        &self,
         uid: &UserID,
     ) -> Option<Arc<RwLock<User>>> {
         if let Some(u) = self.get(uid) {

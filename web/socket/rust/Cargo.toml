@@ -22,12 +22,16 @@ path = "src/bin/b66.rs"
 # actix-files = "0.3"
 # actix-web = "3"
 # actix-web-actors = "3"
+async-channel = "1.6.1"
+async-graphql = "2.10.3"
+# async-graphql-actix-web = "2.10.3"
 actix = "0.12"
-actix-cors = "0.6.0-beta.2"
-actix-files = "0.6.0-beta.7"
+actix-cors = "0.6.0-beta.3"
+actix-files = "0.6.0-beta.8"
+actix-http = "3.0.0-beta.11"
 actix-redis = "^0.10.0-beta.2"
-actix-session = "^0.5.0-beta.2"
-actix-web = {version = "4.0.0-beta.8", default-features = false}
+actix-session = "^0.5.0-beta.3"
+actix-web = {version = "4.0.0-beta.10", default-features = false}
 actix-web-actors = "4.0.0-beta.7"
 
 bughouse = "0.0.11"
@@ -36,8 +40,9 @@ bytestring = "1"
 chrono = "0.4"
 # cons-list = "0.0.3"
 env_logger = "0.8"
-fplist = {version = "0.2.1", features = ["multithreaded"] }
+fplist = { version = "0.2.1", features = ["multithreaded"] }
 futures = "0.3.6"
+futures-util = { version = "0.3.17", default-features = false }
 jsonwebtoken = "^7.2.0"
 lazy_static = "1.4.0"
 noneifempty = "0.1.3"
@@ -49,9 +54,12 @@ once_cell = "1.8.0"
 scylla = "0.1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_urlencoded = "0.7.0"
 thiserror = "1.0"
 time = "0.3.1"
 timer = "0.2.0"
 tokio = { version = "1.3", features = ["full"] }
-uuid = {version = "0.8.1", features = ["serde", "v1", "v4", "v5"] }
+uuid = { version = "0.8.1", features = ["serde", "v1", "v4", "v5"] }
 
+# [patch.crates-io]
+# actix-web = { path = "../../../../actix-web" }
