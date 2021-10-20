@@ -296,9 +296,10 @@ impl Db {
             )
             .await;
         if let Err(e) = res {
-            println!("err: {:?}", e);
+            println!("Insertion err: {:?}", e);
+            return Err(e.into());
         }
-        println!("Inserted");
+        println!("Inserted: {}", id);
         self.add_rating(id, &rating).await?;
         Ok(User {
             id,
