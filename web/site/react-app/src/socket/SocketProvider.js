@@ -37,9 +37,9 @@ const SocketProvider = (props) => {
       setPings(pings);
       setPing(pings.reduce((a, b) => a + b, 0) / pings.length);
     };
-    socket.on("latency", onLatency);
+    socket && socket.on("latency", onLatency);
     return () => {
-      socket.off("latency", onLatency);
+      socket && socket.off("latency", onLatency);
     };
   }, [socket]);
 

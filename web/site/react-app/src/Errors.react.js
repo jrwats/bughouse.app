@@ -46,9 +46,9 @@ const Errors = () => {
       errors.current.push(e);
       setErrors({ val: errors.current });
     };
-    socket.on("err", onErr);
+    socket && socket.on("err", onErr);
     return () => {
-      socket.off("err", onErr);
+      socket && socket.off("err", onErr);
     };
   }, [socket]);
 
