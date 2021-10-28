@@ -115,9 +115,10 @@ const FormTable = ({ onCancel }) => {
   return (
     <div
       style={{
-        marginTop: "14px",
+        marginTop: "20px",
         maxWidth: "40rem",
-        marginLeft: "1rem",
+        marginLeft: "20px",
+        padding: "8px",
         flexGrow: 1,
       }}
     >
