@@ -19,15 +19,18 @@ const HeldPiece = ({
   const { handle, socket } = useContext(SocketContext);
   const disabled =
     viewOnly || count === 0 || chessboard.getHandleColor(handle) == null;
-  const pieceRef = useRef(null);
+  const draggableRef = useRef(null);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
   const relRef = useRef(null);
 
   const onDrag = (e, coords) => {
     setCoords(coords);
+    setDragging(true);
   };
 
   function onStop(evt, relCoords) {
+    setDragging(false);
     const chessground = chessgroundRef.current;
     const key = chessground.cg.getKeyAtDomPos(
       [evt.x, evt.y],
@@ -57,7 +60,8 @@ const HeldPiece = ({
   const visibility = count === 0 ? "hidden" : "visible";
   let countCircle = null;
   if (count > 1) {
-    countCircle = <span className="countCircle">{count}</span>;
+    const className = `countCircle ${dragging ? 'dragging' : ''}`;
+    countCircle = <span className={className}>{count}</span>;
   }
   // TODO: bounds is undefined because setting it limits dragging to the lower
   // half of screen right now.  Need to debug that.  We *SHOULD* be able to set
@@ -71,10 +75,11 @@ const HeldPiece = ({
         height: "20%",
         width: "100%",
         textAlign: "center",
+        zIndex: 500,
       }}
     >
       <Draggable
-        nodeRef={pieceRef}
+        nodeRef={draggableRef}
         bounds={undefined /* `#${boardID}`*/}
         disabled={disabled}
         onStop={onStop}
@@ -83,21 +88,30 @@ const HeldPiece = ({
         offsetParent={relRef?.current?.el}
         // grid={[64,64]}
       >
+        <div
+          ref={draggableRef}
+          style={{
+            cursor: "pointer",
+            height: "100%",
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
         <piece
           data-piece={piece}
-          ref={pieceRef}
           className={`${color} ${NAMES[piece]}${viewOnly ? " disabled" : ""}`}
           style={{
-            position: "absolute",
+            display: "block",
+            position: "relative",
             visibility: visibility,
-            top: top + "px",
             left: "10%",
             width: "100%",
             height: "100%", // "calc(12.5% - 3px)",
           }}
         />
+          {countCircle}
+        </div>
       </Draggable>
-      {countCircle}
     </div>
   );
 };

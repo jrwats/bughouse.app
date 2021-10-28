@@ -427,6 +427,10 @@ body .mono {
   padding: .12em .2em .2em .15em;
 }
 
+.countCircle.dragging {
+  opacity: 0.4;
+}
+
 #form_table .MuiInputLabel-shrink {
   /* transform: translate(0, 0); */
 }
