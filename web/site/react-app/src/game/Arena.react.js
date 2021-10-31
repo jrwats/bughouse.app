@@ -73,6 +73,9 @@ const Arena = ({ gamePath }) => {
   useEffect(() => {
     console.log(`Arena subscribing ${gameID}`);
     gamesSrc.observe(gameID);
+    return () => {
+      gamesSrc.unobserve(gameID);
+    };
   }, [gamesSrc, gameID]);
   useEffect(() => {
     ScreenLock.attemptAcquire();
