@@ -43,22 +43,22 @@ impl GraphQLUser {
         self.0.read().unwrap().deviation
     }
 
-    async fn games<'a>(
-        &self,
-        ctx: &Context<'a>,
-        after: Option<String>,
-        before: Option<String>,
-        first: Option<i32>,
-        last: Option<i32>,
-        ) -> Result<Connection<usize, GraphQLUserGame<'a>, EmptyFields, EmptyFields>> {
-        query(
-            after,
-            before,
-            first,
-            last,
-            |after, before, first, last| async move {
-        }).await
-    }
+    // async fn games<'a>(
+    //     &self,
+    //     ctx: &Context<'a>,
+    //     after: Option<String>,
+    //     before: Option<String>,
+    //     first: Option<i32>,
+    //     last: Option<i32>,
+    //     ) -> Result<Connection<usize, GraphQLUserGame<'a>, EmptyFields, EmptyFields>> {
+    //     query(
+    //         after,
+    //         before,
+    //         first,
+    //         last,
+    //         |after, before, first, last| async move {
+    //     }).await
+    // }
 }
 
 
