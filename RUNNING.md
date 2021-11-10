@@ -12,26 +12,26 @@
    * (Backend Firebase authentication, which is not stricly necessary for testing)
 
 
-### Running
-* Load and run the DB docker image via
+## Running
+### 1. Load and run the DB docker image via
 ```
 gunzip -c ./backend/db/image.tar.gz | docker load
 ./backend/db/run.sh
 ```
 NOTE: `image.tar.gz` is tracked via `git lfs`.  If `gunzip` fails above, you likely need to run `git lfs fetch && git lfs pull` first.
 
-* Load and run REDIS — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
+### 2. Load and run REDIS — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
 ```
 ./backend/redis/docker.sh
 ```
 
-* Run the webserver
+### 3. Run the webserver
 ```
 cd backend/web
 PORT=8081 RUST_BACKTRACE=1 cargo run --bin bug-wss
 ```
 
-* Run the frontend
+### 4. Run the frontend
 ```
 cd frontend/react-app
 yarn install
