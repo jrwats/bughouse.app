@@ -2,6 +2,9 @@
 
 All frontend/backend code for [bughouse.app](https://bughouse.app)
 
+## Running and testing
+See [RUNNING.md](RUNNING.md)
+
 ## Architecture
 
 ### Chess Server Backend
