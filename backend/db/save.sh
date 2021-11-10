@@ -1,3 +1,3 @@
 #!/bin/bash
-docker save dev_scylla | gzip > img.tar.gz
+docker save dev_scylla | gzip > image.tar.gz
 
