@@ -1,24 +1,33 @@
 // Shared module houses all Firebase-related constants.
 // See firebase-go-srv
 
+use crate::db::Db;
 use crate::error::Error;
 use std::io::prelude::{Read, Write};
-use std::os::unix::net::UnixStream;
 use std::net::Shutdown;
+use std::os::unix::net::UnixStream;
+use std::sync::Arc;
 
 pub const FIRE_AUTH: u8 = 1;
 pub const FIRE_USER: u8 = 2;
 // const FIRE_LOGOUT: u8 = 3;
 
+const DEFAULT_SOCK: &str = "/var/run/firebase/firebase.sock";
+
 lazy_static! {
     pub static ref UNIX_SOCK: String =
-        std::env::var("SOCK").unwrap_or("/tmp/firebase.sock".to_string());
+        std::env::var("SOCK").unwrap_or(DEFAULT_SOCK.to_string());
 }
 
 pub struct FirebaseID(pub String);
 pub struct ProviderID(pub String);
 
-pub fn authenticate(token: &str) -> Result<(FirebaseID, ProviderID), Error> {
+pub async fn authenticate(token: &str, db: Arc<Db>) -> Result<(FirebaseID, ProviderID), Error> {
+    eprintln!("authenticate...");
+    if token.starts_with(".fake") {
+        let user = db.get_user_from_fid(token).await?;
+        return Ok((FirebaseID(user.firebase_id), ProviderID("fake".to_string())));
+    }
     let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
     write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;
     stream.flush()?;

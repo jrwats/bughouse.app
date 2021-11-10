@@ -361,26 +361,35 @@ impl Db {
         }
     }
 
-    pub async fn user_from_firebase_id(
+    pub async fn get_user_from_fid(
         &self,
         fid: &str,
     ) -> Result<User, Error> {
-        println!("user_from_firebase_id: {}", fid);
         let query_str = format!(
             "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating, role
              FROM bughouse.users WHERE firebase_id = '{}'",
             fid
         );
-        println!("Querying users table...");
         let res = self.session.query(query_str, &[]).await?;
         if let Some(rows) = res.rows {
             for row in rows.into_typed::<User>() {
-                println!("got a row: {:?}", row);
                 return Ok(row?);
             }
         }
-        println!("no rows");
-        Ok(self.mk_user_for_fid(fid).await?)
+
+        Err(Error::UnknownFirebaseID(fid.to_string()))
+    }
+
+    pub async fn user_from_firebase_id(
+        &self,
+        fid: &str,
+    ) -> Result<User, Error> {
+        let result = self.get_user_from_fid(fid).await;
+        if let Err(Error::UnknownFirebaseID(_)) = result {
+            Ok(self.mk_user_for_fid(fid).await?)
+        } else {
+            return result
+        }
     }
 
     // async fn get_user_rating_snapshot(

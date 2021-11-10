@@ -377,7 +377,7 @@ impl BughouseServer {
         token: String,
     ) -> Result<ClientMessage, Error> {
         let (FirebaseID(fid), ProviderID(provider_id)) =
-            firebase::authenticate(&token)?;
+            firebase::authenticate(&token, self.db.clone()).await?;
         println!("auth.uid: {}, provider_id: {}", &fid, provider_id);
         let conn_id = self.add_conn(recipient.clone(), &fid).await?;
         println!("conn_id: {}", conn_id);

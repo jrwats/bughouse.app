@@ -21,7 +21,7 @@ const (
 	LOGOUT    = 3
 )
 
-const SockAddr = "/tmp/firebase.sock"
+const SockAddr = "/var/run/firebase/firebase.sock"
 
 func authenticate(idTok string, conn net.Conn, app *firebase.App, ctx context.Context) {
 	client, err := app.Auth(ctx)

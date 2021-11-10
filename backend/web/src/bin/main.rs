@@ -41,7 +41,8 @@ async fn auth_post(
     // println!("jwt header: {:?}", decode_header(&info.firebase_token));
     let mut stream = UnixStream::connect(firebase::UNIX_SOCK.to_string())?;
     write!(stream, "{}\n{}\n", firebase::FIRE_AUTH, info.firebase_token)?;
-    let resp = match firebase::authenticate(&info.firebase_token) {
+    let db = context.db.clone();
+    let resp = match firebase::authenticate(&info.firebase_token, db).await {
         Ok((FirebaseID(fid), _)) => {
             let conns = context.server.get_conns();
             let res = conns.user_from_fid(&fid).await;
@@ -117,8 +118,6 @@ async fn main() -> Result<(), io::Error> {
         users.clone(),
         );
 
-    println!("starting server...");
-
     HttpServer::new(move || {
         let context = BugContext::create(
             addr.to_owned().recipient(),
@@ -139,7 +138,10 @@ async fn main() -> Result<(), io::Error> {
             // enable logger
             .wrap(session)
             // websocket route
-            .service(web::resource("/ws/").to(ws_route))
+            .service(
+                web::resource("/ws/")
+                .to(ws_route)
+                )
             // auth / session route
             .service(test_get)
             .service(
@@ -149,8 +151,8 @@ async fn main() -> Result<(), io::Error> {
                 .route(web::get().to(auth_get))
             ).service(
                 web::resource("/graphql")
-                .app_data(web::Data::new(schema))
                 .wrap(get_cors())
+                .app_data(web::Data::new(schema))
                 .route(web::post().to(gql_handle_schema_with_header::<QueryRoot>))
             )
             // static files

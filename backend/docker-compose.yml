@@ -1,0 +1,12 @@
+services:
+  web:
+    build: web
+    ports:
+      - "8081:8081"
+    volumes:
+      - .:/web
+      - logvolume01:/var/log
+    links:
+      - redis
+  redis:
+    image: redis

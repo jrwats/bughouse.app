@@ -66,6 +66,9 @@ pub enum Error {
     #[error("InvalidMove - not player's turn")]
     InvalidMoveTurn,
 
+    #[error("Unknown FID (not in DB): {0}")]
+    UnknownFirebaseID(String),
+
     #[error("Unknown UID (not in DB): {0}")]
     UnknownUID(UserID),
 

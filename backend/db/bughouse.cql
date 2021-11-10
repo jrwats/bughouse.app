@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS handles(
 );
 CREATE INDEX ON handles(uid);
 
-CREATE TABLE IF NOT EXISTS firebase_users(
+CREATE TABLE IF NOT EXISTS firebase_users (
   firebase_id text PRIMARY KEY,
   uid timeuuid,
   );
