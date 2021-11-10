@@ -3,12 +3,19 @@
 set -euo pipefail
 
 export PORT=9042
-echo "Waiting for cqlsh..."
 
 log() {
   echo "$@" >&2
 }
+
+mkdir -p /var/cache/bug_db
 wait_and_run() {
+  if [[ -f /var/cache/bug_db/initialized.lock ]]; then
+    log "\n\nAlready Initialized.  Doing nothing\n\n";
+    return
+  fi
+
+  log "\nWaiting for nodetool...\n"
   until nodetool status > /dev/null; do
     log "Unavailable: sleeping"
     sleep 5
@@ -26,6 +33,7 @@ wait_and_run() {
   else
     log -e "\n\n!!! dev_seed.cql FAILED\n\n"
   fi
+  touch /var/cache/bug_db/initialized.lock
 }
 
 wait_and_run &
