@@ -38,13 +38,14 @@ gunzip -c ./backend/db/image.tar.gz | docker load
 ./backend/db/run.sh
 ```
 
-* Load and REDIS
+* Load and run REDIS — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
 ```
 ./backend/redis/docker.sh
 ```
 
 * Run the webserver
 ```
+cd backend/web
 PORT=8081 RUST_BACKTRACE=1 cargo run --bin bug-wss
 ```
 
