@@ -40,8 +40,7 @@ const OnlinePlayers = () => {
   const classes = useStyles();
   const [order, setOrder] = useState("desc");
   const [orderBy, setOrderBy] = useState("rating");
-  const players = Object.keys(onlineUsers)
-    .map((uid) => onlineUsers[uid])
+  const players = [...onlineUsers.values()]
     .sort((a, b) => {
       let cmp = a[orderBy] < b[orderBy] ? -1 : a[orderBy] > b[orderBy] ? 1 : 0;
       return order === "asc" ? cmp : -cmp;

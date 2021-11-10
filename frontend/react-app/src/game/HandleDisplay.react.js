@@ -8,7 +8,7 @@ const HandleDisplay = ({ handle }) => {
     <span>
       <span className="player h6 roboto">{handle}</span>
       <UserName
-        user={handleToUser[handle]}
+        user={handleToUser?.get(handle)}
         className="h6"
         style={{
           display: "inline",

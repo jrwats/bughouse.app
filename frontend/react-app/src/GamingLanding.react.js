@@ -30,7 +30,7 @@ const GamingLanding = () => {
           style={{ marginTop: "10px" }}
           variant="contained"
           color="primary"
-          disabled={Object.keys(onlineUsers).length < 4}
+          disabled={onlineUsers.size < 4}
           onClick={() => {
             setExpansion(ActionExpansion.SEEKS);
           }}
