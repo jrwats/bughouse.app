@@ -62,7 +62,7 @@ const NOISY_EVENTS = {
  * the server, but not anymore.
  */
 class SocketProxy extends EventEmitter {
-  constructor(user) {
+  constructor() {
     super();
     this._authenticated = false;
     this._loggedOut = true;
@@ -80,7 +80,7 @@ class SocketProxy extends EventEmitter {
 
   setUser(user) {
     this._user = user;
-    this._idToken = null;
+    this._idToken = user?.fid || null;
     this._getToken();
   }
 
@@ -92,7 +92,7 @@ class SocketProxy extends EventEmitter {
       .getIdToken(/*force refresh*/ true)
       .then((idToken) => {
         this._idToken = idToken;
-        if (this._sock?.readyState() === WebSocket.OPEN) {
+        if (!this._authenticated && this._sock?.readyState() === WebSocket.OPEN) {
           this._authenticate();
         }
       })
@@ -272,6 +272,7 @@ class SocketProxy extends EventEmitter {
   }
 
   _postAuth(firebase_token) {
+    console.log(`_postAuth`);
     const xhr = new XMLHttpRequest();
     xhr.open("POST", AUTH_URL, true);
     xhr.setRequestHeader('Content-Type', 'application/json');

@@ -11,7 +11,7 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import NetworkCheckIcon from "@mui/icons-material/NetworkCheck";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-
+import { AuthListener } from "./auth/AuthProvider";
 import discordLogo from "./images/Discord_Logo_White.svg";
 
 // TODO - animate menu depending on open/close state
@@ -167,6 +167,7 @@ const SideMenu = ({ style }) => {
         */}
         <StyledMenuItem
           onClick={(e) => {
+            AuthListener.__clearFakeFirebaseID();
             logout(socket);
           }}
         >

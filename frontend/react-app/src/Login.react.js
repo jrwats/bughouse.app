@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
 import FirebaseLogin from "./FirebaseLogin.react";
 import { AuthContext } from "./auth/AuthProvider";
+import FakeUserSelect from "./auth/FakeUserSelect.react";
 import logo from "./images/blue_pink_neon_200.png";
 
 const Login = ({ navigate }) => {
+  const dev = process.env.NODE_ENV === 'development';
   const { pendingInit, user } = useContext(AuthContext);
   if (user != null) {
     navigate("/", { replace: true });
@@ -13,6 +15,11 @@ const Login = ({ navigate }) => {
     return null;
   }
   console.log(`Login displaying login`);
+  const fakeUsers = !dev ? null : (
+    <div className="column">
+      <FakeUserSelect />
+    </div>
+  );
 
   return (
     <div id="login" className="row">
@@ -24,6 +31,7 @@ const Login = ({ navigate }) => {
           app
         </span>
       </div>
+      {fakeUsers}
       <div className="column">
         <FirebaseLogin />
       </div>

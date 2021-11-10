@@ -28,9 +28,9 @@
     "node": "16.x.x"
   },
   "scripts": {
-    "start": "PORT=5000 react-scripts start",
+    "start": "DEV=1 PORT=5000 react-scripts start",
     "start_https": "PORT=5000 HTTPS=true SSL_CRT_FILE=localhost.crt SSL_KEY_FILE=localhost.key react-scripts start",
-    "preinstall": "./ensure-env.sh",
+    "preinstall": "./ensure-env.sh || echo 'Could not get secrets'",
     "build": "react-scripts build",
     "build:dev": "REACT_APP_FIREBASE=DEV REACT_APP_SOCKET_URL=https://localhost:7777 react-scripts build",
     "start:dev": "PORT=5000 serve --cors --ssl-cert localhost.crt --ssl-key localhost.key -s build",

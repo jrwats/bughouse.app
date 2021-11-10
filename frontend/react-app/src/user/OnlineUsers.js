@@ -4,6 +4,9 @@ import SocketProxy from "../socket/SocketProxy";
 /**
  * Listens to the relevant socket events from the server for maintaining list
  * of online users.
+ *
+ * TODO: This is busted on sign-out and sign-in (without refresh). We don't
+ *       re-subscribe to any newly-made socket.  Rethink SocketProxy lifetime?
  */
 class OnlineUsers extends EventEmitter {
   constructor(socket) {
@@ -86,6 +89,18 @@ class OnlineUsers extends EventEmitter {
       console.error(`Unpartnered ${handle} not found?`);
     });
 
+    const onOnline = ({ players }) => {
+      console.log(`online_players: ${JSON.stringify(players)}`);
+      this._users = {};
+      if (players == null) {
+        return;
+      }
+      for (const [uid, handle, rating] of players) {
+        this._users[uid] = { uid, handle, rating };
+      }
+      this.emit("value", this._users);
+    };
+    socket.on("online_players", onOnline);
     const onOnlineUpdate = (data) => {
       console.log(`online_players_update: ${data}`);
       console.log(data);
@@ -98,16 +113,6 @@ class OnlineUsers extends EventEmitter {
       }
       this.emit("value", this._users);
     };
-    socket.on("online_players", ({ players }) => {
-      if (players == null) {
-        return;
-      }
-      this._users = {};
-      for (const [uid, handle, rating] of players) {
-        this._users[uid] = { uid, handle, rating };
-      }
-      this.emit("value", this._users);
-    });
     socket.on("online_players_update", onOnlineUpdate);
     socket.sendEvent("online_players", { count: 0, cursor: null });
   }

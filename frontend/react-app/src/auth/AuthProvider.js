@@ -11,48 +11,54 @@ function needsEmailVerification(user) {
   );
 }
 
-class AuthListener extends EventEmitter {
+function getFakeUser(fid) {
+  return fid == null ? null : {
+    getIdToken: (_refresh) => {
+      return new Promise((resolve, reject) => {
+        resolve(fid);
+      });
+    },
+    fid,
+    providerData: [],
+    fake: true,
+  };
+}
+
+const getUser = (auth) =>
+  (auth.currentUser || getFakeUser(localStorage.getItem(FAKE_KEY)));
+
+const FAKE_KEY = "__fakeFID";
+class _AuthListener extends EventEmitter {
   constructor(auth) {
     super();
-    this._user = auth.currentUser;
+    this._user = getUser(auth);
     this._claims = {};
     this._pendingInit = true;
     this._needsEmailVerified = needsEmailVerification(this._user);
     console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
-
-    auth.onAuthStateChanged((userAuth) => {
-      console.log(`AuthListener.onAuthStateChanged: ${userAuth}`);
-      this._user = userAuth;
-      this._needsEmailVerified = needsEmailVerification(userAuth);
-      console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
-      this._pendingInit = false;
-      if (userAuth != null) {
-        userAuth
-          .getIdTokenResult()
-          .then((idTokenResult) => {
-            this._claims = idTokenResult.claims;
-            this._notify();
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      } else {
-        this._claims = {};
-      }
-      this._notify();
-    });
+    auth.onAuthStateChanged(userAuth => this.onAuth(userAuth));
   }
 
-  getUser() {
-    return this._user;
-  }
-
-  getPendingInit() {
-    return this._pendingInit;
-  }
-
-  getClaims() {
-    return this._claims;
+  onAuth(userAuth) {
+    console.log(`AuthListener.onAuthStateChanged: ${userAuth}`);
+    this._user = userAuth || getFakeUser(localStorage.getItem(FAKE_KEY));
+    this._needsEmailVerified = needsEmailVerification(userAuth);
+    console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
+    this._pendingInit = false;
+    if (userAuth != null) {
+      userAuth
+        .getIdTokenResult()
+        .then((idTokenResult) => {
+          this._claims = idTokenResult.claims;
+          this._notify();
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } else {
+      this._claims = {};
+    }
+    this._notify();
   }
 
   _notify() {
@@ -63,22 +69,39 @@ class AuthListener extends EventEmitter {
       claims: this._claims,
     });
   }
+
+  __testSetFirebaseID(fid) {
+    localStorage.setItem(FAKE_KEY, fid);
+    this._user = getFakeUser(fid);
+    this._notify();
+  }
 }
 
-const _singleton = new AuthListener(auth);
+const _singleton = new _AuthListener(auth);
+
+export const AuthListener = {
+  get: () => _singleton,
+  __testSetFirebaseID: (fid) => {
+    _singleton.__testSetFirebaseID(fid);
+  },
+  __clearFakeFirebaseID: () => {
+    localStorage.removeItem(FAKE_KEY);
+    _singleton.onAuth(null);
+  },
+};
 
 /**
  * Provide authenticated firebase user as context to child components
  */
 export const AuthContext = createContext({
-  user: auth.currentUser,
+  user: getUser(auth),
   needsEmailVerified: false,
   claims: {},
   pendingInit: true,
 });
 const AuthProvider = (props) => {
   const [pendingInit, setPending] = useState(true);
-  const [user, setUser] = useState(auth.currentUser);
+  const [user, setUser] = useState(getUser(auth));
   const [needsEmailVerified, setEmailVerified] = useState(
     needsEmailVerification(auth.currentUser)
   );

@@ -9,7 +9,7 @@ import Home from "./Home.react";
 import SocketProvider from "./socket/SocketProvider";
 import Table from "./game/Table.react";
 import Arena from "./game/Arena.react";
-import UsersProvider from "./user/UsersProvider";
+// import UsersProvider from "./user/UsersProvider";
 import ViewerProvider from "./user/ViewerProvider";
 import { Router } from "@reach/router";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -44,10 +44,11 @@ const App = () => {
   });
 
   const { user } = useContext(AuthContext);
+  console.log(`App user: ${JSON.stringify(user)}`);
   return (
     <SocketProvider user={user}>
       <ViewerProvider>
-        <UsersProvider>
+        {/* <UsersProvider> */}
           <ThemeProvider theme={darkTheme}>
             <Router>
               <Login path="/login" />
@@ -57,7 +58,7 @@ const App = () => {
               <Arena path="/arena/:gamePath" />
             </Router>
           </ThemeProvider>
-        </UsersProvider>
+        {/* </UsersProvider> */}
       </ViewerProvider>
     </SocketProvider>
   );
