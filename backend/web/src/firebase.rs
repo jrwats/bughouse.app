@@ -25,8 +25,14 @@ pub struct ProviderID(pub String);
 pub async fn authenticate(token: &str, db: Arc<Db>) -> Result<(FirebaseID, ProviderID), Error> {
     eprintln!("authenticate...");
     if token.starts_with(".fake") {
-        let user = db.get_user_from_fid(token).await?;
-        return Ok((FirebaseID(user.firebase_id), ProviderID("fake".to_string())));
+        let res = db.get_user_from_fid(token).await;
+        if res.is_err() {
+            let reason = format!("{} not found", token);
+            eprintln!("auth error: {}", reason);
+            return Err(Error::AuthError { reason });
+        }
+        let user = res.unwrap();
+        return Ok((FirebaseID(user.firebase_id), ProviderID("fake".into())));
     }
     let mut stream = UnixStream::connect(UNIX_SOCK.to_string())?;
     write!(stream, "{}\n{}\n", FIRE_AUTH, token)?;

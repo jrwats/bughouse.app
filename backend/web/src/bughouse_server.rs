@@ -376,8 +376,21 @@ impl BughouseServer {
         recipient: Recipient<ClientMessage>,
         token: String,
     ) -> Result<ClientMessage, Error> {
-        let (FirebaseID(fid), ProviderID(provider_id)) =
-            firebase::authenticate(&token, self.db.clone()).await?;
+        let res = firebase::authenticate(&token, self.db.clone()).await;
+        if let Err(ref e) = res {
+            let json_err = json!({
+                "kind": "err",
+                "err": {
+                    "kind": "auth",
+                    "reason": format!("{}", e),
+                }
+            });
+            let bytestr = Arc::new(ByteString::from(json_err.to_string()));
+            let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+            let send_res = recipient.send(msg.clone()).await;
+            return Ok(msg);
+        }
+        let (FirebaseID(fid), ProviderID(provider_id)) = res.unwrap();
         println!("auth.uid: {}, provider_id: {}", &fid, provider_id);
         let conn_id = self.add_conn(recipient.clone(), &fid).await?;
         println!("conn_id: {}", conn_id);

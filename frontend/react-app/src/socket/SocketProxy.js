@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import GamesStatusSource from "../game/GameStatusSource";
+import { AuthListener } from "../auth/AuthProvider";
 import PhoenixSocket from "./PhoenixSocket";
 
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
@@ -199,6 +200,7 @@ class SocketProxy extends EventEmitter {
       console.error(`${this._gcn()} socket error: ${JSON.stringify(err)}`);
       this.emit("err", err);
       if (err.err?.kind === "auth") {
+        AuthListener.__clearFakeFirebaseID();
         this.destroy();
         this._connect();
       }
@@ -297,7 +299,7 @@ class SocketProxy extends EventEmitter {
   destroy() {
     console.log(`${this._gcn()} destroy`);
     this._logout();
-    _ticker.off("tick", this.onTick);
+    this.onTick && _ticker.off("tick", this.onTick);
     this._sock.removeAllListeners();
     this._sock.destroy();
     this._sock = null;

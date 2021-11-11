@@ -4,6 +4,10 @@ set -euo pipefail
 if [[ ! -d 'bughouse-secrets' ]]; then
   gh repo clone jrwats/bughouse-secrets
 fi
+if [[ ! -d '/var/run/firebase' ]]; then
+  sudo mkdir -p '/var/run/firebase'
+  sudo chmod a+rw '/var/run/firebase'
+fi
 
 ### Usage
 # Testing:
