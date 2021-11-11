@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Deploy the rust binary to VM
-pushd backend/web > /dev/null
+pushd ../backend/web > /dev/null
 trap 'popd > /dev/null' EXIT
 
 cargo build --release 2> /dev/null
