@@ -11,7 +11,7 @@ import Loading from "../Loading.react";
 import { SocketContext } from "../socket/SocketProvider";
 import { ViewerContext } from "./ViewerProvider";
 import { makeStyles } from "@mui/styles";
-import purple from "@mui/material/colors/purple";
+import UserGames from "./UserGames.react"
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -114,7 +114,7 @@ const HandleEdit = ({ handle }) => {
 };
 
 const Profile = (props) => {
-  const { handle, rating, deviation } = useContext(ViewerContext);
+  const { deviation, handle, rating, uid } = useContext(ViewerContext);
   console.log("Profile");
   const classes = useStyles();
 
@@ -128,6 +128,7 @@ const Profile = (props) => {
           </Paper>
         </Grid>
       </Grid>
+      <UserGames uid={uid} />
     </div>
   );
 };

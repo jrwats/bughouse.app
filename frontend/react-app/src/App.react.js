@@ -1,4 +1,7 @@
 import React, { useContext } from "react";
+import {RelayEnvironmentProvider} from "react-relay";
+import RelayEnvironment from "./RelayEnvironment";
+
 import "./App.css";
 import { AuthContext } from "./auth/AuthProvider";
 // import Presence from "./user/Presence";
@@ -44,11 +47,11 @@ const App = () => {
   });
 
   const { user } = useContext(AuthContext);
-  console.log(`App user: ${JSON.stringify(user)}`);
   return (
-    <SocketProvider user={user}>
-      <ViewerProvider>
-        {/* <UsersProvider> */}
+    <RelayEnvironmentProvider environment={RelayEnvironment}>
+      <SocketProvider user={user}>
+        <ViewerProvider>
+          {/* <UsersProvider> */}
           <ThemeProvider theme={darkTheme}>
             <Router>
               <Login path="/login" />
@@ -58,9 +61,10 @@ const App = () => {
               <Arena path="/arena/:gamePath" />
             </Router>
           </ThemeProvider>
-        {/* </UsersProvider> */}
-      </ViewerProvider>
-    </SocketProvider>
+          {/* </UsersProvider> */}
+        </ViewerProvider>
+      </SocketProvider>
+    </RelayEnvironmentProvider>
   );
 };
 

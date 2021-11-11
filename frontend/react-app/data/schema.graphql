@@ -1,0 +1,52 @@
+interface Node {
+  id: ID!
+}
+
+type User {
+  id: ID!
+  email: String
+  name: String
+  handle: String
+  games(after: String, first: Int, before: String, last: Int): UserGameConnection
+}
+
+type UserGameConnection {
+  edges: [UserGameEdge]
+  pageInfo: PageInfo!
+}
+
+type UserGameEdge {
+  cursor: String!
+  node: UserGame
+}
+
+type PlayerData {
+  id: ID
+  rating: Int
+  handle: String
+}
+
+type GameResult {
+  board: Int
+  winner: Int
+  kind: Int
+}
+
+type UserGame implements Node {
+  id: ID!
+  players: [PlayerData]
+  result: GameResult
+  rated: Boolean
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  user(id: ID!): User
+  node(id: ID!): Node
+}

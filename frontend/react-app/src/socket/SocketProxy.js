@@ -2,19 +2,11 @@ import { EventEmitter } from "events";
 import GamesStatusSource from "../game/GameStatusSource";
 import { AuthListener } from "../auth/AuthProvider";
 import PhoenixSocket from "./PhoenixSocket";
+import getUrl from "../getUrl";
 
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(`SOCKET_URL: ${process.env.REACT_APP_SOCKET_URL}`);
-
-const hostname = window.location.hostname;
-const PROD_HOST = "wss://ws.bughouse.app";
-const DEV_HOST = `ws://${hostname}:${process.env.WS_PORT || 8081}`;
-const host = process.env.REACT_APP_SOCKET_HOST ||
-  (process.env.NODE_ENV === "production" ? PROD_HOST : DEV_HOST);
-const WS_URL = `${host}/ws/`;
-
-const HTTP_HOST = `${host.replace(/^[^:]+/, (m) => 'http' + (m[2] || ''))}`;
-const AUTH_URL = `${HTTP_HOST}/auth`;
+const {scheme, host} = getUrl();
+const WS_URL = `${scheme === "https" ? "wss" : "ws"}://${host}/ws/`;
+const AUTH_URL = `${scheme}://${host}/auth`;
 
 let _instance = null;
 const _singleton = new EventEmitter();

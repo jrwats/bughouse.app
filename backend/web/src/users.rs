@@ -86,6 +86,7 @@ impl Users {
         } else if let Some(user) = self.db.get_user(uid).await {
             return Some(self.add(user));
         }
+        eprintln!("uid: {} not found", uid);
         None
     }
 

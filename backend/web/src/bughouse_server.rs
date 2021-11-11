@@ -378,17 +378,12 @@ impl BughouseServer {
     ) -> Result<ClientMessage, Error> {
         let res = firebase::authenticate(&token, self.db.clone()).await;
         if let Err(ref e) = res {
-            let json_err = json!({
+            let err = json!({
                 "kind": "err",
-                "err": {
-                    "kind": "auth",
-                    "reason": format!("{}", e),
-                }
-            });
-            let bytestr = Arc::new(ByteString::from(json_err.to_string()));
-            let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
-            let send_res = recipient.send(msg.clone()).await;
-            return Ok(msg);
+                "err": { "kind": "auth" },
+                "reason": format!("{}", e),
+            }).to_string();
+            return Ok(Self::send_text_to_recipient(err, &recipient).await);
         }
         let (FirebaseID(fid), ProviderID(provider_id)) = res.unwrap();
         println!("auth.uid: {}, provider_id: {}", &fid, provider_id);
@@ -461,8 +456,15 @@ impl BughouseServer {
         println!("send_game_row({}, {:?})", game_id, recipient);
         let res = self.db.get_game_row(&game_id).await;
         if let Err(e) = res {
-            eprintln!("err: {:?}", e);
-            return Err(e);
+            let err = json!({
+                "kind": "err",
+                "err": {
+                    "kind": "invalid_game_id",
+                    "game_id": B66::encode_uuid(&game_id),
+                },
+                "reason": format!("Invalid game ID: {}", game_id),
+            }).to_string();
+            return Ok(Self::send_text_to_recipient(err, &recipient).await);
         }
         let game_row = res.unwrap();
         let handles = self.get_user_handles(&game_row.players).await?;
@@ -771,6 +773,16 @@ impl BughouseServer {
 
     pub fn get_game(&self, game_id: &GameID) -> Option<Arc<RwLock<Game>>> {
         self.games.get(game_id)
+    }
+
+    async fn send_text_to_recipient(
+        payload: String,
+        recipient: &Recipient<ClientMessage>,
+    ) -> ClientMessage {
+        let bytestr = Arc::new(ByteString::from(payload));
+        let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
+        let _send_res = recipient.send(msg.clone()).await;
+        msg
     }
 
     fn send_text_to_user(

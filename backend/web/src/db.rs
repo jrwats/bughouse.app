@@ -12,6 +12,7 @@ use scylla::statement::{Consistency, SerialConsistency};
 use scylla::QueryResult;
 use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::io::prelude::{Read, Write};
 use std::os::unix::net::UnixStream;
@@ -106,6 +107,10 @@ impl Db {
         Ok(Db { session, ctx })
     }
 
+    pub fn session(&self) -> &Session {
+        &self.session
+    }
+
     // cqlsh:bughouse> INSERT INTO handles (id, handle) VALUES (now(), 'Guest_XYZ') IF NOT EXISTS;
     //
     //  [applied] | handle | id
@@ -122,8 +127,6 @@ impl Db {
         &self,
         firebase_data: &FirebaseRowData,
     ) -> Result<(Uuid, String), Error> {
-        let is_guest =
-            firebase_data.provider_id == Some("anonymous".to_string());
         let uuid = self.now()?;
         println!("Inserting into firebase_user...");
         self.session
@@ -204,8 +207,12 @@ impl Db {
         self.uuid_from_time(Utc::now())
     }
 
+    pub fn to_duration(time: DateTime<Utc>) -> Duration {
+        Duration::milliseconds(time.timestamp_millis())
+    }
+
     pub fn to_timestamp(time: DateTime<Utc>) -> ScyllaTimestamp {
-        ScyllaTimestamp(Duration::milliseconds(time.timestamp_millis()))
+        ScyllaTimestamp(Self::to_duration(time))
     }
 
     pub async fn add_rating(
@@ -259,7 +266,7 @@ impl Db {
         let res = self
             .session
             .query(
-                "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating
+                "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating, role
             FROM bughouse.users
             WHERE id = ?",
                 (uid,),
@@ -272,6 +279,7 @@ impl Db {
                 return row.ok();
             }
         }
+        eprintln!("DB.get_user failed: {}", uid);
         None
     }
 
@@ -285,7 +293,7 @@ impl Db {
         println!("Inserting into users...");
         let res = self.session
             .query(
-                "INSERT INTO bughouse.users
+              "INSERT INTO bughouse.users
                (id, firebase_id, deviation, email, guest, handle, name, rating, role)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
@@ -620,6 +628,28 @@ impl Db {
             "UPDATE bughouse.games SET players = ? WHERE id = ?".to_string();
         self.session.query(query, (user_snaps, game_id)).await?;
         Ok(())
+    }
+
+    pub async fn get_handles(
+        &self,
+        uids: &Vec<UserID>,
+    ) -> Result<HashMap<Uuid, String>, Error> {
+        let res = self
+            .session
+            .query(
+                "SELECT id, handle from bughouse.users WHERE id IN ?",
+                (uids,),
+            )
+            .await?;
+        if let Some(rows) = res.rows {
+            let mut uid2handle: HashMap<UserID, String> = HashMap::new();
+            for row in rows.into_typed::<(UserID, String)>() {
+                let (uid, handle) = row?;
+                uid2handle.insert(uid, handle);
+            }
+            return Ok(uid2handle);
+        }
+        return Err(Error::Unexpected("Could not get user handles".into()));
     }
 
     fn user_rows(game: Arc<RwLock<Game>>) -> [IntoUserGameRow; 4] {

@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 
 function getErrorMessage(err) {
   switch (err.err?.kind) {
-    case "in_game":
+    case "in_game": {
       const game_id = err.err.game_id;
       return (
         <span>
@@ -25,6 +25,17 @@ function getErrorMessage(err) {
           <Link to={`/table/${game_id}`}>{game_id}</Link>
         </span>
       );
+    }
+    case "invalid_game_id": {
+      const game_id = err.err.game_id;
+      return (
+        <span>
+          Invalid game.{' '}
+          <Link to={`/`}>Return to <b>Dashboard</b></Link>
+        </span>
+      );
+    }
+
     default:
       return err.reason || `Unknown error: ${JSON.stringify(err)}`;
   }
