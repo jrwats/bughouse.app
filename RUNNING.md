@@ -20,7 +20,9 @@ gunzip -c ./backend/db/image.tar.gz | docker load
 ```
 NOTE: `image.tar.gz` is tracked via `git lfs`.  If `gunzip` fails above, you likely need to run `git lfs fetch && git lfs pull` first.
 
-### 2. Load and run REDIS — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
+This can take up to 1 minute to initialize, but if it takes longer, something has probably gone wrong.  Check the docker logs
+
+### 2. Load and run Redis — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
 ```
 ./backend/redis/docker.sh
 ```
