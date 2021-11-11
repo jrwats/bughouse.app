@@ -1,15 +1,17 @@
 # Running/testing bughouse
 
 ## Prerequisites
+### Frontend
 * Node.js (v16) (frontend)
-  * We recommend [installing nvm](https://github.com/nvm-sh/nvm#installing-and-updating) for managing node versions
-* yarn: `npm install -g yarn`   
-* [Docker](https://docs.docker.com/get-docker/)
-  * (Will run the ScyllaDB and Redis server)
+  * Recommended: [install nvm](https://github.com/nvm-sh/nvm#installing-and-updating) for managing node versions
+    * Then: `nvm install 16`
+* Install [yarn package manager](https://yarnpkg.com/): `npm install -g yarn`   
+### Backend
+* [Docker](https://docs.docker.com/get-docker/) (ScyllaDB and Redis server)
 * [git lfs](https://git-lfs.github.com/) (currently for the DB Docker image)
-* [Rust toolchain](https://rustup.rs/) - (for the backend webserver)
-* Optional: [Golang](https://golang.org/doc/install) 
-   * (Backend Firebase authentication, which is not stricly necessary for testing)
+* [Rust toolchain](https://rustup.rs/) (webserver)
+* Optional: [Golang](https://golang.org/doc/install) (Firebase Auth)
+   * (Not stricly necessary for testing)
 
 
 ## Running
