@@ -15,7 +15,16 @@
 
 
 ## Running
-### 1. Load and run the DB docker image via
+### 1. Run the DB
+
+#### Option 1: Build the docker image yourself
+```
+cd backend/db
+./build.sh
+./run.sh
+```
+
+#### Option 2: Load and run the pre-seeded DB docker image
 ```
 gunzip -c ./backend/db/image.tar.gz | docker load
 ./backend/db/run.sh
@@ -23,6 +32,7 @@ gunzip -c ./backend/db/image.tar.gz | docker load
 NOTE: `image.tar.gz` is tracked via `git lfs`.  If `gunzip` fails above, you likely need to run `git lfs fetch && git lfs pull` first.
 
 This can take up to 1 minute to initialize, but if it takes longer, something has probably gone wrong.  Check the docker logs
+
 
 ### 2. Load and run Redis — [docker.sh](https://github.com/jrwats/bughouse.app/blob/main/backend/redis/docker.sh)
 ```
