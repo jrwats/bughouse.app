@@ -6,7 +6,7 @@ use actix_session::Session; //, CookieSession};
 use actix_web::*;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
-use async_graphql::{Schema, EmptyMutation, EmptySubscription};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 // use jsonwebtoken::decode_header;
 use serde::Deserialize;
 use serde_json::json;
@@ -19,9 +19,9 @@ use bughouse_app::b66::B66;
 use bughouse_app::bug_web_sock::{BugContext, BugWebSock};
 use bughouse_app::bughouse_server::{BughouseServer, ServerHandler};
 use bughouse_app::db::Db;
-use bughouse_app::firebase::FirebaseID;
 use bughouse_app::firebase;
-use bughouse_app::graphql::query::{QueryRoot, gql_handle_schema_with_header};
+use bughouse_app::firebase::FirebaseID;
+use bughouse_app::graphql::query::{gql_handle_schema_with_header, QueryRoot};
 use bughouse_app::users::Users;
 
 #[derive(Debug, Deserialize)]
@@ -116,7 +116,7 @@ async fn main() -> Result<(), io::Error> {
         adb.clone(),
         addr.clone().recipient(),
         users.clone(),
-        );
+    );
 
     HttpServer::new(move || {
         let context = BugContext::create(
@@ -138,22 +138,23 @@ async fn main() -> Result<(), io::Error> {
             // enable logger
             .wrap(session)
             // websocket route
-            .service(
-                web::resource("/ws/")
-                .to(ws_route)
-                )
+            .service(web::resource("/ws/").to(ws_route))
             // auth / session route
             .service(test_get)
             .service(
                 web::resource("/auth")
-                .wrap(get_cors())
-                .route(web::post().to(auth_post))
-                .route(web::get().to(auth_get))
-            ).service(
+                    .wrap(get_cors())
+                    .route(web::post().to(auth_post))
+                    .route(web::get().to(auth_get)),
+            )
+            .service(
                 web::resource("/graphql")
-                .wrap(get_cors())
-                .app_data(web::Data::new(schema))
-                .route(web::post().to(gql_handle_schema_with_header::<QueryRoot>))
+                    .wrap(get_cors())
+                    .app_data(web::Data::new(schema))
+                    .route(
+                        web::post()
+                            .to(gql_handle_schema_with_header::<QueryRoot>),
+                    ),
             )
             // static files
             .service(fs::Files::new("/", "static/").index_file("index.html"))

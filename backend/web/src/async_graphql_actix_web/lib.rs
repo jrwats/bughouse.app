@@ -9,10 +9,12 @@ use std::future::Future;
 use std::io::{self, ErrorKind};
 use std::pin::Pin;
 
-use actix_web::error::PayloadError;
 use actix_web::dev::{Payload, PayloadStream};
+use actix_web::error::PayloadError;
 use actix_web::http::{Method, StatusCode};
-use actix_web::{http, Error, FromRequest, HttpRequest, HttpResponse, Responder, Result};
+use actix_web::{
+    http, Error, FromRequest, HttpRequest, HttpResponse, Responder, Result,
+};
 use futures_util::future::{self, FutureExt};
 // use futures_util::io::AsyncRead;
 // use futures_util::stream::IntoAsyncRead;
@@ -34,15 +36,22 @@ impl Request {
     }
 }
 
-type BatchToRequestMapper =
-    fn(<<BatchRequest as FromRequest>::Future as Future>::Output) -> Result<Request>;
+type BatchToRequestMapper = fn(
+    <<BatchRequest as FromRequest>::Future as Future>::Output,
+) -> Result<Request>;
 
 impl FromRequest for Request {
     type Error = Error;
-    type Future = future::Map<<BatchRequest as FromRequest>::Future, BatchToRequestMapper>;
+    type Future = future::Map<
+        <BatchRequest as FromRequest>::Future,
+        BatchToRequestMapper,
+    >;
     // type Config = MultipartOptions;
 
-    fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
+    fn from_request(
+        req: &HttpRequest,
+        payload: &mut Payload<PayloadStream>,
+    ) -> Self::Future {
         eprintln!("Request::from_request");
         BatchRequest::from_request(req, payload).map(|res| {
             Ok(Self(
@@ -73,14 +82,19 @@ impl FromRequest for BatchRequest {
     type Future = Pin<Box<dyn Future<Output = Result<BatchRequest>>>>;
     // type Config = MultipartOptions;
 
-    fn from_request(req: &HttpRequest, payload: &mut Payload<PayloadStream>) -> Self::Future {
+    fn from_request(
+        req: &HttpRequest,
+        payload: &mut Payload<PayloadStream>,
+    ) -> Self::Future {
         eprintln!("BatchRequest::from_request");
         let config = MultipartOptions::default(); // max_file_size: None, max_num_files: None };
-        // req.app_data::<Self::Config>().cloned().unwrap_or_default();
+                                                  // req.app_data::<Self::Config>().cloned().unwrap_or_default();
 
         if req.method() == Method::GET {
             let res = serde_urlencoded::from_str(req.query_string());
-            Box::pin(async move { Ok(Self(async_graphql::BatchRequest::Single(res?))) })
+            Box::pin(async move {
+                Ok(Self(async_graphql::BatchRequest::Single(res?)))
+            })
         } else if req.method() == Method::POST {
             let content_type = req
                 .headers()
@@ -96,8 +110,9 @@ impl FromRequest for BatchRequest {
                 let res = async_graphql::http::receive_batch_body(
                     content_type,
                     &bytes[..],
-                    config
-                ).await
+                    config,
+                )
+                .await
                 .map_err(|err| match err {
                     ParseRequestError::PayloadTooLarge => {
                         actix_web::error::ErrorPayloadTooLarge(err)

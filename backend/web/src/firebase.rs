@@ -22,7 +22,10 @@ lazy_static! {
 pub struct FirebaseID(pub String);
 pub struct ProviderID(pub String);
 
-pub async fn authenticate(token: &str, db: Arc<Db>) -> Result<(FirebaseID, ProviderID), Error> {
+pub async fn authenticate(
+    token: &str,
+    db: Arc<Db>,
+) -> Result<(FirebaseID, ProviderID), Error> {
     eprintln!("authenticate...");
     if token.starts_with(".fake") {
         let res = db.get_user_from_fid(token).await;

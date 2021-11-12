@@ -3,14 +3,19 @@ use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 use actix::{
-    Actor, ActorContext, ActorFutureExt, ActorStreamExt, AsyncContext, ContextFutureSpawner, StreamHandler, WrapFuture, WrapStream,
+    Actor, ActorContext, ActorFutureExt, ActorStreamExt, AsyncContext,
+    ContextFutureSpawner, StreamHandler, WrapFuture, WrapStream,
 };
 use actix_http::error::PayloadError;
 use actix_http::ws::Item as WsItem;
 use actix_web::web::Bytes;
 use actix_web::{HttpRequest, HttpResponse};
-use actix_web_actors::ws::{CloseReason, Message, ProtocolError, WebsocketContext};
-use async_graphql::http::{WebSocket, WebSocketProtocols, WsMessage, ALL_WEBSOCKET_PROTOCOLS};
+use actix_web_actors::ws::{
+    CloseReason, Message, ProtocolError, WebsocketContext,
+};
+use async_graphql::http::{
+    WebSocket, WebSocketProtocols, WsMessage, ALL_WEBSOCKET_PROTOCOLS,
+};
 use async_graphql::{Data, ObjectType, Result, Schema, SubscriptionType};
 use futures_util::future::Ready;
 use futures_util::stream::Stream;
@@ -29,7 +34,12 @@ pub struct WSSubscription<Query, Mutation, Subscription, F> {
 }
 
 impl<Query, Mutation, Subscription>
-    WSSubscription<Query, Mutation, Subscription, fn(serde_json::Value) -> Ready<Result<Data>>>
+    WSSubscription<
+        Query,
+        Mutation,
+        Subscription,
+        fn(serde_json::Value) -> Ready<Result<Data>>,
+    >
 where
     Query: ObjectType + 'static,
     Mutation: ObjectType + 'static,
@@ -50,7 +60,8 @@ where
     }
 }
 
-impl<Query, Mutation, Subscription, F, R> WSSubscription<Query, Mutation, Subscription, F>
+impl<Query, Mutation, Subscription, F, R>
+    WSSubscription<Query, Mutation, Subscription, F>
 where
     Query: ObjectType + 'static,
     Mutation: ObjectType + 'static,
@@ -103,7 +114,9 @@ where
 
     fn send_heartbeats(&self, ctx: &mut WebsocketContext<Self>) {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
-            if Instant::now().duration_since(act.last_heartbeat) > CLIENT_TIMEOUT {
+            if Instant::now().duration_since(act.last_heartbeat)
+                > CLIENT_TIMEOUT
+            {
                 ctx.stop();
             }
             ctx.ping(b"");
@@ -111,7 +124,8 @@ where
     }
 }
 
-impl<Query, Mutation, Subscription, F, R> Actor for WSSubscription<Query, Mutation, Subscription, F>
+impl<Query, Mutation, Subscription, F, R> Actor
+    for WSSubscription<Query, Mutation, Subscription, F>
 where
     Query: ObjectType + 'static,
     Mutation: ObjectType + 'static,
@@ -147,7 +161,8 @@ where
     }
 }
 
-impl<Query, Mutation, Subscription, F, R> StreamHandler<Result<Message, ProtocolError>>
+impl<Query, Mutation, Subscription, F, R>
+    StreamHandler<Result<Message, ProtocolError>>
     for WSSubscription<Query, Mutation, Subscription, F>
 where
     Query: ObjectType + 'static,
@@ -156,7 +171,11 @@ where
     F: FnOnce(serde_json::Value) -> R + Unpin + Send + 'static,
     R: Future<Output = Result<Data>> + Send + 'static,
 {
-    fn handle(&mut self, msg: Result<Message, ProtocolError>, ctx: &mut Self::Context) {
+    fn handle(
+        &mut self,
+        msg: Result<Message, ProtocolError>,
+        ctx: &mut Self::Context,
+    ) {
         let msg = match msg {
             Err(_) => {
                 ctx.stop();

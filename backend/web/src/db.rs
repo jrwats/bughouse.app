@@ -361,10 +361,7 @@ impl Db {
         }
     }
 
-    pub async fn get_user_from_fid(
-        &self,
-        fid: &str,
-    ) -> Result<User, Error> {
+    pub async fn get_user_from_fid(&self, fid: &str) -> Result<User, Error> {
         let query_str = format!(
             "SELECT id, firebase_id, deviation, email, guest, handle, name, photo_url, rating, role
              FROM bughouse.users WHERE firebase_id = '{}'",
@@ -388,7 +385,7 @@ impl Db {
         if let Err(Error::UnknownFirebaseID(_)) = result {
             Ok(self.mk_user_for_fid(fid).await?)
         } else {
-            return result
+            return result;
         }
     }
 

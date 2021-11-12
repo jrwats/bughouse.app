@@ -1,2 +1,2 @@
-mod subscription;
 pub mod lib;
+mod subscription;

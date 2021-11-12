@@ -1,18 +1,17 @@
-use actix_web::*;
-use actix_session::Session;
-use actix_web::{HttpRequest, HttpResponse, Responder};
-use async_graphql::{
-    Context, EmptyMutation, EmptySubscription, Object, ObjectType, Schema,
-    SimpleObject, ComplexObject
-};
-use async_graphql::connection::{query, Connection, Edge, EmptyFields};
-use std::sync::{Arc, RwLock};
+use crate::async_graphql_actix_web::lib::{Request, Response};
 use crate::b66::B66;
-use crate::async_graphql_actix_web::lib::{Response, Request};
 use crate::bug_web_sock::BugContext;
-use crate::users::User;
 use crate::game_row::UserGameRow;
-
+use crate::users::User;
+use actix_session::Session;
+use actix_web::*;
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use async_graphql::connection::{query, Connection, Edge, EmptyFields};
+use async_graphql::{
+    ComplexObject, Context, EmptyMutation, EmptySubscription, Object,
+    ObjectType, Schema, SimpleObject,
+};
+use std::sync::{Arc, RwLock};
 
 pub struct GraphQLUserGame<'a>(&'a UserGameRow);
 
@@ -61,7 +60,6 @@ impl GraphQLUser {
     // }
 }
 
-
 #[derive(SimpleObject)]
 #[graphql(complex)] // NOTE: For `ComplexObject` macro to take effect, this `complex` attribute is required.
 struct MyObj {
@@ -75,7 +73,6 @@ impl MyObj {
         self.a + self.b
     }
 }
-
 
 struct Hello(String);
 
@@ -93,7 +90,7 @@ impl QueryRoot {
         &self,
         ctx: &Context<'a>,
         #[graphql(desc = "encoded id of the user")] id: String,
-        ) -> Option<GraphQLUser> {
+    ) -> Option<GraphQLUser> {
         let uid = B66::decode_uuid(&id)?;
         let result = ctx.data::<BugContext>();
         if let Err(e) = result {
