@@ -8,8 +8,8 @@ use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::prepared_statement::PreparedStatement;
 use scylla::query::Query;
-use scylla::statement::Consistency;
-use scylla::transport::connection::QueryResult;
+use scylla::statement::{Consistency, SerialConsistency};
+use scylla::QueryResult;
 use scylla::transport::session::{IntoTypedRows, Session};
 use scylla::SessionBuilder;
 use std::env;
@@ -152,7 +152,7 @@ impl Db {
             "INSERT INTO bughouse.handles (handle, uid) VALUES (?, ?) IF NOT EXISTS".to_string()
             );
         query.set_consistency(Consistency::One);
-        query.set_serial_consistency(Some(Consistency::Serial));
+        query.set_serial_consistency(Some(SerialConsistency::Serial));
         self.session.query(query, (handle, uid)).await?;
         Ok(())
     }
