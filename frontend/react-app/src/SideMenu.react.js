@@ -165,17 +165,6 @@ const SideMenu = ({ style }) => {
           <ListItemText primary={`Logout as ${handle}`} />
         </StyledMenuItem>
         */}
-        <StyledMenuItem
-          onClick={(e) => {
-            AuthListener.__clearFakeFirebaseID();
-            logout(socket);
-          }}
-        >
-          <ListItemIcon>
-            <ExitToAppIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={`Sign out ${handle}`} />
-        </StyledMenuItem>
 
         <StyledMenuItem>
           <ListItemIcon>
@@ -226,6 +215,19 @@ const SideMenu = ({ style }) => {
               <ListItemText primary="Donate" />
             </StyledMenuItem>
           </form>
+        </div>
+        <div style={{ borderTop: "1px solid #303030" }}>
+          <StyledMenuItem
+            onClick={(e) => {
+              AuthListener.__clearFakeFirebaseID();
+              logout(socket);
+            }}
+          >
+            <ListItemIcon>
+              <ExitToAppIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary={`Sign out ${handle}`} />
+          </StyledMenuItem>
         </div>
       </StyledMenu>
     </div>
