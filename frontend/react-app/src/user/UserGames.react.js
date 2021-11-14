@@ -70,13 +70,16 @@ const TeamPlayer = ({player, color}) => {
 }
 
 const Team = ({ team, flip, won }) => {
-  const color = ((c) => flip ? c.reverse() : c)(['white', 'black']);
   return (
-    <div style={{display: "flex"}}>
+    <Grid container spacing={1}>
+    {/* <div style={{display: "flex"}}> */}
       {team.map((p, idx) => (
-        <TeamPlayer player={p} color={color[idx]} />
+        <Grid item xs={4}>
+          <TeamPlayer player={p.player} color={p.color} />
+        </Grid>
       ))}
-    </div>
+    {/* </div> */}
+    </Grid>
   );
 }
 
@@ -84,30 +87,31 @@ const GameRow = ({ game, uid }) => {
   console.log(game);
   const { node: {id, result, players, rated }, cursor } = game;
   const playerIdx = players.findIndex(p => p.id === uid);
-  const playerTeam = playerIdx % 3 === 0 ? 0 : 1;
-  const teams = [[players[0], players[3]], [players[1], players[2]]];
+  const teams = [[players[0], players[3]], [players[2], players[1]]]
+    .map((t, tidx) => t.map((player, pidx) => ({
+      player,
+      color: pidx === 0 ? 'white' : 'black',
+    })));
 
-  // Place player's team below opposing team
+  // Ensure player is placed below opposing team (index 1)
   let winners = result.board === result.winner ? 0 : 1;
-  if (playerTeam === 0) {
+  if (playerIdx % 3 === 0 ) {
     teams.reverse()
     winners = 1 - winners;
   }
 
-  // If player is black - orient teams accordingly
-  const flippedIdx = playerIdx % 2 === 1 ? 1 : 0;
-  if (flippedIdx  === 1) {
-    teams.forEach(t => t.reverse());
-  }
-
+  // Orient opposing colors
+  teams[playerIdx % 2 === 1 ? 1 : 0].reverse();
   const kind = result.kind === 0 ? FLAG : "#";
   const uiTeams = teams.map((t, idx) => (
-    <Team key={idx} team={t} flip={flippedIdx === idx} won={winners === idx} />
+    <Team key={idx} team={t}  won={winners === idx} />
   ));
 
   return (
     <StyledTableRow key={id}>
-      <TableCell>{uiTeams}</TableCell>
+      <TableCell>
+        <Grid container spacing={1}>{uiTeams}</Grid>
+        </TableCell>
       <TableCell>{`${winners ? 1 : 0} ${kind}`}</TableCell>
       <TableCell>{rated ? "\u{2713}" : ""}</TableCell>
       <TableCell>
