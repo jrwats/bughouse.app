@@ -6,7 +6,7 @@ set -euo pipefail
 pushd ../backend/web > /dev/null
 trap 'popd > /dev/null' EXIT
 
-cargo build --release 2> /dev/null
+cargo build --release --target=x86_64-unknown-linux-gnu 2> /dev/null
 gcloud compute scp target/release/bug-wss 'johnw@vm-20-4:~/release/bug-wss-new' --zone 'us-central1-a' --project 'bughouse-274816'
 
 # gcloud compute ssh 'vm-20-4' --zone 'us-central1-a' --command="ps -e | grep bug-wss"
