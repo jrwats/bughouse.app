@@ -7,16 +7,113 @@ use crate::b66::B66;
 use crate::game::GameResult;
 use crate::game_row::GameRow;
 use crate::bug_web_sock::BugContext;
-use crate::users::{User, UserID};
+use crate::users::{User as BackingUser, UserID};
 use actix_web::*;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use async_graphql::connection::{query, Connection, Edge, EmptyFields};
 use async_graphql::{
-    ComplexObject, Context, EmptyMutation, EmptySubscription, Object,
-    ObjectType, Schema, SimpleObject,
+    ComplexObject, Context, EmptyMutation, EmptySubscription, Interface,
+    Object, ObjectType, Schema, SimpleObject,
 };
 use chrono::prelude::*;
 use std::sync::{Arc, RwLock};
+
+
+pub struct User(Arc<RwLock<BackingUser>>);
+
+#[Object]
+impl User {
+    // GraphQL ID
+    async fn id(&self) -> String {
+        format!("{}:{}", "user", B66::encode_uuid(&self.0.read().unwrap().id))
+    }
+
+    async fn uid(&self) -> String {
+        B66::encode_uuid(&self.0.read().unwrap().id)
+    }
+
+    async fn name(&self) -> Option<String> {
+        if let Some(s) = &self.0.read().unwrap().name {
+            return Some(s.clone());
+        }
+        None
+    }
+
+    async fn handle(&self) -> String {
+        self.0.read().unwrap().handle.to_string()
+    }
+
+    async fn email(&self) -> Option<String> {
+        self.0.read().unwrap().email.clone()
+    }
+
+    async fn rating(&self) -> i16 {
+        self.0.read().unwrap().rating
+    }
+
+    async fn deviation(&self) -> i16 {
+        self.0.read().unwrap().deviation
+    }
+
+    /// Fetch games in descending (most-recent) order.
+    /// e.g. {after: $now} will fetch the most recent games in descending order.
+    /// This means the logic is opposite of time.
+    async fn games<'a>(
+        &self,
+        ctx: &Context<'a>,
+        after: Option<String>,
+        before: Option<String>,
+        first: Option<i32>,
+        last: Option<i32>,
+    ) -> async_graphql::Result<
+        Connection<Rfc3339, UserGame, GraphQLUserGamesFields, EmptyFields>,
+    > {
+        let bug_ctx = ctx.data::<BugContext>().unwrap();
+        let db = bug_ctx.db.clone();
+        eprintln!("after: {:?}, first: {:?}", after, first);
+        query(
+            after,
+            before,
+            first,
+            last,
+            |after: Option<Rfc3339>, before: Option<Rfc3339>, first, last| async move {
+                let fetcher = UserGamesFetcher::new(db);
+                let id = self.0.read().unwrap().id;
+                let direction = if before.is_some() || last.is_some() {
+                    TimeComp::Newer
+                } else {
+                    TimeComp::Older // Default to a descending query
+                };
+                let cursor = if direction == TimeComp::Newer {
+                    before.map_or_else(|| Some(zero_time()), |a| Some(a.0))
+                } else {
+                    after.map(|b| b.0)
+                };
+                let (games, has_more) = fetcher.get_chunk(&id, cursor, last.or(first), direction).await?;
+                let mut edges = Vec::with_capacity(games.len());
+                for user_game in games {
+                    let ms = user_game.start_time.num_milliseconds();
+                    let date = Utc.timestamp_millis(ms);
+                    edges.push(Edge::new(Rfc3339(date), UserGame(user_game)));
+                }
+                let has_previous_page = direction == TimeComp::Newer && has_more;
+                let has_next_page = direction == TimeComp::Older && has_more;
+                let fields = GraphQLUserGamesFields { uid: self.0.read().unwrap().id };
+                let mut conn =
+                    Connection::with_additional_fields(has_previous_page, has_next_page, fields);
+                conn.append(edges);
+                return Ok(conn);
+        }).await
+    }
+}
+
+#[derive(Interface)]
+#[graphql(
+    field(name = "id", type = "String")
+)]
+enum Node {
+    User(User),
+}
 
 pub struct GraphQLGameResult(GameResult);
 
@@ -35,11 +132,11 @@ impl GraphQLGameResult {
     }
 }
 
-pub struct GraphQLUserGame(CompleteGameRow);
+pub struct UserGame(CompleteGameRow);
 
 #[Object]
-impl GraphQLUserGame {
-    async fn id(&self) -> String {
+impl UserGame {
+    async fn gid(&self) -> String {
         B66::encode_uuid(&self.0.game_id)
     }
 
@@ -69,8 +166,6 @@ impl GraphQLUserGame {
     }
 }
 
-pub struct GraphQLUser(Arc<RwLock<User>>);
-
 fn zero_time() -> DateTime<Utc> {
     DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(0, 0), Utc)
 }
@@ -91,100 +186,6 @@ impl<'a> GraphQLUserGamesFields {
     }
 }
 
-#[Object]
-impl GraphQLUser {
-    async fn name(&self) -> Option<String> {
-        if let Some(s) = &self.0.read().unwrap().name {
-            return Some(s.clone());
-        }
-        None
-    }
-
-    async fn handle(&self) -> String {
-        self.0.read().unwrap().handle.to_string()
-    }
-
-    async fn email(&self) -> Option<String> {
-        self.0.read().unwrap().email.clone()
-    }
-
-    async fn id(&self) -> String {
-        B66::encode_uuid(&self.0.read().unwrap().id)
-    }
-
-    async fn rating(&self) -> i16 {
-        self.0.read().unwrap().rating
-    }
-
-    async fn deviation(&self) -> i16 {
-        self.0.read().unwrap().deviation
-    }
-
-    /// Fetch games in descending (most-recent) order.
-    /// e.g. {after: $now} will fetch the most recent games in descending order.
-    /// This means the logic is opposite of time.
-    async fn games<'a>(
-        &self,
-        ctx: &Context<'a>,
-        after: Option<String>,
-        before: Option<String>,
-        first: Option<i32>,
-        last: Option<i32>,
-    ) -> async_graphql::Result<
-        Connection<Rfc3339, GraphQLUserGame, GraphQLUserGamesFields, EmptyFields>,
-    > {
-        let bug_ctx = ctx.data::<BugContext>().unwrap();
-        let db = bug_ctx.db.clone();
-        query(
-            after,
-            before,
-            first,
-            last,
-            |after: Option<Rfc3339>, before: Option<Rfc3339>, first, last| async move {
-                let fetcher = UserGamesFetcher::new(db);
-                let id = self.0.read().unwrap().id;
-                let direction = if before.is_some() || last.is_some() {
-                    TimeComp::Newer
-                } else {
-                    TimeComp::Older // Default to a descending query
-                };
-                let cursor = if direction == TimeComp::Newer {
-                    before.map_or_else(|| Some(zero_time()), |a| Some(a.0))
-                } else {
-                    after.map(|b| b.0)
-                };
-                let (games, has_more) = fetcher.get_chunk(&id, cursor, last.or(first), direction).await?;
-                let mut edges = Vec::with_capacity(games.len());
-                for user_game in games {
-                    let ms = user_game.start_time.num_milliseconds();
-                    let date = Utc.timestamp_millis(ms);
-                    edges.push(Edge::new(Rfc3339(date), GraphQLUserGame(user_game)));
-                }
-                let has_previous_page = direction == TimeComp::Newer && has_more;
-                let has_next_page = direction == TimeComp::Older && has_more;
-                let fields = GraphQLUserGamesFields { uid: self.0.read().unwrap().id };
-                let mut conn =
-                    Connection::with_additional_fields(has_previous_page, has_next_page, fields);
-                conn.append(edges);
-                return Ok(conn);
-        }).await
-    }
-}
-
-#[derive(SimpleObject)]
-#[graphql(complex)] // NOTE: For `ComplexObject` macro to take effect, this `complex` attribute is required.
-struct MyObj {
-    a: i32,
-    b: i32,
-}
-
-#[ComplexObject]
-impl MyObj {
-    async fn c(&self) -> i32 {
-        self.a + self.b
-    }
-}
-
 struct Hello(String);
 
 pub struct QueryRoot;
@@ -197,11 +198,29 @@ impl QueryRoot {
         format!("Hello, {}!", name.unwrap_or("world"))
     }
 
+    async fn node<'a>(
+        &self,
+        ctx: &Context<'a>,
+        #[graphql(desc = "encoded id of the node")] id: String,
+        ) -> Option<Node> {
+        let (kind, sub_id) = id.split_once(':')?;
+        match kind {
+            "user" => {
+                let maybe_user = self.user(ctx, sub_id.to_string()).await.ok()?;
+                let user = maybe_user?;
+                Some(Node::User(user))
+                // let node_id = User::id(&user, ctx).await.ok()?;
+                // Some(Node { id: node_id })
+            }
+            _ => None
+        }
+    }
+
     async fn user<'a>(
         &self,
         ctx: &Context<'a>,
-        #[graphql(desc = "encoded id of the user")] id: String,
-    ) -> Option<GraphQLUser> {
+        #[graphql(desc = "decoded id of the user")] id: String,
+    ) -> Option<User> {
         let uid = B66::decode_uuid(&id)?;
         eprintln!("id: {}, uid: {}", id, uid);
         let result = ctx.data::<BugContext>();
@@ -211,8 +230,7 @@ impl QueryRoot {
         }
         let bug_ctx = result.unwrap();
         let user = bug_ctx.users.maybe_user_from_uid(&uid).await?;
-        eprintln!("user: {:?}", user);
-        Some(GraphQLUser(user))
+        Some(User(user))
     }
 
     // async fn users(&self,

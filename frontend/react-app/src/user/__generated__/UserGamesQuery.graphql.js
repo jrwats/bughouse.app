@@ -8,6 +8,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
+type UserGamesList_user$ref = any;
 export type UserGamesQueryVariables = {|
   id: string,
   cursor?: ?string,
@@ -17,27 +18,8 @@ export type UserGamesQueryResponse = {|
   +user: ?{|
     +handle: ?string,
     +name: ?string,
-    +games: ?{|
-      +edges: ?$ReadOnlyArray<?{|
-        +node: ?{|
-          +id: string,
-          +result: ?{|
-            +board: ?number,
-            +winner: ?number,
-            +kind: ?number,
-          |},
-          +rated: ?boolean,
-          +players: ?$ReadOnlyArray<?{|
-            +id: ?string,
-            +handle: ?string,
-            +rating: ?number,
-          |}>,
-        |}
-      |}>,
-      +pageInfo: {|
-        +hasNextPage: boolean
-      |},
-    |},
+    +uid: string,
+    +$fragmentRefs: UserGamesList_user$ref,
   |}
 |};
 export type UserGamesQuery = {|
@@ -49,39 +31,46 @@ export type UserGamesQuery = {|
 
 /*
 query UserGamesQuery(
-  $id: ID!
+  $id: String!
   $cursor: String
   $count: Int
 ) {
   user(id: $id) {
     handle
     name
-    games(after: $cursor, first: $count) {
-      edges {
-        node {
-          id
-          result {
-            board
-            winner
-            kind
-          }
-          rated
-          players {
-            id
-            handle
-            rating
-          }
-          __typename
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
+    uid
+    ...UserGamesList_user
     id
   }
+}
+
+fragment UserGamesList_user on User {
+  uid
+  games(after: $cursor, first: $count) {
+    edges {
+      node {
+        gid
+        result {
+          board
+          winner
+          kind
+        }
+        rated
+        players {
+          uid
+          handle
+          rating
+        }
+        __typename
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+  id
 }
 */
 
@@ -126,133 +115,10 @@ v6 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "id",
+  "name": "uid",
   "storageKey": null
 },
 v7 = [
-  {
-    "alias": null,
-    "args": null,
-    "concreteType": "UserGameEdge",
-    "kind": "LinkedField",
-    "name": "edges",
-    "plural": true,
-    "selections": [
-      {
-        "alias": null,
-        "args": null,
-        "concreteType": "UserGame",
-        "kind": "LinkedField",
-        "name": "node",
-        "plural": false,
-        "selections": [
-          (v6/*: any*/),
-          {
-            "alias": null,
-            "args": null,
-            "concreteType": "GameResult",
-            "kind": "LinkedField",
-            "name": "result",
-            "plural": false,
-            "selections": [
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "board",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "winner",
-                "storageKey": null
-              },
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "kind",
-                "storageKey": null
-              }
-            ],
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "rated",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "concreteType": "PlayerData",
-            "kind": "LinkedField",
-            "name": "players",
-            "plural": true,
-            "selections": [
-              (v6/*: any*/),
-              (v4/*: any*/),
-              {
-                "alias": null,
-                "args": null,
-                "kind": "ScalarField",
-                "name": "rating",
-                "storageKey": null
-              }
-            ],
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "__typename",
-            "storageKey": null
-          }
-        ],
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "cursor",
-        "storageKey": null
-      }
-    ],
-    "storageKey": null
-  },
-  {
-    "alias": null,
-    "args": null,
-    "concreteType": "PageInfo",
-    "kind": "LinkedField",
-    "name": "pageInfo",
-    "plural": false,
-    "selections": [
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "hasNextPage",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "endCursor",
-        "storageKey": null
-      }
-    ],
-    "storageKey": null
-  }
-],
-v8 = [
   {
     "kind": "Variable",
     "name": "after",
@@ -285,15 +151,11 @@ return {
         "selections": [
           (v4/*: any*/),
           (v5/*: any*/),
+          (v6/*: any*/),
           {
-            "alias": "games",
             "args": null,
-            "concreteType": "UserGameConnection",
-            "kind": "LinkedField",
-            "name": "__User_games_connection",
-            "plural": false,
-            "selections": (v7/*: any*/),
-            "storageKey": null
+            "kind": "FragmentSpread",
+            "name": "UserGamesList_user"
           }
         ],
         "storageKey": null
@@ -322,54 +184,177 @@ return {
         "selections": [
           (v4/*: any*/),
           (v5/*: any*/),
+          (v6/*: any*/),
           {
             "alias": null,
-            "args": (v8/*: any*/),
+            "args": (v7/*: any*/),
             "concreteType": "UserGameConnection",
             "kind": "LinkedField",
             "name": "games",
             "plural": false,
-            "selections": (v7/*: any*/),
+            "selections": [
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "UserGameEdge",
+                "kind": "LinkedField",
+                "name": "edges",
+                "plural": true,
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": null,
+                    "concreteType": "UserGame",
+                    "kind": "LinkedField",
+                    "name": "node",
+                    "plural": false,
+                    "selections": [
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "gid",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "GameResult",
+                        "kind": "LinkedField",
+                        "name": "result",
+                        "plural": false,
+                        "selections": [
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "board",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "winner",
+                            "storageKey": null
+                          },
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "kind",
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "rated",
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "concreteType": "PlayerData",
+                        "kind": "LinkedField",
+                        "name": "players",
+                        "plural": true,
+                        "selections": [
+                          (v6/*: any*/),
+                          (v4/*: any*/),
+                          {
+                            "alias": null,
+                            "args": null,
+                            "kind": "ScalarField",
+                            "name": "rating",
+                            "storageKey": null
+                          }
+                        ],
+                        "storageKey": null
+                      },
+                      {
+                        "alias": null,
+                        "args": null,
+                        "kind": "ScalarField",
+                        "name": "__typename",
+                        "storageKey": null
+                      }
+                    ],
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "cursor",
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "concreteType": "PageInfo",
+                "kind": "LinkedField",
+                "name": "pageInfo",
+                "plural": false,
+                "selections": [
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "hasNextPage",
+                    "storageKey": null
+                  },
+                  {
+                    "alias": null,
+                    "args": null,
+                    "kind": "ScalarField",
+                    "name": "endCursor",
+                    "storageKey": null
+                  }
+                ],
+                "storageKey": null
+              }
+            ],
             "storageKey": null
           },
           {
             "alias": null,
-            "args": (v8/*: any*/),
+            "args": (v7/*: any*/),
             "filters": null,
             "handle": "connection",
-            "key": "User_games",
+            "key": "UserGamesList_games",
             "kind": "LinkedHandle",
             "name": "games"
           },
-          (v6/*: any*/)
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "id",
+            "storageKey": null
+          }
         ],
         "storageKey": null
       }
     ]
   },
   "params": {
-    "cacheID": "667902a080f8a418cd605eb9ba040455",
+    "cacheID": "9789ec8dc12f242054f3715132dd867d",
     "id": null,
-    "metadata": {
-      "connection": [
-        {
-          "count": "count",
-          "cursor": "cursor",
-          "direction": "forward",
-          "path": [
-            "user",
-            "games"
-          ]
-        }
-      ]
-    },
+    "metadata": {},
     "name": "UserGamesQuery",
     "operationKind": "query",
-    "text": "query UserGamesQuery(\n  $id: ID!\n  $cursor: String\n  $count: Int\n) {\n  user(id: $id) {\n    handle\n    name\n    games(after: $cursor, first: $count) {\n      edges {\n        node {\n          id\n          result {\n            board\n            winner\n            kind\n          }\n          rated\n          players {\n            id\n            handle\n            rating\n          }\n          __typename\n        }\n        cursor\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n    id\n  }\n}\n"
+    "text": "query UserGamesQuery(\n  $id: String!\n  $cursor: String\n  $count: Int\n) {\n  user(id: $id) {\n    handle\n    name\n    uid\n    ...UserGamesList_user\n    id\n  }\n}\n\nfragment UserGamesList_user on User {\n  uid\n  games(after: $cursor, first: $count) {\n    edges {\n      node {\n        gid\n        result {\n          board\n          winner\n          kind\n        }\n        rated\n        players {\n          uid\n          handle\n          rating\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n  id\n}\n"
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7470e06764a304800a1a526efa16b414';
+(node/*: any*/).hash = '0a347bbf614b503f11c4daca49f22902';
 
 module.exports = node;

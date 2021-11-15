@@ -18,7 +18,7 @@ use async_graphql::Object;
 #[derive(Clone, Debug, FromRow, IntoUserType, FromUserType)]
 pub struct CompleteRatingSnapshot {
     pub rating: i16,
-    pub id: UserID,
+    pub uid: UserID,
     pub handle: String,
 }
 
@@ -32,8 +32,8 @@ impl CompleteRatingSnapshot {
         &self.handle
     }
 
-    async fn id(&self) -> String {
-        B66::encode_uuid(&self.id)
+    async fn uid(&self) -> String {
+        B66::encode_uuid(&self.uid)
     }
 }
 
@@ -82,7 +82,7 @@ impl UserGamesFetcher {
     ) -> CompleteGameRow {
         let ((aw, ab), (bw, bb)) = row.players;
         let c = |s: UserRatingSnapshot| CompleteRatingSnapshot {
-            id: s.uid,
+            uid: s.uid,
             rating: s.rating,
             handle: if let Some(handle) = uid2handle.get(&s.uid) {
                 handle.clone()

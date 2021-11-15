@@ -240,7 +240,7 @@
 
 .team-player-handle {
   font-weight: 600;
-  max-width: 16rem;
+  max-width: 10rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
