@@ -33,7 +33,10 @@ export type UserGamesQueryResponse = {|
             +rating: ?number,
           |}>,
         |}
-      |}>
+      |}>,
+      +pageInfo: {|
+        +hasNextPage: boolean
+      |},
     |},
   |}
 |};
@@ -73,8 +76,8 @@ query UserGamesQuery(
         cursor
       }
       pageInfo {
-        endCursor
         hasNextPage
+        endCursor
       }
     }
     id
@@ -235,14 +238,14 @@ v7 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "endCursor",
+        "name": "hasNextPage",
         "storageKey": null
       },
       {
         "alias": null,
         "args": null,
         "kind": "ScalarField",
-        "name": "hasNextPage",
+        "name": "endCursor",
         "storageKey": null
       }
     ],
@@ -345,7 +348,7 @@ return {
     ]
   },
   "params": {
-    "cacheID": "29b9c8383419693e092b21652921239c",
+    "cacheID": "667902a080f8a418cd605eb9ba040455",
     "id": null,
     "metadata": {
       "connection": [
@@ -362,11 +365,11 @@ return {
     },
     "name": "UserGamesQuery",
     "operationKind": "query",
-    "text": "query UserGamesQuery(\n  $id: ID!\n  $cursor: String\n  $count: Int\n) {\n  user(id: $id) {\n    handle\n    name\n    games(after: $cursor, first: $count) {\n      edges {\n        node {\n          id\n          result {\n            board\n            winner\n            kind\n          }\n          rated\n          players {\n            id\n            handle\n            rating\n          }\n          __typename\n        }\n        cursor\n      }\n      pageInfo {\n        endCursor\n        hasNextPage\n      }\n    }\n    id\n  }\n}\n"
+    "text": "query UserGamesQuery(\n  $id: ID!\n  $cursor: String\n  $count: Int\n) {\n  user(id: $id) {\n    handle\n    name\n    games(after: $cursor, first: $count) {\n      edges {\n        node {\n          id\n          result {\n            board\n            winner\n            kind\n          }\n          rated\n          players {\n            id\n            handle\n            rating\n          }\n          __typename\n        }\n        cursor\n      }\n      pageInfo {\n        hasNextPage\n        endCursor\n      }\n    }\n    id\n  }\n}\n"
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'ccde77ea89af73ea68cf1e054b0cafa4';
+(node/*: any*/).hash = '7470e06764a304800a1a526efa16b414';
 
 module.exports = node;

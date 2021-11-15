@@ -240,7 +240,7 @@
 
 .team-player-handle {
   font-weight: 600;
-  max-width: 30rem;
+  max-width: 16rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -248,6 +248,7 @@
 
 .team-player-rating {
   margin-left: 4px;
+  opacity: 0.70;
 }
 
 /* Clear floats after the columns */

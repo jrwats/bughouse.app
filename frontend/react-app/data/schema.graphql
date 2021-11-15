@@ -37,6 +37,8 @@ type UserGame implements Node {
   players: [PlayerData]
   result: GameResult
   rated: Boolean
+  timestamp: Int
+  startTime: String
 }
 
 type PageInfo {

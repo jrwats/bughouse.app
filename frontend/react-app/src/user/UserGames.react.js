@@ -31,6 +31,10 @@ import { makeStyles } from "@mui/styles";
 
 import {FLAG} from "../game/ClockDisplay.react";
 
+const useStyles = makeStyles({
+  table: { minWidth: "20em" },
+});
+
 const UserGamesWrapper = ({uid}) => {
   const [queryRef, setQueryRef] = useState(null);
   useEffect(() => {
@@ -55,9 +59,9 @@ const UserGamesWrapper = ({uid}) => {
 
 const TeamPlayer = ({player, color}) => {
   return (
-    <Box display="flex" p={1}>
+    <div style={{ maxwidth: "26rem", display: "flex"}}>
       <div class={`color-cell ${color}`} />
-      <div style={{display: "flex", alignItems: "center"}}>
+      <div style={{display: "flex", textAlign: "right"}}>
         <span class={`team-player-handle`}>
           {player.handle}
         </span>
@@ -65,27 +69,27 @@ const TeamPlayer = ({player, color}) => {
           {`(${player.rating})`}
         </span>
       </div>
-    </Box>
+    </div>
   );
 }
 
 const Team = ({ team, flip, won }) => {
   return (
-    <Grid container spacing={1}>
-    {/* <div style={{display: "flex"}}> */}
-      {team.map((p, idx) => (
-        <Grid item xs={4}>
-          <TeamPlayer player={p.player} color={p.color} />
-        </Grid>
-      ))}
-    {/* </div> */}
-    </Grid>
+    <tr>
+      {team.map(({player, color}, idx) => {
+        const style = idx === 1 ? {paddingLeft: "2px"} : {};
+        return (<td style={style}>
+          <TeamPlayer player={player} color={color} />
+        </td>);
+      })}
+    </tr>
   );
 }
 
 const GameRow = ({ game, uid }) => {
   console.log(game);
   const { node: {id, result, players, rated }, cursor } = game;
+  console.log(cursor);
   const playerIdx = players.findIndex(p => p.id === uid);
   const teams = [[players[0], players[3]], [players[2], players[1]]]
     .map((t, tidx) => t.map((player, pidx) => ({
@@ -103,17 +107,25 @@ const GameRow = ({ game, uid }) => {
   // Orient opposing colors
   teams[playerIdx % 2 === 1 ? 1 : 0].reverse();
   const kind = result.kind === 0 ? FLAG : "#";
-  const uiTeams = teams.map((t, idx) => (
-    <Team key={idx} team={t}  won={winners === idx} />
-  ));
 
+  const date = new Date(cursor);
   return (
     <StyledTableRow key={id}>
-      <TableCell>
-        <Grid container spacing={1}>{uiTeams}</Grid>
-        </TableCell>
+      <TableCell width="80rem" >
+        <table>
+          <tbody>
+            {teams.map((t, idx) => (
+              <Team key={idx} team={t} won={winners === idx} />
+            ))}
+          </tbody>
+        </table>
+      </TableCell>
       <TableCell>{`${winners ? 1 : 0} ${kind}`}</TableCell>
       <TableCell>{rated ? "\u{2713}" : ""}</TableCell>
+      <TableCell>
+        <div>{date.toLocaleDateString()}</div>
+        <div>{date.toLocaleTimeString()}</div>
+      </TableCell>
       <TableCell>
         <Link to={`/analysis/${id}`}>
           <Button variant="contained" color="primary">
@@ -124,10 +136,6 @@ const GameRow = ({ game, uid }) => {
     </StyledTableRow>
   );
 };
-
-const useStyles = makeStyles({
-  table: { minWidth: "20em" },
-});
 
 const UserGames = ({uid, queryRef}) => {
 
@@ -151,6 +159,7 @@ const UserGames = ({uid, queryRef}) => {
                 }
               }
             }
+            pageInfo { hasNextPage }
           }
         }
       }
@@ -158,11 +167,13 @@ const UserGames = ({uid, queryRef}) => {
     queryRef
   );
 
+  const loadMore = () => {};
   const headCells = [
     // { id: "time_ctrl", numeric: false, label: "Time" },
     { id: "players", numeric: false, label: "Players" },
     { id: "result", numeric: false, label: "Result" },
     { id: "rated", numeric: false, label: "Rated" },
+    { id: "date", numeric: false, label: "Date" },
     { id: "analayze", numeric: false, label: "" },
   ];
   const classes = useStyles();
@@ -197,6 +208,18 @@ const UserGames = ({uid, queryRef}) => {
                     {data?.user?.games.edges.map((game) => (
                       <GameRow uid={uid} game={game} />
                     ))}
+                    {data?.user?.games?.pageInfo?.hasNextPage ? (
+                      <TableRow>
+                        <TableCell colspan={4} align="center">
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={loadMore}>
+                            Load More
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
                   </TableBody>
                 </Table>
               </TableContainer>
