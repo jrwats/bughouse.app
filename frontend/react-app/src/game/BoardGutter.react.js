@@ -5,7 +5,7 @@ import ClockDisplay from "./ClockDisplay.react";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { SocketContext } from "../socket/SocketProvider";
 
-function getHandleDisplay(handle, canVacate, onSit, onVacate) {
+function getHandleDisplay(handle, canVacate, ticking, onSit, onVacate) {
   if (handle == null) {
     return (
       <Button variant="contained" color="primary" onClick={onSit}>
@@ -22,8 +22,10 @@ function getHandleDisplay(handle, canVacate, onSit, onVacate) {
   return (
     <>
       <div className="handle">
+        {/* <span className="h6 marker"><TimerIcon /></span> */}
         <span className="h6 marker">{`\u{2658}`}</span>
         <HandleDisplay handle={handle} />
+        {/* <span className="h6 marker"><TimerIcon /></span> */}
         <span className="h6 marker">{`\u{2658}`}</span>
       </div>
       {vacate}
@@ -70,8 +72,8 @@ const BoardGutter = ({ color, chessboard, forming }) => {
   const playerColor = chessboard.getHandleColor(playerHandle);
   const ticking = !forming && toMove != null && toMove === playerColor;
   return (
-    <div className={`${"playerData"} ${ticking ? "ticking" : ""}`}>
-      {getHandleDisplay(playerHandle, canVacate, onSit, onVacate)}
+    <div className={`playerData ${ticking ? "ticking" : ""}`}>
+      {getHandleDisplay(playerHandle, canVacate, ticking, onSit, onVacate)}
       <ClockDisplay color={color} chessboard={chessboard} forming={forming} />
     </div>
   );

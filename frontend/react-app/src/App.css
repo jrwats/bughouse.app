@@ -328,22 +328,53 @@ body .mono {
   transform: scale(1.0);
 }
 
+.playerData .timer-icon.low  {
+  color: rgba(255, 120, 190);
+}
+
+.playerData .timer-icon {
+  max-height: calc(min(1.8vw, 2vh) + 2px);
+  margin-right: -1rem;
+  flex-grow: 1;
+  flex-shrink: 0;
+  position: relative;
+  top: 0.6em;
+}
+
+.playerData.ticking .timer-icon {
+  visibility: visible;
+}
+
+.playerData .timer-icon,
+.playerData .timer-icon.flagged {
+  visibility: hidden;
+}
+
 .playerData .marker {
-  display: none;
+  font-family: Roboto;
+  visibility: hidden;
   padding: 0px 0.2em;
 }
 
-.playerData.ticking .handle {
+.playerData.ticking .handle .player {
   animation: ticking-glow 0.50s infinite alternate;
   opacity: 0.70;
 }
 
+/* .playerData.ticking .handle .marker { */
+/*   opacity: 0.70; */
+/* } */
+
 .playerData.ticking .handle .marker {
+  visibility: visible;
+  animation: ticking-big-glow 0.50s infinite alternate;
   font-weight: 900;
   text-shadow: 0px 0px 3px rgba(255, 30, 180, 0.8);
   display: inline-block;
   /* animation: ticking-big-glow 0.50s infinite alternate; */
-  transform: scale(1.1);
+  position: relative;
+  top: -0.3em;
+  transform: translateY(-2px) scale(1.1);
   animation-timing-function: linear;
   opacity: 0.20;
 }
@@ -375,6 +406,14 @@ body .mono {
   }
 }
 
+.playerData .player {
+  text-overflow: ellipsis;
+  max-width: 20vw;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+}
+
 .playerData.ticking .player {
   font-weight: 700;
 }
@@ -394,6 +433,7 @@ body .mono {
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
 }
+
 .clock {
   margin-top: 4px;
   padding-left: 1em;
@@ -868,6 +908,14 @@ body .makeStyles-paper-161 {
 .analysis-moves .titles .b,
 .move.b {
   background: rgba(255, 30, 255, 0.4);
+}
+
+.analysis-moves.moves-list {
+  position: relative;
+  flex: auto;
+  max-height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .move.a.selected {

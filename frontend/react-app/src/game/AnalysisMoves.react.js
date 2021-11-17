@@ -5,6 +5,7 @@ const AnalysisMoves = ({ game }) => {
   let [moves, setMoves] = useState(game.getMoves() || []);
   let idx = useRef(-1);
   let [uiIdx, setIdx] = useState(idx.current);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const onGameUpdate = () => {
@@ -33,6 +34,10 @@ const AnalysisMoves = ({ game }) => {
       setIdx(idx.current);
       console.log(state);
       game.update(state);
+
+      const moveElems = scrollRef.current.querySelectorAll('.move');
+      const curMoveElem = idx.current >= 0 ? moveElems[idx.current] : null;
+      curMoveElem?.scrollIntoView({block: "center"});
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
@@ -77,7 +82,7 @@ const AnalysisMoves = ({ game }) => {
     );
   });
   return (
-    <div className="analysis-moves" style={{ width: "20vw" }}>
+    <div className="analysis-moves moves-list" ref={scrollRef} style={{ width: "20vw" }}>
       {uiMoves}
     </div>
   );

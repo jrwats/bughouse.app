@@ -6,6 +6,8 @@ import AnalysisMoves from "./AnalysisMoves.react";
 import Board from "./Board.react";
 import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
+import SwapVertIcon from '@mui/icons-material/SwapVert';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 const Analysis = ({ gamePath }) => {
   const [gameID] = gamePath.split("~");
@@ -67,7 +69,8 @@ const Analysis = ({ gamePath }) => {
           <div className="flip-buttons">
             <span style={{ paddingLeft: "2em" }}>
               <Button variant="contained" color="primary" onClick={flipColors}>
-                {"\u{2B83}"}
+                <SwapVertIcon />
+                {/* {"\u{2B83}"} */}
               </Button>
             </span>
             <span>
@@ -76,7 +79,8 @@ const Analysis = ({ gamePath }) => {
                 color="secondary"
                 onClick={flipBoards}
               >
-                {"\u{2B82}"}
+                <SwapHorizIcon />
+                {/* {"\u{2B82}"} */}
               </Button>
             </span>
           </div>

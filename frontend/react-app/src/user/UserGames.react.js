@@ -170,7 +170,6 @@ const UserGamesList = ({user}) => {
   );
 
   const onClick = () => {
-    debugger;
     loadNext(10);
   };
   const headCells = [
@@ -182,7 +181,6 @@ const UserGamesList = ({user}) => {
     { id: "date", numeric: false, label: "Date" },
     { id: "analayze", numeric: false, label: "" },
   ];
-  debugger;
   const classes = useStyles();
   return (
     <TableContainer component={Paper}>

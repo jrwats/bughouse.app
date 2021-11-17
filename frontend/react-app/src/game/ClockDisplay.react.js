@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../socket/SocketProvider";
 import { EventEmitter } from "events";
+import TimerIcon from '@mui/icons-material/Timer';
 
 const _ticker = new EventEmitter();
 setInterval(() => {
@@ -98,11 +99,16 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const flag = getFlag(result.current, chessboard.getID(), color);
   const low = refTime.current <= TEN_SECS ? "low" : "";
   return (
-    <span className={`clock ${low} h6 mono`}>
-      {flag}
-      {mins}:{(secs < 10 ? "0" : "") + secs}
-      {subMS}
-    </span>
+    <div style={{display: "flex"}}>
+      <div className={`timer-icon ${low} ${flag ? 'flagged' : ''}`}>
+        <TimerIcon iconStyle={{width: 2, height: 2}} />
+      </div>
+      <div className={`clock ${low} h6 mono`}>
+        {flag}
+        {mins}:{(secs < 10 ? "0" : "") + secs}
+        {subMS}
+      </div>
+    </div>
   );
 };
 export default ClockDisplay;
