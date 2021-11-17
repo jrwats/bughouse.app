@@ -318,27 +318,18 @@ body .mono {
   text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.8);
 }
 
-.playerData.ticking .clock.low {
-  font-weight: 900;
-  color: rgba(255, 120, 190);
-  text-shadow: 0px 0px 2px rgba(255, 100, 170, 0.7);
-  animation: ticking-grow 0.25s infinite alternate;
-  animation-timing-function: linear;
-  opacity: 0.70;
-  transform: scale(1.0);
-}
-
 .playerData .timer-icon.low  {
   color: rgba(255, 120, 190);
 }
 
 .playerData .timer-icon {
-  max-height: calc(min(1.8vw, 2vh) + 2px);
-  margin-right: -1rem;
-  flex-grow: 1;
-  flex-shrink: 0;
+  /* margin-right: calc(min(-1vw, -2vh)); */
+  /* flex-grow: 1; */
+  flex-shrink: 2;
   position: relative;
-  top: 0.6em;
+  margin-top: 4px;
+  top: calc(min(0.5vw, 1.0vh));
+  opacity: 1.0;
 }
 
 .playerData.ticking .timer-icon {
@@ -348,6 +339,24 @@ body .mono {
 .playerData .timer-icon,
 .playerData .timer-icon.flagged {
   visibility: hidden;
+}
+
+.clock {
+  margin-top: 4px;
+  padding-left: 0.2em;
+  min-width: 4em;
+  text-align: right;
+}
+
+.playerData.ticking .timer-icon.low,
+.playerData.ticking .clock.low {
+  font-weight: 900;
+  color: rgba(255, 120, 190);
+  text-shadow: 0px 0px 2px rgba(255, 100, 170, 0.7);
+  animation: ticking-grow 0.25s infinite alternate;
+  animation-timing-function: linear;
+  opacity: 0.80;
+  transform: scale(1.0);
 }
 
 .playerData .marker {
@@ -376,7 +385,7 @@ body .mono {
   top: -0.3em;
   transform: translateY(-2px) scale(1.1);
   animation-timing-function: linear;
-  opacity: 0.20;
+  opacity: 0.70;
 }
 
 .playerData.ticking .marker::after {
@@ -432,13 +441,6 @@ body .mono {
   font-weight: 500;
   /* line-height: 1.6; */
   letter-spacing: 0.0075em;
-}
-
-.clock {
-  margin-top: 4px;
-  padding-left: 1em;
-  min-width: 4em;
-  text-align: right;
 }
 
 .clamped, .clamped .h6, .clamped .MuiButton-label, .playerData .h6 {

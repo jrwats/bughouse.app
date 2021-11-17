@@ -17,6 +17,15 @@ const Analysis = ({ gamePath }) => {
   const gamesSrc = GameStatusSource.get(socket);
   const game = gamesSrc.getGame(gameID);
 
+  gamesSrc.on('gameUpdate', (_) => {
+    const game = gamesSrc.getGame(gameID);
+    const aColor = game.getBoardA().getHandleColor(handle);
+    const bColor = game.getBoardB().getHandleColor(handle);
+    setFlippedColors(aColor === "black" || bColor === "white");
+    setFlippedBoards(bColor != null);
+    onGameUpdate();
+  });
+
   useEffect(() => {
     console.log(`requesting analysis`);
     socket && socket.sendEvent("analyze", { id: gameID });

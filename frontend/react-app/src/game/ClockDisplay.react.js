@@ -99,9 +99,9 @@ const ClockDisplay = ({ color, chessboard, forming }) => {
   const flag = getFlag(result.current, chessboard.getID(), color);
   const low = refTime.current <= TEN_SECS ? "low" : "";
   return (
-    <div style={{display: "flex"}}>
+    <div style={{display: "flex", fontSize: "calc(min(1.3vw, 2.6vh))"}}>
       <div className={`timer-icon ${low} ${flag ? 'flagged' : ''}`}>
-        <TimerIcon iconStyle={{width: 2, height: 2}} />
+        <TimerIcon fontSize="inherit"  />
       </div>
       <div className={`clock ${low} h6 mono`}>
         {flag}

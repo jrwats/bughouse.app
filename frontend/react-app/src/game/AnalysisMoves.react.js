@@ -54,11 +54,12 @@ const AnalysisMoves = ({ game }) => {
       game.update(mv.state);
     };
     const prev = moves[mvIdx - 1];
-    let num = `${mv.num}.${mv.color === "black" ? ".." : ""} `;
+    let count = `${mv.num < 10 ? "\u{00a0}" : ""}${mv.num}`;
+    let num = `${count}${mv.color === "black" ? "\u{2026}" : "."} `;
     let clear = <div key={`${mvIdx}_clear`} />;
     let spacer = null;
     if (prev?.boardID === mv.boardID && prev?.num === mv.num) {
-      num = null;
+      num = "\u{00a0}\u{00a0}\u{00a0}";
       clear = null;
     } else if (mv.color === "black") {
       const className = `move ${mv.boardID ? "b" : "a"} ${mv.color}`;
@@ -75,8 +76,7 @@ const AnalysisMoves = ({ game }) => {
           key={`${mv.boardID}_${mv.num}_${mv.color}`}
           className={`move ${boardID} ${mv.color} ${selected}`}
         >
-          {num}
-          {mv.label}
+          {`${num} ${mv.label}`}
         </div>
       </React.Fragment>
     );
