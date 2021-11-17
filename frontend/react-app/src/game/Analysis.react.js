@@ -8,6 +8,8 @@ import GameStatusSource from "./GameStatusSource";
 import { SocketContext } from "../socket/SocketProvider";
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import ArrowForward from '@mui/icons-material/ArrowForward';
 
 const Analysis = ({ gamePath }) => {
   const [gameID] = gamePath.split("~");
@@ -95,12 +97,14 @@ const Analysis = ({ gamePath }) => {
           </div>
           <div className="titles">
             <span className={flippedBoards ? "b" : "a"}>
-              <span className="arrow">{"\u{2b60}"}</span>
+              <span className="arrow"><ArrowBack fontSize="inherit" /></span>
+              {/* <span className="arrow">{"\u{2b60}"}</span> */}
               <span>Board {flippedBoards ? "B" : "A"}</span>
             </span>
             <span className={flippedBoards ? "a" : "b"}>
               <span>Board {flippedBoards ? "A" : "B"}</span>
-              <span className="arrow">{"\u{2b62}"}</span>
+              <span className="arrow"><ArrowForward fontSize="inherit" /></span>
+              {/* <span className="arrow">{"\u{2b62}"}</span> */}
             </span>
           </div>
         </div>

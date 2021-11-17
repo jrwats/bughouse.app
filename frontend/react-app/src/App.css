@@ -872,10 +872,10 @@ body .makeStyles-paper-161 {
 .analysis-moves .titles .arrow {
   font-family: "Roboto", "Helvetica";
   font-weight: 900;
-  font-size: 1.8em;
-  padding: 1em 4px;
+  font-size: min(1vw, 2vh);
+  padding: 4px 6px;
   position: relative;
-  top: min(0.3vw);
+  top: calc(min(0.2vw, 0.4vh));
 }
 
 .analysis-moves .flip-buttons {
