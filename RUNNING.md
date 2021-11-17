@@ -2,7 +2,7 @@
 
 ## Prerequisites
 ### Frontend
-* Node.js (v16) (frontend)
+* Node.js (v16)
   * Recommended: [install nvm](https://github.com/nvm-sh/nvm#installing-and-updating) for managing node versions
     * Then: `nvm install 16`
 * Install [yarn package manager](https://yarnpkg.com/): `npm install -g yarn`   
