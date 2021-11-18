@@ -1,10 +1,11 @@
+import React, { useContext, useEffect, useRef, useState } from "react";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import SpellcheckIcon from "@mui/icons-material/Spellcheck";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
-import React, { useContext, useEffect, useRef, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Loading from "../Loading.react";
@@ -119,17 +120,27 @@ const Profile = (props) => {
   const classes = useStyles();
 
   return (
-    <div style={{ flexGrow: 1 }}>
-      <HandleEdit handle={handle} />
-      <Grid container item xs={12} spacing={3} style={{ marginTop: "1rem" }}>
-        <Grid item sm={4}>
-          <Paper className={classes.paper}>
-            Rating: {rating}, Deviation: {deviation}
-          </Paper>
-        </Grid>
-      </Grid>
-      <UserGames uid={uid} />
-    </div>
+    <Box
+      display="flex"
+      flexWrap="wrap"
+      p={1}
+      m={1}
+      sx={{ maxWidth: "90vw" }}
+    >
+      <Box p={1}>
+        <div style={{ flexGrow: 1 }}>
+          <HandleEdit handle={handle} />
+          <Grid container item xs={12} spacing={3} style={{ marginTop: "1rem" }}>
+            <Grid item sm={4}>
+              <Paper className={classes.paper}>
+                Rating: {rating}, Deviation: {deviation}
+              </Paper>
+            </Grid>
+          </Grid>
+          <UserGames uid={uid} />
+        </div>
+      </Box>
+    </Box>
   );
 };
 

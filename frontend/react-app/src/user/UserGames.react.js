@@ -235,24 +235,17 @@ const UserGames = ({uid, queryRef}) => {
   );
   const user = data.user;
   if (!user) {
-    throw new Error("User undefined?");
+    console.error("Isn't suspense supposed to handle this?");
+    return (
+      <div>TODO: Loading... we hope...</div>
+    );
   }
 
   return (
-    <Box
-      display="flex"
-      flexWrap="wrap"
-      p={1}
-      m={1}
-      sx={{ maxWidth: "90vw" }}
-    >
-      <Box p={1}>
-        <div>
-          <div className="alien subtitle">Past Games</div>
-          <UserGamesList user={user} />
-        </div>
-      </Box>
-    </Box>
+    <div>
+      <div className="alien subtitle">Past Games</div>
+      <UserGamesList user={user} />
+    </div>
   );
 };
 
