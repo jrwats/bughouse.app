@@ -32,7 +32,7 @@ const AnalysisMoves = ({ game }) => {
               b: { board: { lastMove: [], fen: initial } },
             };
       setIdx(idx.current);
-      console.log(state);
+      // console.log(state);
       game.update(state);
 
       const moveElems = scrollRef.current.querySelectorAll('.move');

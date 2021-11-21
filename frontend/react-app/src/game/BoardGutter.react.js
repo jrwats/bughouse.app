@@ -33,27 +33,9 @@ function getHandleDisplay(handle, canVacate, ticking, onSit, onVacate) {
   );
 }
 
-const BoardGutter = ({ color, chessboard, forming }) => {
+const BoardGutter = ({ color, chessboard, forming, data }) => {
   const { socket, handle: viewerHandle } = useContext(SocketContext);
-  const playerData = chessboard.getBoard()[color];
-  const [playerHandle, setHandle] = useState(playerData?.handle);
-
-  useEffect(() => {
-    const onUpdate = () => {
-      const playerData = chessboard.getBoard()[color];
-      if (playerData == null) {
-        console.log(`BoardGutter NULL for ${chessboard.getID()} ${color}`);
-        return;
-      }
-      if (playerData.handle !== playerHandle) {
-        setHandle(playerData.handle);
-      }
-    };
-    chessboard.on("update", onUpdate);
-    return () => {
-      chessboard.off("update", onUpdate);
-    };
-  }, [forming, playerHandle, chessboard, color]);
+  const playerHandle = data?.handle;
   const gameData = {
     id: chessboard.getGame().getID(),
     board: chessboard.getBoardIdx(),

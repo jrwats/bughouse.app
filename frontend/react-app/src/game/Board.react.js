@@ -36,6 +36,8 @@ const isViewOnly = (forming, handle, chessboard) =>
   chessboard.getGame().isAnalysis() ||
   chessboard.getHandleColor(handle) == null;
 
+const getData = (cb, color) => cb.getBoard()[color]
+
 const Board = ({
   chessboard,
   fen,
@@ -170,6 +172,8 @@ const Board = ({
   const turnColor =
     boardFEN != null && boardFEN.split(" ")[1] === "w" ? "white" : "black";
 
+  const players = chessboard.getHandles();
+
   // console.log(`Board.${chessboard.getID()}: ${viewOnly}, ${isViewOnly(forming, handle, chessboard)}, ${handle}`);
   return (
     <div
@@ -185,6 +189,7 @@ const Board = ({
         forming={forming}
         color={opposite(orientation)}
         chessboard={chessboard}
+        data={getData(chessboard, opposite(orientation))}
       />
       <div
         style={{
@@ -296,6 +301,7 @@ const Board = ({
         forming={forming}
         color={orientation}
         chessboard={chessboard}
+        data={getData(chessboard, orientation)}
       />
     </div>
   );

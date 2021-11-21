@@ -147,7 +147,7 @@ const UserGamesList = ({user}) => {
       @refetchable(queryName: "UserGamesListPaginationQuery") {
         uid
         games(
-          after: $cursor, 
+          after: $cursor,
           first: $count
         ) @connection(key: "UserGamesList_games") {
           edges {
@@ -198,8 +198,8 @@ const UserGamesList = ({user}) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {games.edges.map((game) => (
-            <GameRow key={game.id} uid={uid} game={game} />
+          {games.edges.map((edge) => (
+            <GameRow key={edge.node.gid} uid={uid} game={edge} />
           ))}
           {hasNext ? (
             <TableRow>

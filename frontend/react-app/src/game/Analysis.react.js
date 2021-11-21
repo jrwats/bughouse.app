@@ -11,25 +11,60 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import ArrowBack from '@mui/icons-material/ArrowBack';
 import ArrowForward from '@mui/icons-material/ArrowForward';
 
+const Color = {
+  WHITE: 0,
+  BLACK: 1,
+};
+
+function handles(boards) {
+  return boards.flatMap(b =>
+    [b.getBoard()?.white?.handle, b.getBoard()?.black?.handle]
+  );
+}
+
+function inferOrientation(handle, boards) {
+  let color = Color.WHITE;
+  let flip = false;
+  if (boards[0] != null) {
+    const colors = boards.map(b => b.getHandleColor(handle));
+    color = colors.find(c => c != null) === "black" ? Color.BLACK : Color.WHITE;
+    flip = colors[1] != null;
+  }
+  return {color, flip}
+}
+
 const Analysis = ({ gamePath }) => {
   const [gameID] = gamePath.split("~");
   const { handle, socket } = useContext(SocketContext);
-  const [flippedBoards, setFlippedBoards] = useState(null);
-  const [flippedColors, setFlippedColors] = useState(null);
   const gamesSrc = GameStatusSource.get(socket);
   const game = gamesSrc.getGame(gameID);
-
-  gamesSrc.on('gameUpdate', (_) => {
-    const game = gamesSrc.getGame(gameID);
-    const aColor = game.getBoardA().getHandleColor(handle);
-    const bColor = game.getBoardB().getHandleColor(handle);
-    setFlippedColors(aColor === "black" || bColor === "white");
-    setFlippedBoards(bColor != null);
-    onGameUpdate();
-  });
+  const origBoards = [game.getBoardA(), game.getBoardB()];
+  const origOrientation = inferOrientation(handle, origBoards);
+  const [boards, setBoards] = useState(origBoards);
+  const [flipped, setFlipped] = useState(origOrientation.flip);
+  const [orientation, setOrientation] = useState(origOrientation.color);
 
   useEffect(() => {
-    console.log(`requesting analysis`);
+    const onGameUpdate = (game) => {
+      if (game == null || game.getID() !== gameID) {
+        return;
+      }
+      const newBoards = [game.getBoardA(), game.getBoardB()];
+      const {color, flip} = inferOrientation(handle, newBoards);
+      setBoards(newBoards);
+      setFlipped(flip);
+      setOrientation(color);
+      onGameUpdate();
+    }
+    gamesSrc.on('gameUpdate', onGameUpdate);
+    game.on("update", onGameUpdate);
+    return () => {
+      gamesSrc.off('gameUpdate', onGameUpdate);
+      game.off("update", onGameUpdate);
+    };
+  }, [gamesSrc, game]);
+
+  useEffect(() => {
     socket && socket.sendEvent("analyze", { id: gameID });
   }, [socket]);
 
@@ -43,29 +78,25 @@ const Analysis = ({ gamePath }) => {
   };
 
   const flipColors = (_e) => {
-    setFlippedColors(!flippedColors);
+    setOrientation(Color.BLACK - orientation);
     onGameUpdate();
   };
   const flipBoards = (_e) => {
-    setFlippedColors(!flippedColors);
-    setFlippedBoards(!flippedBoards);
+    setOrientation(Color.BLACK - orientation);
+    setFlipped(!flipped);
     onGameUpdate();
   };
 
-  const boards = [game.getBoardA(), game.getBoardB()];
-  if (flippedBoards) {
-    boards.reverse();
-  }
-
+  const uiBoards = flipped ? boards.slice().reverse() : boards.slice();
   return (
     <div style={{ width: "100%", height: "100%", display: "flex" }}>
       <div style={{ flex: "3 1 40vw", height: "min(40vw, 90vh)" }}>
         <Board
-          chessboard={boards[0]}
-          fen={boards[0].getBoard().fen}
+          chessboard={uiBoards[0]}
+          fen={uiBoards[0].getBoard().fen}
           gameID={gameID}
           id={`boardLeft`}
-          orientation={flippedColors ? "black" : "white"}
+          orientation={orientation === Color.WHITE ? "white" : "black"}
         />
       </div>
       <div
@@ -96,27 +127,27 @@ const Analysis = ({ gamePath }) => {
             </span>
           </div>
           <div className="titles">
-            <span className={flippedBoards ? "b" : "a"}>
+            <span className={flipped ? "b" : "a"}>
               <span className="arrow"><ArrowBack fontSize="inherit" /></span>
               {/* <span className="arrow">{"\u{2b60}"}</span> */}
-              <span>Board {flippedBoards ? "B" : "A"}</span>
+              <span>Board {flipped ? "B" : "A"}</span>
             </span>
-            <span className={flippedBoards ? "a" : "b"}>
-              <span>Board {flippedBoards ? "A" : "B"}</span>
+            <span className={flipped ? "a" : "b"}>
+              <span>Board {flipped ? "A" : "B"}</span>
               <span className="arrow"><ArrowForward fontSize="inherit" /></span>
               {/* <span className="arrow">{"\u{2b62}"}</span> */}
             </span>
           </div>
         </div>
-        <AnalysisMoves game={game} flippedBoards={flippedBoards} />
+        <AnalysisMoves game={game} />
       </div>
       <div style={{ flex: "3 1 40vw", height: "min(40vw, 90vh)" }}>
         <Board
-          chessboard={boards[1]}
-          fen={boards[1].getBoard().fen}
+          chessboard={uiBoards[1]}
+          fen={uiBoards[1].getBoard().fen}
           gameID={gameID}
           id={`boardRight`}
-          orientation={flippedColors ? "white" : "black"}
+          orientation={orientation === Color.WHITE ? "black" : "white"}
         />
       </div>
     </div>
