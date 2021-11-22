@@ -45,21 +45,25 @@ const Analysis = ({ gamePath }) => {
   const [orientation, setOrientation] = useState(origOrientation.color);
 
   useEffect(() => {
-    const onGameUpdate = (game) => {
+    const onGameSSUpdate = (game) => {
       if (game == null || game.getID() !== gameID) {
         return;
       }
       const newBoards = [game.getBoardA(), game.getBoardB()];
       const {color, flip} = inferOrientation(handle, newBoards);
+      console.error(`onGameUpdate setting flipped...`);
       setBoards(newBoards);
       setFlipped(flip);
       setOrientation(color);
-      onGameUpdate();
     }
-    gamesSrc.on('gameUpdate', onGameUpdate);
+    const onGameUpdate = (game) => {
+      onGameSSUpdate(game);
+      game.off('update', onGameUpdate);
+    }
+    gamesSrc.on('gameUpdate', onGameSSUpdate);
     game.on("update", onGameUpdate);
     return () => {
-      gamesSrc.off('gameUpdate', onGameUpdate);
+      gamesSrc.off('gameUpdate', onGameSSUpdate);
       game.off("update", onGameUpdate);
     };
   }, [gamesSrc, game]);
@@ -102,27 +106,24 @@ const Analysis = ({ gamePath }) => {
       <div
         style={{
           flex: "1 1 auto",
-          overflowX: "visible",
-          overflowY: "auto",
           height: "min(40vw, 90vh)",
         }}
       >
         <div className="analysis-moves">
           <div className="flip-buttons">
-            <span style={{ paddingLeft: "2em" }}>
-              <Button variant="contained" color="primary" onClick={flipColors}>
-                <SwapVertIcon />
-                {/* {"\u{2B83}"} */}
+            <span>
+              <Button sx={{p: 1, m: 0}} variant="contained" color="primary" onClick={flipColors}>
+                <SwapVertIcon fontSize="inherit" />
               </Button>
             </span>
             <span>
               <Button
+                sx={{p: 1, m: 0}}
                 variant="contained"
                 color="secondary"
                 onClick={flipBoards}
               >
-                <SwapHorizIcon />
-                {/* {"\u{2B82}"} */}
+                <SwapHorizIcon fontSize="inherit" />
               </Button>
             </span>
           </div>
