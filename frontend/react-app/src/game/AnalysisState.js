@@ -53,7 +53,7 @@ class AnalysisBoard {
       this.promos.get(move.dest) || this.pieces.get(move.dest);
     if (move.src == null) {
       // drop
-      this.holdings[move.boardID][move.piece]--;
+      this.holdings[move.color === "white" ? 0 : 1][move.piece]--;
       this.pieces.set(move.dest, {
         role: NAMES[move.piece],
         color: move.color,
