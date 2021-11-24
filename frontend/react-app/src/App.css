@@ -328,7 +328,7 @@ body .mono {
   flex-shrink: 2;
   position: relative;
   margin-top: 4px;
-  top: calc(min(0.5vw, 1.0vh));
+  top: min(0.5vw, 1.0vh);
   opacity: 1.0;
 }
 
@@ -875,7 +875,7 @@ body .makeStyles-paper-161 {
   font-size: min(1vw, 2vh);
   padding: 4px 6px;
   position: relative;
-  top: calc(min(0.2vw, 0.4vh));
+  top: min(0.2vw, 0.4vh);
 }
 
 .analysis-moves .flip-buttons {
@@ -916,7 +916,7 @@ body .makeStyles-paper-161 {
 .analysis-moves.moves-list {
   position: relative;
   flex: auto;
-  max-height: 50vh;
+  max-height: calc(min(40vw, 90vh) - 10em);
   overflow-y: auto;
   overflow-x: hidden;
 }
