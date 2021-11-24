@@ -475,6 +475,8 @@ impl BughouseServer {
         let res = recipient.do_send(msg.clone());
         if res.is_err() {
             eprintln!("Error sending to: {:?}", recipient);
+        } else {
+            eprintln!("game_row {}, sent", game_id);
         }
         Ok(msg)
     }
