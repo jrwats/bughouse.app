@@ -92,6 +92,13 @@ fn env_or(env_var: &str, alt: &str) -> String {
 }
 
 fn get_cors() -> Cors {
+    if env_or("DEV", "0") == "1" {
+        return Cors::default()
+            .allow_any_header()
+            .allow_any_origin()
+            .allow_any_method()
+            .send_wildcard();
+    }
     Cors::default()
         .allow_any_header()
         .allowed_origin("http://localhost")

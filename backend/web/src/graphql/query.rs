@@ -230,6 +230,7 @@ impl QueryRoot {
         }
         let bug_ctx = result.unwrap();
         let user = bug_ctx.users.maybe_user_from_uid(&uid).await?;
+        eprintln!("Got user: {:?}", user);
         Some(User(user))
     }
 
