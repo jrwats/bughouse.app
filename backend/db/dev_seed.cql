@@ -54,6 +54,7 @@ INSERT INTO bughouse.rating_history (uid, time, deviation, rating) VALUES
 INSERT INTO bughouse.rating_history (uid, time, deviation, rating) VALUES
   (8ac88980-d963-11eb-bb7e-000000000008, '2021-11-10 17:06:19', 350, 1500);
 
+// Game 1
 INSERT INTO bughouse.rating_history (uid, time, deviation, rating) VALUES
   (8ac88980-d963-11eb-bb7e-000000000001, '2021-11-10 17:35:07', 329, 1612);
 INSERT INTO bughouse.rating_history (uid, time, deviation, rating) VALUES
@@ -74,13 +75,13 @@ INSERT INTO bughouse.user_games (uid, start_time, game_id, players, rated, resul
   (8ac88980-d963-11eb-bb7e-000000000004, '2021-11-10 17:35:07', 9c3d1886-4248-11ec-8001-010303070402, (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})), True, 3);
 
 INSERT INTO bughouse.user_games (uid, start_time, game_id, players, rated, result) VALUES
-  (8ac88980-d963-11eb-bb7e-000000000002, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})), True, 3);
+  (8ac88980-d963-11eb-bb7e-000000000002, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000004})), False, 3);
 INSERT INTO bughouse.user_games (uid, start_time, game_id, players, rated, result) VALUES
-  (8ac88980-d963-11eb-bb7e-000000000001, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})), True, 3);
+  (8ac88980-d963-11eb-bb7e-000000000001, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000004})), False, 3);
 INSERT INTO bughouse.user_games (uid, start_time, game_id, players, rated, result) VALUES
-  (8ac88980-d963-11eb-bb7e-000000000003, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})) ,  True, 3);
+  (8ac88980-d963-11eb-bb7e-000000000003, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000004})), False, 3);
 INSERT INTO bughouse.user_games (uid, start_time, game_id, players, rated, result) VALUES
-  (8ac88980-d963-11eb-bb7e-000000000004, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})), True, 3);
+  (8ac88980-d963-11eb-bb7e-000000000004, '2021-11-18 04:53:30', 6714a7d2-482b-11ec-800d-010303070402, (({rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1388, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1612, uid: 8ac88980-d963-11eb-bb7e-000000000004})), False, 3);
 
 // Games
 INSERT INTO bughouse.games (id, players, public, rated, result, start_time, time_ctrl, moves) VALUES
@@ -99,7 +100,7 @@ INSERT INTO bughouse.games (id, players, public, rated, result, start_time, time
 (
  6714a7d2-482b-11ec-800d-010303070402,
  (({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000001}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000002}), ({rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000003}, {rating: 1500, uid: 8ac88980-d963-11eb-bb7e-000000000004})),
-  True,
+  False,
   False,
   5,
   '2021-11-18 04:53:30',
