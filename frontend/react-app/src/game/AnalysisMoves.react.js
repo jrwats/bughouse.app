@@ -35,7 +35,7 @@ const AnalysisMoves = ({ game }) => {
       // console.log(state);
       game.update(state);
 
-      const moveElems = scrollRef.current.querySelectorAll('.move');
+      const moveElems = scrollRef.current.querySelectorAll('.move:not(.spacer)');
       const curMoveElem = idx.current >= 0 ? moveElems[idx.current] : null;
       curMoveElem?.scrollIntoView({block: "center"});
       e.preventDefault();
@@ -62,7 +62,7 @@ const AnalysisMoves = ({ game }) => {
       num = "\u{00a0}\u{00a0}\u{00a0}";
       clear = null;
     } else if (mv.color === "black") {
-      const className = `move ${mv.boardID ? "b" : "a"} ${mv.color}`;
+      const className = `move spacer`; // ${mv.boardID ? "b" : "a"} ${mv.color}`;
       spacer = <div key={`${mvIdx}_spacer`} className={className} />;
     }
     const boardID = mv.boardID ? "b" : "a";
