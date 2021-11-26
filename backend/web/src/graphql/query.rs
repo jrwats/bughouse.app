@@ -4,9 +4,9 @@ use super::user_games_fetcher::{
 };
 use crate::async_graphql_actix_web::lib::{Request, Response};
 use crate::b66::B66;
+use crate::bug_web_sock::BugContext;
 use crate::game::GameResult;
 use crate::game_row::GameRow;
-use crate::bug_web_sock::BugContext;
 use crate::users::{User as BackingUser, UserID};
 use actix_web::*;
 use actix_web::{HttpRequest, HttpResponse, Responder};
@@ -18,14 +18,17 @@ use async_graphql::{
 use chrono::prelude::*;
 use std::sync::{Arc, RwLock};
 
-
 pub struct User(Arc<RwLock<BackingUser>>);
 
 #[Object]
 impl User {
     // GraphQL ID
     async fn id(&self) -> String {
-        format!("{}:{}", "user", B66::encode_uuid(&self.0.read().unwrap().id))
+        format!(
+            "{}:{}",
+            "user",
+            B66::encode_uuid(&self.0.read().unwrap().id)
+        )
     }
 
     async fn uid(&self) -> String {
@@ -108,9 +111,7 @@ impl User {
 }
 
 #[derive(Interface)]
-#[graphql(
-    field(name = "id", type = "String")
-)]
+#[graphql(field(name = "id", type = "String"))]
 enum Node {
     User(User),
 }
@@ -176,13 +177,12 @@ struct GraphQLUserGamesFields {
 
 #[Object]
 impl<'a> GraphQLUserGamesFields {
-    pub async fn total_count(
-        &self,
-        ctx: &Context<'a>,
-        ) -> usize {
+    pub async fn total_count(&self, ctx: &Context<'a>) -> usize {
         let bug_ctx = ctx.data::<BugContext>().unwrap();
         UserGamesFetcher::new(bug_ctx.db.clone())
-            .total_count(&self.uid).await.unwrap()
+            .total_count(&self.uid)
+            .await
+            .unwrap()
     }
 }
 
@@ -202,17 +202,18 @@ impl QueryRoot {
         &self,
         ctx: &Context<'a>,
         #[graphql(desc = "encoded id of the node")] id: String,
-        ) -> Option<Node> {
+    ) -> Option<Node> {
         let (kind, sub_id) = id.split_once(':')?;
         match kind {
             "user" => {
-                let maybe_user = self.user(ctx, sub_id.to_string()).await.ok()?;
+                let maybe_user =
+                    self.user(ctx, sub_id.to_string()).await.ok()?;
                 let user = maybe_user?;
                 Some(Node::User(user))
                 // let node_id = User::id(&user, ctx).await.ok()?;
                 // Some(Node { id: node_id })
             }
-            _ => None
+            _ => None,
         }
     }
 

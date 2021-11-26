@@ -101,10 +101,7 @@ impl UserGamesFetcher {
         }
     }
 
-    pub async fn total_count(
-        &self,
-        uid: &Uuid,
-    ) -> Result<usize, Error> {
+    pub async fn total_count(&self, uid: &Uuid) -> Result<usize, Error> {
         // Over-fetch our user_games by 1 to calculate "has more"
         let query = "SELECT COUNT(*) FROM bughouse.user_games WHERE uid = ?";
         let res = self.db.session().query(query, (uid,)).await?;
@@ -112,7 +109,7 @@ impl UserGamesFetcher {
             let row = rows.into_typed::<(i64,)>().next();
             // let (size,) = row.unwrap()?;
             // return Ok(size as usize)
-            return Ok(row.unwrap()?.0 as usize)
+            return Ok(row.unwrap()?.0 as usize);
         }
         Err(Error::Unexpected("WUT?".into()))
     }
