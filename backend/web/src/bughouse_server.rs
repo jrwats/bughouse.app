@@ -18,7 +18,7 @@ use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase;
 use crate::firebase::{FirebaseID, ProviderID};
-use crate::game::{Game, GameID, GamePlayers, GameResult};
+use crate::game::{Game, GameID, GamePlayers, GameResult, GameStatus};
 use crate::game_json::GameJson;
 use crate::games::{GameUserHandler, Games};
 use crate::messages::{
@@ -83,6 +83,24 @@ impl ServerHandler {
         )
     }
 
+    fn schedule_check(
+        &self,
+        duration: chrono::Duration,
+        game_id: GameID,
+        ctx: &mut Context<Self>,
+    ) {
+        let mut checkers = self.game_checkers.write().unwrap();
+        let dur = std::time::Duration::from_millis(
+            duration.num_milliseconds() as u64
+        );
+        let checker = ctx.run_later(dur, move |_self, c| {
+            c.address().do_send(ServerMessage::new(
+                ServerMessageKind::CheckGame(game_id),
+            ));
+        });
+        checkers.insert(game_id, checker);
+    }
+
     async fn fwd_err(
         fut: ResponseFuture<Result<ClientMessage, Error>>,
         server: &'static BughouseServer,
@@ -101,19 +119,16 @@ impl ServerHandler {
     }
 }
 
-fn get_result(game: Arc<RwLock<Game>>) -> Option<GameResult> {
-    let rgame = game.read().unwrap();
-    rgame.get_result()
-}
-
-fn get_game_status(game: Arc<RwLock<Game>>) -> (Option<GameResult>, i32) {
-    let result = get_result(game.clone());
-    if result.is_none() {
+fn get_game_status(game: Arc<RwLock<Game>>) -> (GameStatus, i32) {
+    let status = game.read().unwrap().get_status();
+    if let GameStatus::Starting(d) = status {
+        (GameStatus::Starting(d), d.num_milliseconds() as i32)
+    } else if let GameStatus::Over(result) = status {
+        (GameStatus::Over(result), 0)
+    } else {
         let mut wgame = game.write().unwrap();
         wgame.update_all_clocks();
-        (None, wgame.get_min_to_move_clock_ms())
-    } else {
-        (result, 0)
+        (GameStatus::InProgress, wgame.get_min_to_move_clock_ms())
     }
 }
 
@@ -166,23 +181,15 @@ impl Handler<ServerMessage> for ServerHandler {
                 println!("checking game_id: {}", game_id);
                 let srv = self.srv(ctx);
                 if let Some(lgame) = srv.get_game(&game_id) {
-                    let (result, min_clock_ms) = get_game_status(lgame.clone());
-                    if min_clock_ms > 0 {
-                        let dur = std::time::Duration::from_millis(
-                            min_clock_ms as u64,
-                        );
-                        let mut checkers = self.game_checkers.write().unwrap();
-                        if let Some(handle) = checkers.get(&game_id) {
-                            ctx.cancel_future(*handle);
-                        }
-                        let checker = ctx.run_later(dur, move |_self, c| {
-                            c.address().do_send(ServerMessage::new(
-                                ServerMessageKind::CheckGame(game_id),
-                            ));
-                        });
+                    let (status, min_clock_ms) = get_game_status(lgame.clone());
+                    if let GameStatus::Starting(duration) = status {
+                        self.schedule_check(duration, game_id, ctx);
+                    } else if min_clock_ms > 0 {
+                        let duration =
+                            chrono::Duration::milliseconds(min_clock_ms as i64);
+                        self.schedule_check(duration, game_id, ctx);
                         srv.update_game_observers(lgame);
-                        checkers.insert(game_id, checker);
-                    } else if result.is_none() {
+                    } else if status == GameStatus::InProgress {
                         // Timer handler detected a flag, find the flaggee,
                         // record the result, and notify all observers
                         {
@@ -382,7 +389,8 @@ impl BughouseServer {
                 "kind": "err",
                 "err": { "kind": "auth" },
                 "reason": format!("{}", e),
-            }).to_string();
+            })
+            .to_string();
             return Ok(Self::send_text_to_recipient(err, &recipient).await);
         }
         let (FirebaseID(fid), ProviderID(provider_id)) = res.unwrap();
@@ -463,7 +471,8 @@ impl BughouseServer {
                     "game_id": B66::encode_uuid(&game_id),
                 },
                 "reason": format!("Invalid game ID: {}", game_id),
-            }).to_string();
+            })
+            .to_string();
             return Ok(Self::send_text_to_recipient(err, &recipient).await);
         }
         let game_row = res.unwrap();

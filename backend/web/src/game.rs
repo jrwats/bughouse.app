@@ -39,7 +39,7 @@ pub enum GameResultType {
 pub enum GameStatus {
     Over(GameResult),
     InProgress,
-    Starting,
+    Starting(Duration),
     WaitingForPlayers,
 }
 
@@ -310,9 +310,12 @@ impl Game {
 
     pub fn get_status(&self) -> GameStatus {
         if let Some(result) = self.result {
-            GameStatus::Over(result)
-        } else if self.start.is_some() && self.start.unwrap() > Utc::now() {
-            GameStatus::Starting
+            return GameStatus::Over(result);
+        }
+
+        if let Some(start) = self.start {
+            let now = Utc::now();
+            GameStatus::Starting(start - now)
         } else if self.has_empty_seat() {
             GameStatus::WaitingForPlayers
         } else {
