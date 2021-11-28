@@ -3,6 +3,9 @@ import BughouseGame from "./BughouseGame";
 import { navigate } from "@reach/router";
 
 let _singleton = null;
+
+// TODO: This singleton is quite janky - listening to the socket and killing
+// itself.  Perhaps turn this into a Provider?
 class GameStatusSource extends EventEmitter {
   constructor(socket) {
     super();
@@ -10,17 +13,31 @@ class GameStatusSource extends EventEmitter {
     this._observing = {};
     this._games = {};
 
-    this._socket.on("current_game", (data) => this._onCurrentGame(data));
-    this._socket.on("current_games", (data) => this._onCurrentGames(data));
-    this._socket.on("game_row", (data) => this._onGameRow(data));
-    this._socket.on("game_update", (data) => this._onGameUpdate(data));
-    this._socket.on("game_end", (data) => this._onGameOver(data));
-    this._socket.on("game_start", (data) => this._onGameStart(data));
-    this._socket.on("form_table", (data) => this._onTable(data));
-    this._socket.on("table", (data) => this._onTable(data));
+    this._socket.on("current_game",  this._onCurrentGame);
+    this._socket.on("current_games", this._onCurrentGames);
+    this._socket.on("game_row", this._onGameRow);
+    this._socket.on("game_update", this._onGameUpdate);
+    this._socket.on("game_end", this._onGameOver);
+    this._socket.on("game_start", this._onGameStart);
+    this._socket.on("form_table", this._onTable);
+    this._socket.on("table", this._onTable);
+
+    this._socket.on("destroy", this._onDestroy);
   }
 
-  _onCurrentGame(data) {
+  _onDestroy(data) {
+    this._socket.off("current_game",  this._onCurrentGame);
+    this._socket.off("current_games", this._onCurrentGames);
+    this._socket.off("game_row", this._onGameRow);
+    this._socket.off("game_update", this._onGameUpdate);
+    this._socket.off("game_end", this._onGameOver);
+    this._socket.off("game_start", this._onGameStart);
+    this._socket.off("form_table", this._onTable);
+    this._socket.off("table", this._onTable);
+    _singleton = null;
+  }
+
+  _onCurrentGame = (data) => {
     if (data.add) {
       this._games[data.id] = BughouseGame.init(data);
     } else if (data.update) {
@@ -31,7 +48,7 @@ class GameStatusSource extends EventEmitter {
     this.emit("current_game", data);
   }
 
-  _onCurrentGames({ games }) {
+  _onCurrentGames = ({ games }) => {
     for (const gid in games) {
       this._games[gid] = BughouseGame.init(games[gid]);
     }
@@ -42,7 +59,7 @@ class GameStatusSource extends EventEmitter {
     this.emit("current_games", { games: bughouseGames });
   }
 
-  _onGameRow(data) {
+  _onGameRow = (data) => {
     console.log(`GameStatusSource row ${JSON.stringify(data)}`);
     const game = this.getGame(data.id);
     game.setTimeControl(data.time_ctrl);
@@ -61,13 +78,13 @@ class GameStatusSource extends EventEmitter {
     this.emit("gameUpdate", this._games[data.id]);
   }
 
-  _onGameUpdate(data) {
+  _onGameUpdate = (data) => {
     console.log(`GameStatusSource boardUpdate ${JSON.stringify(data)}`);
     this.getGame(data.id).update(data);
     this.emit("gameUpdate", this._games[data.id]);
   }
 
-  _onGameOver(data) {
+  _onGameOver = (data) => {
     console.log(`GameStatusSource 'gameOver' ${JSON.stringify(data)}`);
     if (data.id in this._games) {
       this._games[data.id].onGameOver(data);
@@ -75,7 +92,7 @@ class GameStatusSource extends EventEmitter {
     this.emit("gameOver", data);
   }
 
-  _onTable(data) {
+  _onTable = (data) => {
     console.log("onTable!");
     if (data.id in this._games) {
       this._games[data.id].update(data);
@@ -87,15 +104,11 @@ class GameStatusSource extends EventEmitter {
     }
   }
 
-  _onGameStart(data) {
+  _onGameStart = (data) => {
     console.log(`GSS._onGameStart navigating to arena/${data.id}`);
     this._games[data.id] = BughouseGame.init(data);
     navigate(`/arena/${data.id}`);
   }
-
-  // _destroy(uid) {
-  //   _singleton = null;
-  // }
 
   getGame(id) {
     if (id == null) {

@@ -59,7 +59,6 @@ const Arena = ({ gamePath }) => {
         `onboardB ${handle} ${newHC2} ${JSON.stringify(boardB.getBoard())}`
       );
       invariant(boardB != null, "wtf");
-      console.log(`setHandleColorB(${newHC2})`);
       setHandleColorB(newHC2);
     };
     onboardB();

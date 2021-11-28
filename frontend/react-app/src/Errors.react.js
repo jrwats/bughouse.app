@@ -26,6 +26,15 @@ function getErrorMessage(err) {
         </span>
       );
     }
+    case "game_in_progress": {
+      const game_id = err.err.game_id;
+      return (
+        <span>
+          Game is in progress{' '}
+          <Link to={`/arena/${game_id}`}>Watch <b>{game_id}</b></Link>
+        </span>
+      );
+    }
     case "invalid_game_id": {
       const game_id = err.err.game_id;
       return (

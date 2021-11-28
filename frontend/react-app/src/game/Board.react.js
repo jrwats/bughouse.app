@@ -59,6 +59,7 @@ const Board = ({
     isViewOnly(forming, handle, chessboard)
   );
   const [promoVisible, setPromoVisible] = useState(false);
+  const [boardData, setBoardData] = useState(chessboard.getBoard());
   const [sz, setSz] = useState(null);
   const pendingMove = useRef({});
   const boardWrapperRef = useRef(null);
@@ -93,19 +94,22 @@ const Board = ({
       const board = chessboard.getBoard();
       const holdings = chessboard.getHoldings();
       const prevFen = chessgroundRef?.current?.cg?.state?.fen;
-      if (boardFEN != null && board.fen !== prevFen) {
+      console.log(`onUpdate premove: ${premove.current}`);
+      const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
+      if (colorToMove === handleColor) {
+        if (boardFEN != null && board.fen !== prevFen) {
+          const file =
+            handleColor === colorToMove ? GenericNotifySound : MoveSound;
+          playAudio(file);
+        }
         if (premove.current != null) {
           socket.sendEvent("move", { id: gameID, move: premove.current });
           premove.current = null;
           chessgroundRef.current.cg.cancelPremove();
           chessgroundRef.current.cg.cancelPredrop();
-        }
-        const colorToMove = board.fen.split(" ")[1] === "w" ? "white" : "black";
-        const file =
-          handleColor === colorToMove ? GenericNotifySound : MoveSound;
-
-        playAudio(file);
+        } 
       }
+      setBoardData(board);
       setFEN(board.fen);
       setHandleColor(chessboard.getHandleColor(handle));
       setHoldings(holdings);
@@ -189,7 +193,7 @@ const Board = ({
         forming={forming}
         color={opposite(orientation)}
         chessboard={chessboard}
-        data={getData(chessboard, opposite(orientation))}
+        data={boardData[opposite(orientation)]}
       />
       <div
         style={{
@@ -249,7 +253,15 @@ const Board = ({
                     setPromoVisible(true);
                     pendingMove.current = { from, to };
                     return;
+                  } else if (chessboard.getStart() > Date.now()) {
+                    const cg = chessgroundRef.current.cg;
+                    cg.state.premovable.current = [from, to];
+                    cg.state.premovable.events.set(from, to);
+                    console.error(`cg.pm.current: ${cg.state.premovable.current}`);
+                    console.error(`premove.current: ${premove.current}`);
+                    return;
                   }
+
                   console.log(
                     `onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`
                   );
@@ -301,7 +313,7 @@ const Board = ({
         forming={forming}
         color={orientation}
         chessboard={chessboard}
-        data={getData(chessboard, orientation)}
+        data={boardData[orientation]}
       />
     </div>
   );

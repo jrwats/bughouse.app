@@ -44,6 +44,7 @@ class ChessBoard extends EventEmitter {
       this._initialized = true;
       this.emit("init");
     }
+    console.log(`Chessboard.update`);
     this.emit("update", this);
   }
 
@@ -112,7 +113,7 @@ class ChessBoard extends EventEmitter {
   }
 
   getBoard() {
-    return this._board;
+    return {...this._board};
   }
 
   getHoldings() {

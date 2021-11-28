@@ -51,7 +51,7 @@ class BughouseGame extends EventEmitter {
   }
 
   update({ rated, result, delayStartMillis, a, b }) {
-    console.log(`BughouseGame.update(...)`);
+    console.log(`BughouseGame.update(${rated}, ${result}, ${delayStartMillis}, ...)`);
     this._result = result;
     this._rated = rated || this._rated;
     this._setStart(delayStartMillis);
