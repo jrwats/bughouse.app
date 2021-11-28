@@ -93,6 +93,7 @@ impl ServerHandler {
         let dur = std::time::Duration::from_millis(
             duration.num_milliseconds() as u64
         );
+        eprintln!("schedule_check {}, {:?}", game_id, dur);
         let checker = ctx.run_later(dur, move |_self, c| {
             c.address().do_send(ServerMessage::new(
                 ServerMessageKind::CheckGame(game_id),
@@ -192,6 +193,7 @@ impl Handler<ServerMessage> for ServerHandler {
                     } else if status == GameStatus::InProgress {
                         // Timer handler detected a flag, find the flaggee,
                         // record the result, and notify all observers
+                        eprintln!("checking: FLAGGED, {}", game_id);
                         {
                             let mut game = lgame.write().unwrap();
                             game.end_game();
@@ -476,6 +478,18 @@ impl BughouseServer {
             return Ok(Self::send_text_to_recipient(err, &recipient).await);
         }
         let game_row = res.unwrap();
+        if game_row.result < 0 {
+            let err = json!({
+                "kind": "err",
+                "err": {
+                    "kind": "game_in_progress",
+                    "game_id": B66::encode_uuid(&game_id),
+                },
+                "reason": format!("Game in progress: {}", game_id),
+            })
+            .to_string();
+            return Ok(Self::send_text_to_recipient(err, &recipient).await);
+        }
         let handles = self.get_user_handles(&game_row.players).await?;
         let payload = game_row.to_json(handles, None);
         let bytestr = Arc::new(ByteString::from(payload.to_string()));

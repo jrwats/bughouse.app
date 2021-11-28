@@ -22,7 +22,7 @@ pub struct GameRow {
     pub time_ctrl: TimeControl,
     pub rated: bool,
     pub players: TableSnapshot,
-    pub moves: HashMap<i32, i16>,
+    pub moves: Option<HashMap<i32, i16>>,
 }
 
 #[derive(Clone, FromRow, FromUserType)]

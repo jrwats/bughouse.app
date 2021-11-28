@@ -255,9 +255,12 @@ impl Db {
             .await?;
         if let Some(rows) = res.rows {
             for row in rows.into_typed::<GameRow>() {
-                let result = row?;
+                let mut result = row?;
+                result.moves = result.moves.or(Some(HashMap::new()));
                 return Ok(result);
             }
+        } else {
+            eprintln!("error fetching {}: {:?}", game_id, res);
         }
         Err(Error::InvalidGameID(*game_id))
     }

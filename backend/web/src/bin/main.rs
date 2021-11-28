@@ -11,8 +11,6 @@ use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use serde::Deserialize;
 use serde_json::json;
 use std::io;
-use std::io::prelude::Write;
-use std::os::unix::net::UnixStream;
 use std::sync::Arc;
 
 use bughouse_app::b66::B66;
@@ -38,9 +36,6 @@ async fn auth_post(
     session: Session,
     context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    // println!("jwt header: {:?}", decode_header(&info.firebase_token));
-    let mut stream = UnixStream::connect(firebase::UNIX_SOCK.to_string())?;
-    write!(stream, "{}\n{}\n", firebase::FIRE_AUTH, info.firebase_token)?;
     let db = context.db.clone();
     let resp = match firebase::authenticate(&info.firebase_token, db).await {
         Ok((FirebaseID(fid), _)) => {

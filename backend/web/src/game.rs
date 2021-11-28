@@ -312,15 +312,16 @@ impl Game {
         if let Some(result) = self.result {
             return GameStatus::Over(result);
         }
-
-        if let Some(start) = self.start {
-            let now = Utc::now();
-            GameStatus::Starting(start - now)
-        } else if self.has_empty_seat() {
-            GameStatus::WaitingForPlayers
-        } else {
-            GameStatus::InProgress
+        if self.has_empty_seat() {
+            return GameStatus::WaitingForPlayers
         }
+        let now = Utc::now();
+        if let Some(start) = self.start {
+            if start > now {
+                return GameStatus::Starting(start - now)
+            }
+        }
+        GameStatus::InProgress
     }
 
     pub fn get_result(&self) -> Option<GameResult> {
