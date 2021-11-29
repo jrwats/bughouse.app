@@ -8,11 +8,10 @@
 * Install [yarn package manager](https://yarnpkg.com/): `npm install -g yarn`   
 ### Backend
 * [Docker](https://docs.docker.com/get-docker/) (ScyllaDB and Redis server)
-* [git lfs](https://git-lfs.github.com/) (currently for the DB Docker image)
 * [Rust toolchain](https://rustup.rs/) (webserver)
-* Optional: [Golang](https://golang.org/doc/install) (Firebase Auth)
-   * (Not stricly necessary for testing)
-
+* Optional: 
+  * [git lfs](https://git-lfs.github.com/) (For the DB Docker image)
+  * [Golang](https://golang.org/doc/install) (Firebase Auth)
 
 ## Running
 ### 1. Run the DB
