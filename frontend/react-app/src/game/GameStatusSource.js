@@ -25,7 +25,7 @@ class GameStatusSource extends EventEmitter {
     this._socket.on("destroy", this._onDestroy);
   }
 
-  _onDestroy(data) {
+  _onDestroy = (data) => {
     this._socket.off("current_game",  this._onCurrentGame);
     this._socket.off("current_games", this._onCurrentGames);
     this._socket.off("game_row", this._onGameRow);
