@@ -16,7 +16,7 @@ fn main() -> Result<(), io::Error> {
     } else {
         let uuid = B66::decode_uuid(&args[1]);
         if uuid.is_none() {
-            panic!("Invalid uuid");
+            panic!("Invalid uuid: {}", &args[1]);
         }
         println!("{}", uuid.unwrap().to_hyphenated());
     }

@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub const ALPHABET: &[u8] =
     "$*-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"
         .as_bytes();
-pub const LEN: usize = ALPHABET.len() as usize; // 66
+pub const LEN: u128 = ALPHABET.len() as u128; // 66
 pub const MAX_STR_LEN: usize = 22; // (66^22) > (2^128)
 
 pub fn get_byte_map() -> &'static HashMap<u8, u8> {
@@ -31,7 +31,7 @@ impl B66 {
         let mut idx = MAX_STR_LEN;
         let mut n = num;
         while n > 0 {
-            let (quotient, rem) = div_rem(n, LEN as u128);
+            let (quotient, rem) = div_rem(n, LEN);
             n = quotient;
             let b = ALPHABET[rem as usize] as u8;
             idx = idx - 1;
@@ -45,7 +45,11 @@ impl B66 {
         let map = get_byte_map();
         let mut res: u128 = 0;
         for b in bytes {
-            res *= LEN as u128;
+            let mul_res = res.checked_mul(LEN);
+            if mul_res.is_none() {
+                return None;
+            }
+            res = mul_res.unwrap();
             match map.get(&b) {
                 None => {
                     return None;
