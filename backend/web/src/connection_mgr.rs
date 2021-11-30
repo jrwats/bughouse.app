@@ -153,7 +153,11 @@ impl ConnectionMgr {
             let conns = self.conns.read().unwrap();
             if let Some(conn_ids) = self.user_conns.read().unwrap().get(&uid) {
                 for conn_id in conn_ids.iter() {
-                    let conn = conns.get(conn_id).unwrap();
+                    let maybe_conn = conns.get(conn_id);
+                    if maybe_conn.is_none() {
+                        continue;
+                    }
+                    let conn = maybe_conn.unwrap();
                     let res = conn.recipient().do_send(msg.clone());
                     if let Err(e) = res {
                         eprintln!("Failed sending msg: {:?}", e);
@@ -342,13 +346,13 @@ impl ConnectionMgr {
         }
         if uid != Uuid::nil() {
             let mut u2c = self.user_conns.write().unwrap();
-            let conns = u2c.get_mut(&uid).ok_or(Error::Unexpected(format!(
+            let user_conns = u2c.get_mut(&uid).ok_or(Error::Unexpected(format!(
                 "Couldn't find user: {}",
                 &uid
             )))?;
             eprintln!("Removing conn for uid, {}: {}", uid, conn_id);
-            conns.remove(conn_id);
-            if conns.len() == 0 {
+            user_conns.remove(conn_id);
+            if user_conns.len() == 0 {
                 self.on_offline_user(uid);
             }
         } else {
