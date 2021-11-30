@@ -110,6 +110,7 @@ async fn main() -> Result<(), io::Error> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
+    let host_ip = if env_or("DEV", "0") == "1" { "0.0.0.0" } else { "127.0.0.1" };
     let db = Db::new().await.expect("Could not start DB");
     let adb = Arc::new(db);
     let users = Arc::new(Users::new(adb.clone()));
@@ -162,7 +163,7 @@ async fn main() -> Result<(), io::Error> {
             .service(fs::Files::new("/", "static/").index_file("index.html"))
     })
     // start http server on 127.0.0.1:8080
-    .bind(format!("127.0.0.1:{}", env_or("PORT", "8081")))?
+    .bind(format!("{}:{}", host_ip, env_or("PORT", "8081")))?
     .run()
     .await
 }
