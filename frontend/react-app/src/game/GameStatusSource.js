@@ -9,10 +9,12 @@ let _singleton = null;
 class GameStatusSource extends EventEmitter {
   constructor(socket) {
     super();
-    this._socket = socket;
     this._observing = {};
     this._games = {};
-
+    if (socket == null) {
+      return;
+    }
+    this._socket = socket;
     this._socket.on("current_game",  this._onCurrentGame);
     this._socket.on("current_games", this._onCurrentGames);
     this._socket.on("game_row", this._onGameRow);
