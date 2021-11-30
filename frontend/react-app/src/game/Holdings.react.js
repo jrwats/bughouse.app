@@ -1,20 +1,10 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import HeldPiece from "./HeldPiece.react";
 import { opposite } from "chessground/util";
 
-const PlayerHoldings = ({
-  boardID,
-  chessboard,
-  chessground,
-  color,
-  container,
-  gameID,
-  holdings,
-  onPredrop,
-  viewOnly,
-}) => {
+const PlayerHoldings = (props) => {
   const piece2count = { P: 0, B: 0, N: 0, R: 0, Q: 0 };
-  for (const c of holdings) {
+  for (const c of props.holdings) {
     ++piece2count[c];
   }
   return (
@@ -22,17 +12,11 @@ const PlayerHoldings = ({
       {Object.keys(piece2count).map((piece) => {
         const comp = (
           <HeldPiece
-            boardID={boardID}
-            chessgroundRef={chessground}
-            chessboard={chessboard}
-            container={container}
-            gameID={gameID}
+            {...props}
             key={piece}
-            color={color}
             piece={piece}
+            selected={!props.viewOnly && piece === props.selectedPiece}
             count={piece2count[piece]}
-            viewOnly={viewOnly}
-            onPredrop={onPredrop}
           />
         );
         return comp;
@@ -48,6 +32,8 @@ const Holdings = ({
   gameID,
   height,
   holdings,
+  selectedPiece,
+  onDropSelect,
   onPredrop,
   orientation,
   viewOnly,
@@ -67,7 +53,9 @@ const Holdings = ({
       container={containerRef}
       color={color}
       holdings={playerHoldings}
+      selectedPiece={selectedPiece}
       onPredrop={onPredrop}
+      onDropSelect={onDropSelect}
       viewOnly={color !== orientation}
     />
   );
@@ -92,24 +80,6 @@ const Holdings = ({
         orientation,
         orientation === "white" ? whiteHoldings : blackHoldings
       )}
-      {/* <PlayerHoldings */}
-      {/*   boardID={boardID} */}
-      {/*   gameID={gameID} */}
-      {/*   chessground={chessground} */}
-      {/*   chessboard={chessboard} */}
-      {/*   color={opposite(orientation)} */}
-      {/*   holdings={orientation === "white" ? blackHoldings : whiteHoldings} */}
-      {/*   viewOnly={true} */}
-      {/* /> */}
-      {/* <PlayerHoldings */}
-      {/*   boardID={boardID} */}
-      {/*   gameID={gameID} */}
-      {/*   chessground={chessground} */}
-      {/*   color={orientation} */}
-      {/*   chessboard={chessboard} */}
-      {/*   holdings={orientation === "white" ? whiteHoldings : blackHoldings} */}
-      {/*   viewOnly={viewOnly} */}
-      {/* /> */}
     </div>
   );
 };

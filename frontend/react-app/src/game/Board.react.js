@@ -6,9 +6,11 @@ import GameOverMessage from "./GameOverMessage.react";
 import Holdings from "./Holdings.react";
 import PromotionDialog from "./PromotionDialog.react";
 import invariant from "invariant";
-import { PIECES } from "./Piece";
+import { LETTERS, NAMES, PIECES } from "./Piece";
 import { SocketContext } from "../socket/SocketProvider";
-import { opposite } from "chessground/util";
+import { eventPosition, opposite } from "chessground/util";
+import { cancelDropMode, drop, setDropMode } from "chessground/drop";
+import { whitePov } from "chessground/board";
 import MoveSound from "../sound/nes/Move.mp3";
 import GenericNotifySound from "../sound/nes/GenericNotify.mp3";
 
@@ -60,6 +62,7 @@ const Board = ({
   );
   const [promoVisible, setPromoVisible] = useState(false);
   const [boardData, setBoardData] = useState(chessboard.getBoard());
+  const [selectedPiece, setSelectedPiece] = useState(null);
   const [sz, setSz] = useState(null);
   const pendingMove = useRef({});
   const boardWrapperRef = useRef(null);
@@ -103,11 +106,12 @@ const Board = ({
           playAudio(file);
         }
         if (premove.current != null) {
+          console.log(`sending premove: ${premove.current}`);
           socket.sendEvent("move", { id: gameID, move: premove.current });
           premove.current = null;
           chessgroundRef.current.cg.cancelPremove();
           chessgroundRef.current.cg.cancelPredrop();
-        } 
+        }
       }
       setBoardData(board);
       setFEN(board.fen);
@@ -150,23 +154,26 @@ const Board = ({
         premove.current = `${src}${dest}`;
       },
       unset: () => {
+        console.log(`unsetting premove: ${id}`);
         premove.current = null;
       },
     },
   };
 
   const onPredrop = (move) => {
+    console.log(`onPredrop(${move})`);
     premove.current = move;
-    chessgroundRef.current.cg.cancelPremove();
   };
 
   const predroppable = {
     enabled: true,
     events: {
       set: (role, key) => {
-        debugger;
+        const piece = LETTERS[role].toUpperCase();
+        onPredrop(`${piece}@${key}`);
       },
       unset: () => {
+        console.log(`unsetting predrop: ${id}`);
         premove.current = null;
       },
     },
@@ -176,9 +183,72 @@ const Board = ({
   const turnColor =
     boardFEN != null && boardFEN.split(" ")[1] === "w" ? "white" : "black";
 
-  const players = chessboard.getHandles();
+  const setDropSelect = viewOnly
+    ? (_) => {}
+    : (piece) => {
+      const cg= chessgroundRef.current.cg;
+      setSelectedPiece(piece);
+      if (piece == null) {
+        cancelDropMode(cg.state);
+      } else {
+        // cg.cancelMove();
+        cg.cancelPremove();
+        setDropMode(cg.state, {role: NAMES[piece], color: handleColor});
+      }
+    };
 
-  // console.log(`Board.${chessboard.getID()}: ${viewOnly}, ${isViewOnly(forming, handle, chessboard)}, ${handle}`);
+  const afterNewPiece = (role, dest) => {
+    const piece = LETTERS[role].toUpperCase();
+    console.log(`afterNewpiece(${role}, ${dest})`);
+  }
+
+  const onClick = (evt) => {
+    if (selectedPiece != null) {
+      console.log('click: clearing dropmode');
+      setDropSelect(null);
+    }
+  }
+
+  const onDropNewPiece = (cgPiece, key) => {
+    const piece = LETTERS[cgPiece.role].toUpperCase();
+    socket.sendEvent("move", { id: gameID, move: `${piece}@${key}` });
+    console.log('onDropPiece clearing dropmode');
+    setDropSelect(null);
+  }
+
+  const onMove = (from, to, e) => {
+    console.log(
+      `onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`
+    );
+    setDropSelect(null);
+    const pieces = chessgroundRef.current.cg.state.pieces;
+    if (
+      handleColor === turnColor &&
+      pieces.get(to)?.role === PIECES.PAWN &&
+      ((to[1] === "1" && turnColor === "black") ||
+        (to[1] === "8" && turnColor === "white"))
+    ) {
+      setPromoVisible(true);
+      pendingMove.current = { from, to };
+      return;
+    } else if (chessboard.getStart() > Date.now()) {
+      const cg = chessgroundRef.current.cg;
+      cg.state.premovable.current = [from, to];
+      cg.state.premovable.events.set(from, to);
+      return;
+    }
+
+    // Send UCI formatted move
+    socket.sendEvent("move", {
+      id: gameID,
+      move: `${from}${to}`,
+    });
+
+    // Done so that a gameUpdate will trigger a
+    // re-render if the move was illegal
+    setFEN(null);
+  };
+
   return (
     <div
       ref={boardWrapperRef}
@@ -215,14 +285,16 @@ const Board = ({
           {alert}
           <Holdings
             boardID={id}
+            chessboard={chessboard}
             chessground={chessgroundRef}
             gameID={gameID}
             height={sz}
-            orientation={orientation}
             holdings={holdings}
-            chessboard={chessboard}
-            viewOnly={viewOnly}
+            selectedPiece={selectedPiece}
+            onDropSelect={setDropSelect}
             onPredrop={onPredrop}
+            orientation={orientation}
+            viewOnly={viewOnly}
           />
           <div
             style={{
@@ -232,6 +304,7 @@ const Board = ({
             }}
           >
             <div
+              onClick={onClick}
               style={{
                 position: "absolute",
                 height: sz == null ? "100%" : sz + "px",
@@ -239,54 +312,26 @@ const Board = ({
               }}
             >
               <Chessground
-                ref={chessgroundRef}
-                key={chessboard.getID()}
-                fen={boardFEN}
-                onMove={(from, to, e) => {
-                  const pieces = chessgroundRef.current.cg.state.pieces;
-                  if (
-                    handleColor === turnColor &&
-                    pieces.get(to)?.role === PIECES.PAWN &&
-                    ((to[1] === "1" && turnColor === "black") ||
-                      (to[1] === "8" && turnColor === "white"))
-                  ) {
-                    setPromoVisible(true);
-                    pendingMove.current = { from, to };
-                    return;
-                  } else if (chessboard.getStart() > Date.now()) {
-                    const cg = chessgroundRef.current.cg;
-                    cg.state.premovable.current = [from, to];
-                    cg.state.premovable.events.set(from, to);
-                    console.error(`cg.pm.current: ${cg.state.premovable.current}`);
-                    console.error(`premove.current: ${premove.current}`);
-                    return;
-                  }
-
-                  console.log(
-                    `onMove ${JSON.stringify(from)} ${JSON.stringify(to)}`
-                  );
-                  // Send UCI formatted move
-                  socket.sendEvent("move", {
-                    id: gameID,
-                    move: `${from}${to}`,
-                  });
-
-                  // Done so that a gameUpdate will trigger a
-                  // re-render if the move was illegal
-                  setFEN(null);
-                }}
-                turnColor={turnColor}
-                lastMove={chessboard.getLastMove()}
                 animation={{ enabled: true, duration: 100 }}
+                coordinates={true}
                 disableContextMenu={true}
-                viewOnly={viewOnly}
-                movable={{ color: handleColor ?? undefined }}
-                premovable={viewOnly ? null : premovable}
-                predroppable={viewOnly ? null : predroppable}
+                drawable={{ enabled: false }}
+                fen={boardFEN}
+                key={chessboard.getID()}
+                lastMove={chessboard.getLastMove()}
+                movable={{
+                  color: handleColor ?? undefined,
+                  events: {afterNewPiece},
+                }}
+                onMove={onMove}
+                onDropNewPiece={onDropNewPiece}
                 orientation={orientation}
                 pieceKey={true}
-                coordinates={false}
-                drawable={{ enabled: false }}
+                predroppable={viewOnly ? null : predroppable}
+                premovable={viewOnly ? null : premovable}
+                ref={chessgroundRef}
+                turnColor={turnColor}
+                viewOnly={viewOnly}
               />
             </div>
           </div>

@@ -5,7 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
-    "@jrwats/react-chessground": "^1.5.4",
+    "@jrwats/react-chessground": "^1.6.0",
     "@mui/icons-material": "^5.0.1",
     "@mui/material": "^5.0.1",
     "@mui/styles": "^5.0.1",
@@ -13,7 +13,7 @@
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "chessground": "^8.1.5",
+    "chessground": "^8.1.7",
     "firebase": "^8.9.1",
     "invariant": "^2.2.4",
     "prettier": "^2.3.2",
