@@ -3,7 +3,7 @@ import Draggable from "react-draggable";
 import { NAMES } from "./Piece";
 import { SocketContext } from "../socket/SocketProvider";
 import { drop, setDropMode } from "chessground/drop";
-import { cancelMove, unsetPremove, unsetPredrop, unsetMove, whitePov } from "chessground/board";
+import { cancelMove, unsetPremove, unsetPredrop, whitePov } from "chessground/board";
 
 const HeldPiece = ({
   boardID,
@@ -43,8 +43,6 @@ const HeldPiece = ({
     cancelMove(cg.state);
     unsetPremove(cg.state);
     unsetPredrop(cg.state);
-    // cg.cancelPremove();
-    // cg.cancelPredrop();
     if (chessboard.getColorToMove() !== color) {
       // Try a pre-drop
       cg.set({ predroppable: { current: { role: NAMES[piece], key } } });
@@ -116,7 +114,7 @@ const HeldPiece = ({
             position: "relative",
             visibility: visibility,
             width: "100%",
-            height: "100%", // "calc(12.5% - 3px)",
+            height: "100%",
           }}
         />
           {countCircle}
