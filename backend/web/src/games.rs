@@ -434,6 +434,14 @@ impl Games {
         self.game_observers.observe(*game_id, recipient);
     }
 
+    pub fn unobserve(
+        &self,
+        game_id: &GameID,
+        recipient: Recipient<ClientMessage>,
+    ) {
+        self.game_observers.unobserve(game_id, recipient);
+    }
+
     pub fn remove_recipient(&self, recipient: &Recipient<ClientMessage>) {
         self.game_observers.remove_recipient(recipient);
     }

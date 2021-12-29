@@ -313,12 +313,12 @@ impl Game {
             return GameStatus::Over(result);
         }
         if self.has_empty_seat() {
-            return GameStatus::WaitingForPlayers
+            return GameStatus::WaitingForPlayers;
         }
         let now = Utc::now();
         if let Some(start) = self.start {
             if start > now {
-                return GameStatus::Starting(start - now)
+                return GameStatus::Starting(start - now);
             }
         }
         GameStatus::InProgress

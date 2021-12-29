@@ -565,6 +565,12 @@ impl BugWebSock {
                     .get_game_or_send_row(game_id, ctx.address().recipient())?;
                 ctx.text(msg);
             }
+            "unobserve" => {
+                let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
+                self.data
+                    .server
+                    .unobserve(&game_id, ctx.address().recipient());
+            }
             "refresh" => {
                 let game_id: GameID = Self::get_uuid(&val, "id", kind)?;
                 let msg = self

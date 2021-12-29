@@ -42,8 +42,23 @@ impl Observers {
                 r.insert(hash(&recipient), recipient);
             } else {
                 let mut new_map = HashMap::new();
-                new_map.insert(hash(&recipient), recipient);
+                new_map.insert(anon_id, recipient);
                 games.insert(game_id, new_map);
+            }
+        }
+    }
+
+    pub fn unobserve(
+        &self,
+        game_id: &GameID,
+        recipient: Recipient<ClientMessage>,
+    ) {
+        let anon_id = hash(&recipient);
+        let mut observing = self.observer_to_games.write().unwrap();
+        if let Some(game_id) = observing.remove(&anon_id) {
+            let mut games = self.game_to_observers.write().unwrap();
+            if let Some(recipients) = games.get_mut(&game_id) {
+                recipients.remove(&anon_id);
             }
         }
     }

@@ -346,10 +346,9 @@ impl ConnectionMgr {
         }
         if uid != Uuid::nil() {
             let mut u2c = self.user_conns.write().unwrap();
-            let user_conns = u2c.get_mut(&uid).ok_or(Error::Unexpected(format!(
-                "Couldn't find user: {}",
-                &uid
-            )))?;
+            let user_conns = u2c.get_mut(&uid).ok_or(Error::Unexpected(
+                format!("Couldn't find user: {}", &uid),
+            ))?;
             eprintln!("Removing conn for uid, {}: {}", uid, conn_id);
             user_conns.remove(conn_id);
             if user_conns.len() == 0 {

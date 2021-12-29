@@ -110,7 +110,11 @@ async fn main() -> Result<(), io::Error> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
-    let host_ip = if env_or("DEV", "0") == "1" { "0.0.0.0" } else { "127.0.0.1" };
+    let host_ip = if env_or("DEV", "0") == "1" {
+        "0.0.0.0"
+    } else {
+        "127.0.0.1"
+    };
     let db = Db::new().await.expect("Could not start DB");
     let adb = Arc::new(db);
     let users = Arc::new(Users::new(adb.clone()));

@@ -944,4 +944,12 @@ impl BughouseServer {
     ) {
         self.games.observe(game_id, recipient)
     }
+
+    pub fn unobserve(
+        &'static self,
+        game_id: &GameID,
+        recipient: Recipient<ClientMessage>,
+    ) {
+        self.games.unobserve(game_id, recipient)
+    }
 }
