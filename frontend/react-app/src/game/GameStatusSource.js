@@ -43,7 +43,7 @@ class GameStatusSource extends EventEmitter {
     if (data.add) {
       this._games[data.id] = BughouseGame.init(data);
     } else if (data.update) {
-      this._games[data.id].update(data);
+      this._games[data.id].update(data.game);
     } else if (data.rm) {
       delete this._games[data.id];
     }

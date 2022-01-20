@@ -398,7 +398,8 @@ impl Games {
         let game_json =
             GameJson::new(ar_game.clone(), Self::get_kind(ar_game.clone()));
         Self::debug_print_clocks(ar_game.clone());
-        self.notify_game_observers(ar_game, game_json);
+        self.notify_game_observers(ar_game.clone(), game_json);
+        self.notify_current_subs(TableUpdateType::Update, ar_game);
     }
 
     pub fn is_in_game(&self, uid: &UserID) -> bool {
