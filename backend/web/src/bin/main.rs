@@ -107,7 +107,7 @@ fn get_cors() -> Cors {
 
 // TODO: read an env var
 fn get_redis_key() -> Key {
-    Key::from(&[0; 32])
+    Key::from(&[0; 64])
 }
 
 
