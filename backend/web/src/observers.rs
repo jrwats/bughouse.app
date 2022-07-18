@@ -87,8 +87,7 @@ impl Observers {
                     }
                 }
                 println!("  obs notify: {}", conn_id);
-                let res = recipient.do_send(msg.clone());
-                if let Err(e) = res {
+                if let Err(e) = recipient.try_send(msg.clone()) {
                     eprintln!("Failed sending anon msg: {}", e);
                 }
             }

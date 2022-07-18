@@ -18,7 +18,7 @@ use crate::db::{Db, TableSnapshot, UserRatingSnapshot};
 use crate::error::Error;
 use crate::firebase;
 use crate::firebase::{FirebaseID, ProviderID};
-use crate::game::{Game, GameID, GamePlayers, GameResult, GameStatus};
+use crate::game::{Game, GameID, GamePlayers, GameStatus};
 use crate::game_json::GameJson;
 use crate::games::{GameUserHandler, Games};
 use crate::messages::{
@@ -452,7 +452,7 @@ impl BughouseServer {
         game_id: &GameID,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        self.loopback.do_send(ServerMessage::new(
+        self.loopback.try_send(ServerMessage::new(
             ServerMessageKind::GetGameRow(*game_id, recipient),
         ))?;
         Ok(())
@@ -465,7 +465,7 @@ impl BughouseServer {
     ) -> Result<ClientMessage, Error> {
         println!("send_game_row({}, {:?})", game_id, recipient);
         let res = self.db.get_game_row(&game_id).await;
-        if let Err(e) = res {
+        if let Err(_e) = res {
             let err = json!({
                 "kind": "err",
                 "err": {
@@ -495,7 +495,7 @@ impl BughouseServer {
         let bytestr = Arc::new(ByteString::from(payload.to_string()));
         let msg = ClientMessage::new(ClientMessageKind::Text(bytestr));
         // let res = self.conns.send_to_conn(conn_id, msg.clone());
-        let res = recipient.do_send(msg.clone());
+        let res = recipient.try_send(msg.clone());
         if res.is_err() {
             eprintln!("Error sending to: {:?}", recipient);
         } else {
@@ -527,7 +527,7 @@ impl BughouseServer {
         conn_id: &ConnID,
     ) -> Result<(), Error> {
         let uid = self.uid_from_conn(conn_id)?;
-        self.loopback.do_send(ServerMessage::new(
+        self.loopback.try_send(ServerMessage::new(
             ServerMessageKind::SetHandle(handle, uid),
         ))?;
         Ok(())
@@ -568,7 +568,7 @@ impl BughouseServer {
         conn_id: &ConnID,
     ) -> Result<(), Error> {
         self.loopback
-            .do_send(ServerMessage::new(ServerMessageKind::Sit(
+            .try_send(ServerMessage::new(ServerMessageKind::Sit(
                 *game_id, board_id, color, *conn_id,
             )))?;
         Ok(())
@@ -581,7 +581,7 @@ impl BughouseServer {
         color: Color,
         recipient: Recipient<ClientMessage>,
     ) -> Result<(), Error> {
-        self.loopback.do_send(ServerMessage::new(
+        self.loopback.try_send(ServerMessage::new(
             ServerMessageKind::Vacate(*game_id, board_id, color, recipient),
         ))?;
         Ok(())
@@ -637,7 +637,7 @@ impl BughouseServer {
         public: bool,
         conn_id: &ConnID,
     ) -> Result<(), Error> {
-        self.loopback.do_send(ServerMessage::new(
+        self.loopback.try_send(ServerMessage::new(
             ServerMessageKind::FormTable(time_ctrl, rated, public, *conn_id),
         ))?;
         Ok(())
@@ -790,7 +790,7 @@ impl BughouseServer {
             self.loopback.try_send(msg)?;
         }
         // A successful move will change which clock is at risk for flagging
-        self.loopback.do_send(ServerMessage::new(
+        self.loopback.try_send(ServerMessage::new(
             ServerMessageKind::CheckGame(game_id),
         ))?;
         Ok(())

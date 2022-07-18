@@ -143,7 +143,7 @@ impl ConnectionMgr {
     ) -> Result<(), Error> {
         let conns = self.conns.read().unwrap();
         let conn = conns.get(conn_id).unwrap();
-        conn.recipient().do_send(msg)?;
+        conn.recipient().do_send(msg);
         Ok(())
     }
 
@@ -158,7 +158,7 @@ impl ConnectionMgr {
                         continue;
                     }
                     let conn = maybe_conn.unwrap();
-                    let res = conn.recipient().do_send(msg.clone());
+                    let res = conn.recipient().try_send(msg.clone());
                     if let Err(e) = res {
                         eprintln!("Failed sending msg: {:?}", e);
                         if let SendError::Closed(_) = e {
@@ -285,8 +285,7 @@ impl ConnectionMgr {
     fn notify_user_handlers(&self, msg: UserStateMessage) {
         let rhandlers = self.user_handlers.read().unwrap();
         for handler in rhandlers.iter() {
-            let res = handler.do_send(msg.clone());
-            if let Err(e) = res {
+            if let Err(e) = handler.try_send(msg.clone()) {
                 eprintln!("Failed sending to user handler: {}", e);
             }
         }
@@ -322,7 +321,7 @@ impl ConnectionMgr {
         {
             let rsubs = self.subs.read().unwrap();
             for sub in rsubs.iter() {
-                let res = sub.do_send(msg.clone());
+                let res = sub.try_send(msg.clone());
                 if res.is_err() {
                     eprintln!(
                         "Couldn't update sub: {}",

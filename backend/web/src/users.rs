@@ -1,5 +1,5 @@
 use num;
-use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::cql_to_rust::FromCqlVal;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};

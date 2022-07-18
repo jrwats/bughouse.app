@@ -2,7 +2,7 @@ use bughouse::{
     BughouseMove, ALL_COLORS, ALL_PIECES, ALL_SQUARES, BOARD_IDS, NUM_PIECES,
 };
 use chrono::Duration;
-use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::cql_to_rust::FromCqlVal;
 use scylla::frame::value::Timestamp as ScyllaTimestamp;
 use scylla::macros::{FromRow, FromUserType};
 use serde_json::{json, Value};

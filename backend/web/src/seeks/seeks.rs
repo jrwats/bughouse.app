@@ -95,7 +95,7 @@ impl Seeks {
 
     pub fn clean_user(&self, uid: UserID) {
         if let Some(pool) = self.get_user_pool(&uid) {
-            self.clean_users(&pool, std::array::IntoIter::new([uid]).collect());
+            self.clean_users(&pool, IntoIterator::into_iter([uid]).collect());
         }
     }
 
@@ -200,7 +200,7 @@ impl Seeks {
     ) -> Result<(), Error> {
         self.clean_users(
             &seek_pool,
-            std::array::IntoIter::new([uid]).collect(),
+            IntoIterator::into_iter([uid]).collect(),
         );
         Ok(())
     }

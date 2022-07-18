@@ -91,7 +91,7 @@ impl Actor for BugWebSock {
 }
 
 /// BughouseSever sends these messages to Socket session
-impl Handler<ClientMessage> for BugWebSock {
+impl actix::Handler<ClientMessage> for BugWebSock {
     type Result = ();
     fn handle(
         &mut self,
@@ -135,7 +135,7 @@ impl Handler<ClientMessage> for BugWebSock {
 #[rtype(result = "()")]
 pub struct TextPassthru(pub String);
 
-impl Handler<TextPassthru> for BugWebSock {
+impl actix::Handler<TextPassthru> for BugWebSock {
     type Result = ();
     fn handle(
         &mut self,
@@ -586,7 +586,7 @@ impl BugWebSock {
                 println!("firebase_token: {}", token);
                 self.data
                     .srv_recipient
-                    .do_send(ServerMessage::new(ServerMessageKind::Auth(
+                    .try_send(ServerMessage::new(ServerMessageKind::Auth(
                         ctx.address().recipient(),
                         token.to_string(),
                     )))

@@ -2,7 +2,7 @@ use super::rfc_3339::Rfc3339;
 use super::user_games_fetcher::{
     CompleteGameRow, CompleteRatingSnapshot, TimeComp, UserGamesFetcher,
 };
-use crate::async_graphql_actix_web::lib::{Request, Response};
+use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use crate::b66::B66;
 use crate::bug_web_sock::BugContext;
 use crate::game::GameResult;
@@ -12,8 +12,8 @@ use actix_web::*;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use async_graphql::connection::{query, Connection, Edge, EmptyFields};
 use async_graphql::{
-    ComplexObject, Context, EmptyMutation, EmptySubscription, Interface,
-    Object, ObjectType, Schema, SimpleObject,
+    Context, EmptyMutation, EmptySubscription, Interface,
+    Object, ObjectType, Schema
 };
 use chrono::prelude::*;
 use std::sync::{Arc, RwLock};
@@ -70,6 +70,7 @@ impl User {
         last: Option<i32>,
     ) -> async_graphql::Result<
         Connection<Rfc3339, UserGame, GraphQLUserGamesFields, EmptyFields>,
+        async_graphql::Error,
     > {
         let bug_ctx = ctx.data::<BugContext>().unwrap();
         let db = bug_ctx.db.clone();
@@ -104,8 +105,8 @@ impl User {
                 let fields = GraphQLUserGamesFields { uid: self.0.read().unwrap().id };
                 let mut conn =
                     Connection::with_additional_fields(has_previous_page, has_next_page, fields);
-                conn.append(edges);
-                return Ok(conn);
+                conn.edges = edges;
+                Ok::<_, async_graphql::Error>(conn)
         }).await
     }
 }
@@ -267,7 +268,7 @@ impl QueryRoot {
 pub async fn gql_handle_schema_with_header<T: ObjectType + 'static>(
     schema: actix_web::web::Data<Schema<T, EmptyMutation, EmptySubscription>>,
     req: HttpRequest,
-    gql_request: Request,
+    gql_request: GraphQLRequest,
     // session: Session,
     // context: web::Data<BugContext>,
 ) -> Result<HttpResponse, actix_web::Error> {
@@ -282,6 +283,6 @@ pub async fn gql_handle_schema_with_header<T: ObjectType + 'static>(
     if let Some(name) = name {
         request = request.data(name);
     }
-    let response: Response = schema.execute(request).await.into();
+    let response: GraphQLResponse = schema.execute(request).await.into();
     Ok(response.respond_to(&req))
 }

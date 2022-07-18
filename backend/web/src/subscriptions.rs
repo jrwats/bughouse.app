@@ -33,7 +33,7 @@ impl Subscriptions {
         let mut subs_to_remove = Vec::new();
         let rsubs: &HashSet<Recipient<ClientMessage>> = &self.subs;
         for recipient in rsubs.iter() {
-            let res = recipient.do_send(msg.clone());
+            let res = recipient.try_send(msg.clone());
             if let Err(e) = res {
                 if let SendError::Closed(_) = e {
                     subs_to_remove.push(recipient.clone());

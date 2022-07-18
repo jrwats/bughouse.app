@@ -1,8 +1,8 @@
 use actix::prelude::*;
 use actix_cors::Cors;
 use actix_files as fs;
-use actix_redis::RedisSession;
-use actix_session::Session; //, CookieSession};
+use actix_session::{Session, SessionMiddleware, storage::RedisActorSessionStore};
+use actix_web::cookie::Key;
 use actix_web::*;
 use actix_web::{middleware, web, App, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
@@ -105,8 +105,14 @@ fn get_cors() -> Cors {
         .allowed_methods(vec!["GET", "POST"])
 }
 
+// TODO: read an env var
+fn get_redis_key() -> Key {
+    Key::from(&[0; 32])
+}
+
+
 #[actix_web::main]
-async fn main() -> Result<(), io::Error> {
+async fn main() -> io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
     env_logger::init();
 
@@ -132,7 +138,7 @@ async fn main() -> Result<(), io::Error> {
             adb.clone(),
             users.clone(),
         );
-        let session = RedisSession::new("127.0.0.1:6379", &[0; 32]);
+        let redis = RedisActorSessionStore::new("127.0.0.1:6379");
         let schema = Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
             .data(context.clone())
             .data(adb.clone())
@@ -143,7 +149,7 @@ async fn main() -> Result<(), io::Error> {
             // enable logger
             .wrap(middleware::Logger::default())
             // enable logger
-            .wrap(session)
+            .wrap(SessionMiddleware::new(redis, get_redis_key()))
             // websocket route
             .service(web::resource("/ws/").to(ws_route))
             // auth / session route

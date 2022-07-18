@@ -6,7 +6,7 @@ use crate::game_row::UserGameRow;
 use crate::users::UserID;
 use chrono::prelude::*;
 use chrono::Duration;
-use scylla::cql_to_rust::{FromCqlVal, FromRow};
+use scylla::cql_to_rust::FromCqlVal;
 use scylla::macros::{FromRow, FromUserType, IntoUserType};
 use scylla::transport::session::IntoTypedRows;
 use std::collections::{HashMap, HashSet};
