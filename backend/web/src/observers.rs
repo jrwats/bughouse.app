@@ -33,9 +33,12 @@ impl Observers {
     ) {
         let anon_id = hash(&recipient);
         let mut observing = self.observer_to_games.write().unwrap();
+
+        // You can observe one game at a time
         if let Some(old_game_id) = observing.insert(anon_id, game_id) {
             self.remove_from_game(&anon_id, &old_game_id);
         }
+
         {
             let mut games = self.game_to_observers.write().unwrap();
             if let Some(r) = games.get_mut(&game_id) {
@@ -55,7 +58,11 @@ impl Observers {
     ) {
         let anon_id = hash(&recipient);
         let mut observing = self.observer_to_games.write().unwrap();
-        if let Some(game_id) = observing.remove(&anon_id) {
+        if let Some(observing_game_id) = observing.remove(&anon_id) {
+            if *game_id != observing_game_id {
+                eprintln!("unsubserve({}) doesn't match observing: {}", game_id, observing_game_id);
+                return;
+            }
             let mut games = self.game_to_observers.write().unwrap();
             if let Some(recipients) = games.get_mut(&game_id) {
                 recipients.remove(&anon_id);

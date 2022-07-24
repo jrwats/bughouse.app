@@ -635,7 +635,7 @@ impl Db {
 
     pub async fn get_handles(
         &self,
-        uids: &Vec<UserID>,
+        uids: Vec<UserID>,
     ) -> Result<HashMap<Uuid, String>, Error> {
         let res = self
             .session

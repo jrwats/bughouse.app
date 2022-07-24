@@ -28,8 +28,8 @@ impl CompleteRatingSnapshot {
         self.rating
     }
 
-    async fn handle(&self) -> &str {
-        &self.handle
+    async fn handle(&self) -> String {
+        self.handle.to_string()
     }
 
     async fn uid(&self) -> String {
@@ -153,17 +153,15 @@ impl UserGamesFetcher {
             }
 
             // TODO: Cache uid => handle in REDIS to avoid double hop?
-            let mut uids: HashSet<UserID> = HashSet::new();
+            let mut huids: HashSet<UserID> = HashSet::new();
             for user_game in &user_games {
                 let ((aw, ab), (bw, bb)) = user_game.players;
                 for s in [aw, ab, bw, bb].iter() {
-                    uids.insert(s.uid);
+                    huids.insert(s.uid);
                 }
             }
-            let uid2handle = self
-                .db
-                .get_handles(&uids.into_iter().collect::<Vec<UserID>>())
-                .await?;
+            let uids = huids.into_iter().collect::<Vec<_>>();
+            let uid2handle = self.db.get_handles(uids).await?;
             let complete_games = user_games
                 .iter()
                 .map(|g| Self::complete_game_row(g, &uid2handle))
