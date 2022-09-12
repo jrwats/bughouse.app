@@ -1,12 +1,9 @@
-import firebase from "firebase/app";
-
-const logout = (socket) => {
+const logout = (auth, socket) => {
   if (socket != null) {
     socket.destroy();
   }
   console.log("logging out");
-  firebase
-    .auth()
+  auth()
     .signOut()
     .then(() => {
       console.log("firebase signed out");

@@ -11,7 +11,7 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import NetworkCheckIcon from "@mui/icons-material/NetworkCheck";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import { AuthListener } from "./auth/AuthProvider";
+import { AuthContext, AuthListener } from "./auth/AuthProvider";
 import discordLogo from "./images/Discord_Logo_White.svg";
 
 // TODO - animate menu depending on open/close state
@@ -85,6 +85,7 @@ function getPing(ping) {
   return ping.toLocaleString(undefined, { maximumSignificantDigits: 2 }) + "ms";
 }
 const SideMenu = ({ style }) => {
+  const { auth } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { socket, ping } = useContext(SocketContext);
   const { handle } = useContext(ViewerContext);
@@ -178,10 +179,10 @@ const SideMenu = ({ style }) => {
         </div>
 
         <div style={{ borderTop: "1px solid #303030" }}>
-          <a href="https://discord.gg/aRTXJ9essk" target="_blank">
+          <a href="https://discord.gg/aRTXJ9essk" target="_blank" rel="noreferrer">
             <StyledMenuItem>
               <ListItemIcon>
-                <img src={discordLogo} style={{ maxHeight: "1em" }} />
+                <img alt="Discord" src={discordLogo} style={{ maxHeight: "1em" }} />
               </ListItemIcon>
               <ListItemText primary={`Discord`} />
             </StyledMenuItem>
@@ -191,6 +192,7 @@ const SideMenu = ({ style }) => {
             action="https://www.paypal.com/donate"
             method="post"
             target="_blank"
+            rel="noreferrer"
           >
             <img
               alt=""
@@ -220,7 +222,7 @@ const SideMenu = ({ style }) => {
           <StyledMenuItem
             onClick={(e) => {
               AuthListener.__clearFakeFirebaseID();
-              logout(socket);
+              logout(auth, socket);
             }}
           >
             <ListItemIcon>

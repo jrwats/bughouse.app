@@ -6,16 +6,14 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import logout from "./logout";
 
 const AppSignOut = () => {
-  const { user } = useContext(AuthContext);
+  const { auth, user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
   return (
     <Button
       disabled={user == null}
       variant="contained"
       color="primary"
-      onClick={(e) => {
-        logout(socket);
-      }}
+      onClick={(e) => { logout(auth, socket); }}
     >
       <ExitToAppIcon style={{ paddingRight: "10px" }} />
       Sign out

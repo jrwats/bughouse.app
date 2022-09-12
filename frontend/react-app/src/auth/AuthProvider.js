@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from "react";
 import auth from "./firebase-init";
+import { onAuthStateChanged } from "firebase/auth";
 import { EventEmitter } from "events";
 
 function needsEmailVerification(user) {
@@ -36,7 +37,7 @@ class _AuthListener extends EventEmitter {
     this._pendingInit = true;
     this._needsEmailVerified = needsEmailVerification(this._user);
     console.log(`needsEmailVerification: ${this._needsEmailVerified}`);
-    auth.onAuthStateChanged(userAuth => this.onAuth(userAuth));
+    onAuthStateChanged(auth, userAuth => this.onAuth(userAuth));
   }
 
   onAuth(userAuth) {
@@ -94,6 +95,7 @@ export const AuthListener = {
  * Provide authenticated firebase user as context to child components
  */
 export const AuthContext = createContext({
+  auth,
   user: getUser(auth),
   needsEmailVerified: false,
   claims: {},
@@ -123,7 +125,7 @@ const AuthProvider = (props) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, claims, needsEmailVerified, pendingInit }}
+      value={{ auth, user, claims, needsEmailVerified, pendingInit }}
     >
       {props.children}
     </AuthContext.Provider>
