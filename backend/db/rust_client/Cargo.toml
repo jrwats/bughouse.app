@@ -10,7 +10,7 @@ edition = "2018"
 scylla = "0.1.0"
 anyhow = "1.0.33"
 futures = "0.3.6"
-openssl = "0.10.32"
+openssl = "0.10.48"
 rustyline = "6.3.0"
 tokio = {version = "1.6.0", features = ["full"]}
 tracing = "0.1.25"
